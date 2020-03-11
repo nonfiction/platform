@@ -1,0 +1,92 @@
+version: "3.7"
+
+networks:
+  traefik:
+    name: traefik
+    external: true
+
+services:
+
+  traefik:
+    image: traefik:v2.1
+    container_name: traefik
+
+    command:
+      - --api.insecure
+
+      - --providers.docker
+      - --providers.docker.network=traefik
+      - --providers.docker.exposedbydefault=false
+
+      # Allow backend services to serve https with self-signed certs
+      - --serversTransport.insecureSkipVerify=true
+
+      # - --providers.file.directory=/external_sites
+      # - --providers.file.watch=true
+
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+
+      - --certificatesResolvers.digitalocean.acme.dnsChallenge=true
+      - --certificatesResolvers.digitalocean.acme.dnsChallenge.provider=digitalocean
+      - --certificatesresolvers.digitalocean.acme.email=dns@nonfiction.ca
+      - --certificatesresolvers.digitalocean.acme.storage=/acme.json
+      - --certificatesResolvers.digitalocean.acme.dnsChallenge.resolvers=1.1.1.1:53,8.8.8.8:53
+      - --certificatesresolvers.digitalocean.acme.dnschallenge.delaybeforecheck=0
+
+    restart: unless-stopped
+
+    networks:
+      - traefik
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    environment:
+      - DO_AUTH_TOKEN=${DO_AUTH_TOKEN}
+
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./data/acme.json:/acme.json"
+
+    labels:
+      traefik.enable: "true"
+
+      # Global wildcard certificates
+      traefik.http.routers.wildcard-certs.tls.certresolver: "digitalocean"
+      traefik.http.routers.wildcard-certs.tls.domains[0].main: "${APP_HOST}"
+      traefik.http.routers.wildcard-certs.tls.domains[0].sans: "*.${APP_HOST}"
+
+      # Global redirect to https
+      traefik.http.routers.http-catchall.rule: "hostregexp(`{host:.+}`)"
+      traefik.http.routers.http-catchall.entrypoints: "web"
+      traefik.http.routers.http-catchall.middlewares: "redirect-to-https@docker"
+      traefik.http.middlewares.redirect-to-https.redirectscheme.scheme: "https"
+
+      # Dashboard
+      traefik.http.routers.traefik.rule: "Host(`traefik.${APP_HOST}`)"
+      traefik.http.routers.traefik.entrypoints: "websecure"
+      traefik.http.routers.traefik.tls: "true"
+      traefik.http.routers.traefik.service: "api@internal"
+
+  portainer:
+    image: portainer/portainer:latest
+    container_name: portainer
+
+    restart: unless-stopped
+
+    networks:
+      - traefik
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./data:/data
+
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.portainer.rule: "Host(`portainer.${APP_HOST}`)"
+      traefik.http.routers.portainer.entrypoints: "websecure"
+      traefik.http.routers.portainer.tls.certresolver: "digitalocean"
+      traefik.http.routers.portainer.service: "portainer"
+      traefik.http.services.portainer.loadbalancer.server.port: "9000"
