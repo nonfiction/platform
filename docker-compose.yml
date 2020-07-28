@@ -8,7 +8,7 @@ networks:
 services:
 
   traefik:
-    image: traefik:v2.1
+    image: traefik:v2.2.7
     container_name: traefik
 
     command:

@@ -2,59 +2,23 @@
 
 ## Steps
 
+### 1. Create droplet
 
-### 1. Create Docker Droplet
+[Ubuntu 18.04.3 LTS](https://cloud.digitalocean.com/droplets/new?fleetUuid=12c6d9bb-b1ea-4af7-b322-651589b09d8e&i=bc4e87&size=s-2vcpu-4gb&region=tor1&distro=ubuntu&distroImage=ubuntu-18-04-x64&options=backups,install_agent)
 
-  <https://cloud.digitalocean.com/marketplace/5ba19751fc53b8179c7a0071>
+- Select SSH keys
+- Enter hostname (app1.example.com)
+- Add tag "docker"
+- If the DNS record you want already exists, delete it from Digital Ocean before proceeding
 
-### 2. Create DNS record pointing to this IP. For example: 
+### 2. Run setup script
 
-  ```
-  A dev1.example.com 
-  A *.dev1.example.com
-  ```
+Login to droplet `ssh root@DROPLET.IP.ADDRESS`, complete these variables, and run this script:
 
-### 3. Set hostname/FQDN and update .env
+    export APP_HOST=app1
+    export DOMAIN=exmaple.com
+    export DO_AUTH_TOKEN=
+    export BASICAUTH=
+    curl -sSL https://gist.github.com/suderman/79cf2ede48eabd05e09555db8be89a3a/raw/docker-host.sh | bash
 
-  ```
-  ssh root@dev1.example.com
-  hostnamectl set-hostname dev1.example.com
-  vi .env
-  ```
-
-### 4. Configure SSH
-
-  <https://github.com/docker/compose/issues/6463>
-
-  ```
-  echo "MaxSessions 500" >> /etc/ssh/sshd_config
-  service ssh restart
-  ```
-
-### 5. Install docker-compose
-
-  <https://docs.docker.com/compose/install/>
-
-  ```
-  curl -L "https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-  chmod +x /usr/local/bin/docker-compose
-  ```
-
-### 6. Clone this repository
-
-  ```
-  git clone git@github.com:nonfiction/docker-host.git
-  ```
-
-### 7. Create network, .env and data
-  
-  ```
-  make init
-  ```
-
-
-### 5. Start services
-
-  ```
-  make up
-  ```
+Click yes to any prompts. Let's Encrypt certificates sometimes take a while. It's also a good time to reboot while the server is fresh.
