@@ -19,6 +19,6 @@ Login to droplet `ssh root@DROPLET.IP.ADDRESS`, complete these variables, and ru
     export DOMAIN=exmaple.com
     export DO_AUTH_TOKEN=
     export BASICAUTH=
-    curl -sSL https://gist.github.com/suderman/79cf2ede48eabd05e09555db8be89a3a/raw/docker-host.sh | bash
+    curl -sSL https://github.com/nonfiction/docker-host/raw/master/install.sh | bash
 
 Click yes to any prompts. Let's Encrypt certificates sometimes take a while. It's also a good time to reboot while the server is fresh.
