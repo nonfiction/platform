@@ -1,3 +1,5 @@
+include .env
+
 init: .env data network
 
 .env:
@@ -13,7 +15,10 @@ network:
 	docker network create traefik
 
 up: 
-	docker-compose up -d
+	APP_HOST=$(APP_HOST) docker-compose up -d
 
 down: 
 	docker-compose down
+
+logs: 
+	docker-compose logs -f
