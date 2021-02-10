@@ -71,7 +71,7 @@ services:
       traefik.http.routers.traefik.service: "api@internal"
 
   portainer:
-    image: portainer/portainer:latest
+    image: portainer/portainer-ce:latest
     container_name: portainer
 
     restart: unless-stopped
