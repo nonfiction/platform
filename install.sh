@@ -56,6 +56,15 @@ cd /root/docker-host && make init
 echo "APP_HOST=${APP_HOST}.${DOMAIN}" > /root/docker-host/.env 
 echo "BASICAUTH=${BASICAUTH}" >> /root/docker-host/.env 
 echo "DO_AUTH_TOKEN=${DO_AUTH_TOKEN}" >> /root/docker-host/.env
+echo "GIT_USER_NAME=${GIT_USER_NAME}" >> /root/docker-host/.env
+echo "GIT_USER_EMAIL=${GIT_USER_EMAIL}" >> /root/docker-host/.env
+echo "CODE_PASSWORD=${CODE_PASSWORD}" >> /root/docker-host/.env
+echo "SUDO_PASSWORD=${SUDO_PASSWORD}" >> /root/docker-host/.env
+echo "DB_USER=${DB_USER}" >> /root/docker-host/.env
+echo "DB_PASSWORD=${DB_PASSWORD}" >> /root/docker-host/.env
+echo "DB_HOST=${DB_HOST}" >> /root/docker-host/.env
+echo "DB_PORT=${DB_PORT}" >> /root/docker-host/.env
+
 cd /root/docker-host && make up
 
 # Auto-prune Docker with cron

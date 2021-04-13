@@ -21,8 +21,8 @@ services:
       # Allow backend services to serve https with self-signed certs
       - --serversTransport.insecureSkipVerify=true
 
-      # - --providers.file.directory=/external_sites
-      # - --providers.file.watch=true
+      - --providers.file.directory=/root/docker-host/config
+      - --providers.file.watch=true
 
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
@@ -70,6 +70,7 @@ services:
       traefik.http.routers.traefik.tls: "true"
       traefik.http.routers.traefik.service: "api@internal"
 
+
   portainer:
     image: portainer/portainer:latest
     container_name: portainer
@@ -80,8 +81,8 @@ services:
       - traefik
 
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/portainer:/data
 
     labels:
       traefik.enable: "true"
@@ -90,3 +91,31 @@ services:
       traefik.http.routers.portainer.tls.certresolver: "digitalocean"
       traefik.http.routers.portainer.service: "portainer"
       traefik.http.services.portainer.loadbalancer.server.port: "9000"
+
+
+  workspace:
+    image: nonfiction/workspace:latest
+    container_name: workspace
+    env_file: .env
+
+    restart: unless-stopped
+
+    networks:
+      - traefik
+
+    volumes:
+      - ./data/work:/home/nonfiction/work
+      - ./data/share:/home/nonfiction/.local/share
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.workspace.rule: "Host(`workspace.${APP_HOST}`)"
+      traefik.http.routers.workspace.entrypoints: "websecure"
+      traefik.http.routers.workspace.tls.certresolver: "digitalocean"
+      traefik.http.routers.workspace.service: "workspace"
+      traefik.http.services.workspace.loadbalancer.server.port: "8443"
+      traefik.http.services.workspace.loadbalancer.server.scheme: "https"
+
+    ports:
+      - "2222:2222"
