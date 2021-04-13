@@ -12,7 +12,7 @@ apt-get update
 apt-get --yes upgrade
 
 # Install deps
-apt-get --yes install zsh mosh fail2ban build-essential apt-transport-https ca-certificates gnupg-agent software-properties-common curl make unzip apache2-utils davfs2 
+apt-get --yes install zsh mosh fail2ban build-essential apt-transport-https ca-certificates gnupg-agent software-properties-common curl make unzip apache2-utils
 
 # Automatic Security patches
 apt-get --yes install unattended-upgrades
