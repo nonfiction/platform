@@ -10,6 +10,7 @@ services:
   traefik:
     image: traefik:v2.2.7
     container_name: traefik
+    env_file: .env
 
     command:
       - --api.insecure
@@ -42,9 +43,6 @@ services:
     ports:
       - "80:80"
       - "443:443"
-
-    environment:
-      - DO_AUTH_TOKEN=${DO_AUTH_TOKEN}
 
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
@@ -105,6 +103,7 @@ services:
       - traefik
 
     volumes:
+      - .:/root/platform
       - ./data/work:/home/nonfiction/work
       - ./data/share:/home/nonfiction/.local/share
       - /var/run/docker.sock:/var/run/docker.sock

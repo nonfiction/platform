@@ -14,9 +14,8 @@ data:
 network:
 	docker network create traefik
 
-up: 
-	APP_HOST=$(APP_HOST) DO_AUTH_TOKEN=$(DO_AUTH_TOKEN) docker-compose up -d
-
+up:
+	docker-compose up -d
 down: 
 	docker-compose down
 
