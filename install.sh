@@ -50,22 +50,22 @@ curl -L "https://github.com/docker/compose/releases/download/$COMPOSE_VERSION/do
 chmod +x /usr/local/bin/docker-compose
 curl -L https://raw.githubusercontent.com/docker/compose/$COMPOSE_VERSION/contrib/completion/bash/docker-compose > /etc/bash_completion.d/docker-compose
 
-# Install docker-host
-git clone https://github.com/nonfiction/docker-host.git /root/docker-host
-cd /root/docker-host && make init
-echo "APP_HOST=${APP_HOST}.${DOMAIN}" > /root/docker-host/.env 
-echo "BASICAUTH=${BASICAUTH}" >> /root/docker-host/.env 
-echo "DO_AUTH_TOKEN=${DO_AUTH_TOKEN}" >> /root/docker-host/.env
-echo "GIT_USER_NAME=${GIT_USER_NAME}" >> /root/docker-host/.env
-echo "GIT_USER_EMAIL=${GIT_USER_EMAIL}" >> /root/docker-host/.env
-echo "CODE_PASSWORD=${CODE_PASSWORD}" >> /root/docker-host/.env
-echo "SUDO_PASSWORD=${SUDO_PASSWORD}" >> /root/docker-host/.env
-echo "DB_USER=${DB_USER}" >> /root/docker-host/.env
-echo "DB_PASSWORD=${DB_PASSWORD}" >> /root/docker-host/.env
-echo "DB_HOST=${DB_HOST}" >> /root/docker-host/.env
-echo "DB_PORT=${DB_PORT}" >> /root/docker-host/.env
+# Install platform
+git clone https://github.com/nonfiction/platform.git /root/platform
+cd /root/platform && make init
+echo "APP_HOST=${APP_HOST}.${DOMAIN}" > /root/platform/.env 
+echo "BASICAUTH=${BASICAUTH}" >> /root/platform/.env 
+echo "DO_AUTH_TOKEN=${DO_AUTH_TOKEN}" >> /root/platform/.env
+echo "GIT_USER_NAME=${GIT_USER_NAME}" >> /root/platform/.env
+echo "GIT_USER_EMAIL=${GIT_USER_EMAIL}" >> /root/platform/.env
+echo "CODE_PASSWORD=${CODE_PASSWORD}" >> /root/platform/.env
+echo "SUDO_PASSWORD=${SUDO_PASSWORD}" >> /root/platform/.env
+echo "DB_USER=${DB_USER}" >> /root/platform/.env
+echo "DB_PASSWORD=${DB_PASSWORD}" >> /root/platform/.env
+echo "DB_HOST=${DB_HOST}" >> /root/platform/.env
+echo "DB_PORT=${DB_PORT}" >> /root/platform/.env
 
-cd /root/docker-host && make up
+cd /root/platform && make up
 
 # Auto-prune Docker with cron
 echo "0 3 * * * root /usr/bin/docker system prune -f > /dev/null 2>&1" >> /etc/crontab

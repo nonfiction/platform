@@ -1,4 +1,4 @@
-# Docker Host
+# nonfiction Platform
 
 ## Steps
 
@@ -27,6 +27,6 @@ Login to droplet `ssh root@DROPLET.IP.ADDRESS`, complete these variables, and ru
     export DB_PASSWORD=
     export DB_HOST=
     export DB_PORT=
-    curl -sSL https://github.com/nonfiction/docker-host/raw/master/install.sh | bash
+    curl -sSL https://github.com/nonfiction/platform/raw/master/install.sh | bash
 
 Click yes to any prompts. Let's Encrypt certificates sometimes take a while. It's also a good time to reboot while the server is fresh.
