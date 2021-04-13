@@ -6,7 +6,7 @@ init: .env data network
 	cp example.env .env
 
 data:
-	mkdir -p data/{share,workspace,portainer}
+	mkdir -p data/{share,work,portainer}
 	touch data/acme.json
 	chmod 600 data/acme.json
 	touch data/traefik.yml
@@ -19,6 +19,9 @@ up:
 
 down: 
 	docker-compose down
+
+pull: 
+	docker-compose pull
 
 logs: 
 	docker-compose logs -f
