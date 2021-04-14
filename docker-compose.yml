@@ -94,7 +94,7 @@ services:
   workspace:
     image: nonfiction/workspace:latest
     container_name: workspace
-    hostname: "workspace.${APP_HOST}"
+    hostname: "${APP_HOST}"
     env_file: .env
 
     restart: unless-stopped
@@ -103,10 +103,10 @@ services:
       - traefik
 
     volumes:
-      - .:/root/platform
       - ./data/work:/home/nonfiction/work
       - ./data/share:/home/nonfiction/.local/share
       - /var/run/docker.sock:/var/run/docker.sock
+      #- .:/root/platform
 
     labels:
       traefik.enable: "true"
