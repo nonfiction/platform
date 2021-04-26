@@ -6,7 +6,10 @@ init: .env data network
 	cp example.env .env
 
 data:
-	mkdir -p data/{share,work,portainer}
+	mkdir -p /work
+	mkdir -p data/work-cache
+	mkdir -p data/work-data
+	mkdir -p data/portainer
 	touch data/acme.json
 	chmod 600 data/acme.json
 	touch data/traefik.yml

@@ -19,8 +19,10 @@ Login to droplet `ssh root@DROPLET.IP.ADDRESS`, complete these variables, and ru
     export DOMAIN=example.com
     export DO_AUTH_TOKEN=
     export BASICAUTH=
-    export GIT_USER_NAME=nonfiction
-    export GIT_USER_EMAIL=info@nonfiction.ca
+    export GIT_NAME=nonfiction
+    export GIT_EMAIL=info@nonfiction.ca
+    export GITHUB_USER=myname
+    export GITHUB_TOKEN=ghp_secretsecretsecretsecret
     export CODE_PASSWORD=my-vscode-password
     export SUDO_PASSWORD=my-sudo-password
     export DB_USER=

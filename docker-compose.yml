@@ -103,8 +103,9 @@ services:
       - traefik
 
     volumes:
-      - ./data/work:/home/nonfiction/work
-      - ./data/share:/home/nonfiction/.local/share
+      - ./data/work-cache:/cache
+      - ./data/work-data:/data
+      - /work:/work
       - /var/run/docker.sock:/var/run/docker.sock
       #- .:/root/platform
 
