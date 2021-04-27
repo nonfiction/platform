@@ -107,7 +107,7 @@ services:
       - ./data/work-data:/data
       - /work:/work
       - /var/run/docker.sock:/var/run/docker.sock
-      #- .:/root/platform
+      - .:/root/platform
 
     labels:
       traefik.enable: "true"
@@ -120,3 +120,4 @@ services:
 
     ports:
       - "2222:2222"
+      - "60000-60100:60000-60100/udp"
