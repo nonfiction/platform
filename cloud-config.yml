@@ -1,0 +1,70 @@
+#cloud-config
+hostname: __NAME__
+fqdn: __NAME__.__DOMAIN__
+
+package_update: true
+package_reboot_if_required: true
+packages:
+  - zsh
+  - mosh
+  - fail2ban
+  - build-essential
+  - apt-transport-https
+  - ca-certificates
+  - gnupg-agent
+  - software-properties-common
+  - curl
+  - make
+  - unzip
+  - apache2-utils
+  - sshpass
+  - doctl
+
+# Optimize SSH for docker
+write_files:
+  - path: /etc/ssh/sshd_config
+    content: | 
+       MaxSessions 500
+    append: true
+  - path: /etc/crontab
+    content: | 
+       0 3 * * * root /usr/bin/docker system prune -f > /dev/null 2>&1
+    append: true
+
+disable_root: false
+ssh_pwauth: yes 
+
+users:
+  - name: root
+    lock_passwd: false
+    hashed_passwd: '__HASH__'
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCqkkVHSFBPNT9ajrgq1lFKNhkf1QJMZgobkL8fsKlx3mle7Ug5GvW/HLymAsfP04zA1CPet4awcufEEolwY7tWfDIdCOi+8xgaJh5Te3AM9Twegc3a2CRL21Mv438LCPU03qhzHh4JPBWbatq5QxTti67joC91XiBjY/vl8aRtyUz2n/tFoS3yhfMb2qP+VU75dgWQw+WDtHbG4bT018JcL+G4wexKBM3vs51t7qdHHkcbjJh/XJ+/+WGg4SkpmzREEtL2VVh7Mn/e0jupZcU4wtsoi7652bYh1kFpi0YvlTWpdwLmhUXx1RpIYsuP/TNePoN+GBcKN+9dmJuJLJFseD8xhuYzOVpFLb/GdXWEAUlMtCdHwg1QjEUcBPTaX0CeLY/kmna1MU4SBGQ6msTDwSNUpEkKEaiv6Fx66XstAzf1g5NEauLw/YGgwDsPGgPfCraS03aJCqieHxBHe5uaD1vBA4zFvV3CBv3uvlKBUsgVbR2A1k4Bvpyw6VlasvpZhh0DoDVWNL30SvTtyVCS1sIey0GwGNYBVDBu5P5LHsCgOESKG32uHkXVEeYTdln35dJyoxP+/zMebJwNTZjGjU19ORthViwibfQMV2J931ZjkLWgVqxnn9t0hltC2845eOJ0BytX5wFxqf4IU5Ix/yuMeUwIlLocz6X6blNbsQ== jon
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDX2VOoWw9nXY2UT1iUrYw7vyXDzj+fa26m9MxdOAtyfE8C03PdYuy1w32MOs7Ihb3u2TY8cCmInnk15I+PcVwYhctyIMZOa+8NGmXOExPeOGyHCZEB5X5buh7LSeYn1T26lHPc/nle8IyDgo1SSoRrXztqkLJdWKbnUjfr0N4oCI/OErC89FbkwaAJcqklSlTFbBgSvfvZ7mLnynuPjHLxQOdEGXxtnq2K0+uyY6A7eXO6Uf3Zov3VPL/oK4kISUtI6/FTvCSqtQMJpGHaySTC899muHhEJQsoNGnZ0IQQFwr06pIi62mHa9y5tFpNw0bzyEAedGt37wBzUcrot2hr mariah
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDFkcWS8dg31RS0oszhyw4u5GhEo5iq0lrO0TIbR0sdBHHQ3oWfVessztLRAsZN4X4Qdk6OTQGknG/y6N6SFgiAVWziHR2Gy8uyd4lSwv3AuH98pbFWZyusxnSZHuO/b6wnih6woA2Nvnevt9WIKqnMMbey2p5kelUKUiqscQGC55uWq6s9KVI0Q3o/LJ7Rtrd+fqGhRGy7YT0mT6vh7hR+9JozJ3I9Ee9LTlAs6pQjnJWAr71oRJAvUH3LOYo1VoJcr9tSImMxGCpE1y8H2sVXdJK9q5MLpZDBGUStzd4xbr9Qj3PQq2KViEpE079VgMv9zRZEl2p7F6pW/j21INDsdtqneAyLMTXlv6Mk9QHE+rmRGYkAT2zEykEGx+l/SUd1L0AAYSDA6t0oXQWawnqSsq3inSjSQGa0Q5CVoUB9uOhX5ukvofj7o1vUn5vLAmBdgyXo01r0VduC2VSOfyU86NIexhSHK5mS3i5uKsO5M5bOHPczWLU6q0zKQbpBarkuqyBK54gN6tdfhg8pc91kZA53gWemCTjsMAwr5UYiO27+FJUDrKvZUhH0QFEoTbm7LVuQ6lm6yWBydqjO+YZCqZbL2I31F0GxaX+/4dgXtdLYRg68YLd29uGqWKkoYAvVgymSidG5I0intQjY5YB3W0/Pcd+vs4ZXzeVzhypQnQ== paul
+      - ssh-dss AAAAB3NzaC1kc3MAAACBAMXG1RriSJRHOJZt+tWW2NQEt5aPCaaze1DV9r0N+HwIFKluxGR/+8IdXCWZ/HCTB3Rrh/IZQAcpE5astFGa1TRG+TcrY2AJrDhALZYuxdt6uBB57skaohEtq4iKdSbmDOQ2FiTFtfmxAXOT3ERYX9OLy5iH/KTpygWqtHMnIH01AAAAFQD153UtUslPS1hdi8cGXqM/NjzD2QAAAIBMU/8C2KQCenx0IyVzqowmO8Ic0vJpQAQh295xRPClKqdOkH54tcsNjGCG6AQSt2/4GDd/gf6uB9siyLkXO3/BYC+vOu0+270+k4JOLyLFh2XoL7c5td9HOwujHYBr/PEAsU2rrpAnpN7gOg0NSn2eTNSa+qrhiHoKAG9KPd/J2QAAAIEAlheWPR1zEyMcMRcm2yZCC+pUJhep3hwYSb3OnJzAtuaxnAaAxJuFlDWTazL3Linyf/TvUdUSlpEZYGQUuwI6vbAXpfsOD1QnSKvrW7/yF8Vo9Yvyev6WJQ1jU5nbUTF2oJVO4dOffJ+HxhYOdFhb3DQPuI7rjV7KLjx/U/paPXg= darron
+      - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAlCeO7fXM0iGlVFU9lh90rIYdrfD5RKRvRUMruALvW65X+ZMb9v+PZXlmN2go2+K3jCKNSFvCRMpJGGM+7PI3mc/vSzphINA2uqpfacG/NqkAxhtPIjyecowiKoT0TL4liScgtNmojwlKNlFvNpByHOqxSlbQsV9n4G4vJoiTxTX7JEaOBXsu7t5H6pu7bNY2xn72JO6cnfZV1HZppQf240Hq2lz7sA6OhkexDlf+5Tz6oB/mjLnCJheiTwd5OUviTijSj7SHzKn8AeJbPbXzyjjGkBQG5/qQmBK/gglgeZeRrXRa0MeZ0XMgya8h5AvSG/njUsv7l16+ayKUFJSrCw== andy
+
+# Set secret password for root
+#chpasswd:
+#  list: |
+#    root:__HASH__
+#  expire: false
+
+runcmd:
+  - apt-get --yes install unattended-upgrades
+  - dpkg-reconfigure --priority=low unattended-upgrades
+  - add-apt-repository --yes ppa:gluster/glusterfs-3.12
+  - apt-get update && apt-get --yes install glusterfs-server
+  - systemctl start glusterd && systemctl enable glusterd
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  - apt-get update && apt-get --yes install docker-ce docker-ce-cli containerd.io make
+  - git clone https://github.com/nonfiction/platform.git /root/platform
+  - cd /root/platform && make init
+  
+power_state:
+  delay: now
+  mode: reboot
+  message: Rebooting the OS
+  condition: if [ -e /var/run/reboot-required ]; then exit 0; else exit 1; fi
