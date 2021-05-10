@@ -1,0 +1,86 @@
+#cloud-config
+hostname: __NAME__
+fqdn: __NAME__.__DOMAIN__
+
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+
+packages:
+  - zsh
+  - mosh
+  - fail2ban
+  - build-essential
+  - apt-transport-https
+  - ca-certificates
+  - gnupg-agent
+  - software-properties-common
+  - curl
+  - make
+  - unzip
+  - apache2-utils
+  - sshpass
+  - doctl
+
+write_files:
+  
+  # Optimize SSH for docker
+  - path: /etc/ssh/sshd_config
+    content: | 
+       MaxSessions 500
+    append: true
+    
+  # Autoprune docker once in a while
+  - path: /etc/crontab
+    content: | 
+       0 3 * * * root /usr/bin/docker system prune -f > /dev/null 2>&1
+    append: true
+
+disable_root: false
+ssh_pwauth: false
+
+users:
+  
+  # Password is "secret", but gets changed immediately
+  - name: root
+    lock_passwd: false
+    hashed_passwd: $1$SaltSalt$YhgRYajLPrYevs14poKBQ0
+    ssh-authorized-keys:
+      - __SSH_PUB__
+
+  # Work user is mostly used in container, but create matching user on host
+  # Authorized keys from root is copied to this user
+  - name: work
+    lock_passwd: false
+    hashed_passwd: $1$SaltSalt$YhgRYajLPrYevs14poKBQ0
+    homedir: /work
+    ssh-authorized-keys:
+      - __SSH_PUB__
+
+runcmd:
+  
+  # Keep server up-to-date
+  - apt-get --yes install unattended-upgrades
+  - dpkg-reconfigure --priority=low unattended-upgrades
+  
+  # Install glusterfs
+  - add-apt-repository --yes ppa:gluster/glusterfs-3.12
+  - apt-get update && apt-get --yes install glusterfs-server
+  - systemctl start glusterd && systemctl enable glusterd
+  
+  # Install docker
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  - apt-get update && apt-get --yes install docker-ce docker-ce-cli containerd.io
+  
+  # Install platform git repo
+  - apt-get update && apt-get --yes install make
+  - git clone https://github.com/nonfiction/platform.git /root/platform
+  - cd /root/platform && make init
+
+# Reboot server after everything is installed
+power_state:
+  delay: now
+  mode: reboot
+  message: Rebooting the OS
+  condition: if [ -e /var/run/reboot-required ]; then exit 0; else exit 1; fi
