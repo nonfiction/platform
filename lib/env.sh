@@ -27,7 +27,7 @@ if error "doctl compute droplet list"; then
   if undefined "$DO_AUTH_TOKEN"; then
     echo "=> Missing DO_AUTH_TOKEN!"
     echo "Create a Personal Access Token on Digital Ocean and set it to an environment variable named:"
-    echo "export DO_TOKEN=\"...\""
+    echo "export DO_AUTH_TOKEN=\"...\""
     exit 1
   fi     
 
@@ -45,21 +45,21 @@ if undefined $DOMAIN; then
   exit 1
 fi
 
-# SSH_KEY from env or secret
-SSH_KEY="$(env_or_file SSH_KEY ./ssh_key /run/secrets/ssh_key)"
-if undefined $SSH_KEY; then
-  echo "=> Missing SSH_KEY!"
+# ROOT_PRIVATE_KEY from env or secret
+ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY ./root_private_key /run/secrets/root_private_key)"
+if undefined $ROOT_PRIVATE_KEY; then
+  echo "=> Missing ROOT_PRIVATE_KEY!"
   echo "Generate an SSH key and set it to an environment variable named:"
-  echo "export SSH_KEY=\"-----BEGIN RSA PRIVATE KEY----- ... \""
-  echo "OR save a file in your current directory named: ssh_key"
+  echo "export ROOT_PRIVATE_KEY=\"-----BEGIN RSA PRIVATE KEY----- ... \""
+  echo "OR save a file in your current directory named: root_private_key"
   exit 1
 fi
 
-# SSH_PUB from SSH_KEY
-echo "$SSH_KEY" > /tmp/ssh_key
-chmod 400 /tmp/ssh_key
-SSH_PUB="$(ssh-keygen -y -f /tmp/ssh_key)"
-rm /tmp/ssh_key
+# ROOT_PUBLIC_KEY from ROOT_PRIVATE_KEY
+echo "$ROOT_PRIVATE_KEY" > root_private_key.tmp
+chmod 400 root_private_key.tmp
+ROOT_PUBLIC_KEY="$(ssh-keygen -y -f root_private_key.tmp) root"
+rm -f root_private_key.tmp
 
 # ROOT_PASSWORD from env or secret
 ROOT_PASSWORD=$(env_or_file ROOT_PASSWORD /run/secrets/root_password)
@@ -86,7 +86,7 @@ fi
 
 # VOLUME_SIZE from env, or default
 if undefined $VOLUME_SIZE; then
-  VOLUME_SIZE="50"
+  VOLUME_SIZE="10"
 fi
 
 # REGION from env, or default
@@ -98,18 +98,3 @@ fi
 if undefined $FS_TYPE; then
   FS_TYPE="ext4"
 fi
-
-# First parameter is name of swarm
-SWARM="$1"
-if undefined $SWARM; then
-  echo "=> Missing swarm name!"
-  echo "The first argument for this script should be the swarm's name. Example: ./swarm.sh app 3"
-  exit 1
-fi
-
-# Look up number of existing replicas from $SWARM name, single node swarm is 0
-EXISTING_REPLICAS="$(get_droplet_replicas $SWARM | wc -l)"
-
-# Second parameter is number of new replicas, or default 0
-NEW_REPLICAS="$2"
-undefined $NEW_REPLICAS && NEW_REPLICAS=0

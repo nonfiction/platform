@@ -7,135 +7,135 @@ src "lib/droplet.sh"
 src "lib/volume.sh"
 src "lib/env.sh"
 
-echo "=> Configuration..."
-echo "DROPLET_IMAGE=${DROPLET_IMAGE}"
-echo "DROPLET_SIZE=${DROPLET_SIZE}"
-echo "VOLUME_SIZE=${VOLUME_SIZE}"
-echo "FS_TYPE=${FS_TYPE}"
-echo "REGION=${REGION}"
-echo "SSH_KEY=${SSH_KEY}"
-echo "SSH_PUB=${SSH_PUB}"
-echo "ROOT_PASSWORD=${ROOT_PASSWORD}"
+# First parameter is name of swarm and primary node
+PRIMARY="$1"
+if undefined $PRIMARY; then
+  echo "=> Missing swarm name!"
+  echo "The first argument for this script should be the swarm's name. Example: ./swarm app 3"
+  exit 1
+fi
+
+# Second parameter is number of additions, or default 0
+ADDITIONS="$(get_droplet_additions $1 $2)"
+
+# Look up number of existing replicas from $PRIMARY name, single node swarm is 0
+REPLICAS="$(echo "$(get_droplet_replicas $1) $ADDITIONS" | tr ' ' '\n' | sort | uniq | xargs)"
+
+# If primary doesn't exist yet, count that as an addition
+has_droplet $PRIMARY || ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | xargs)"
+
+# Count the number of nodes in this swarm
+count=$((1 + $(echo $REPLICAS | wc -w)))
+[ "$count" = "1" ] && count="Single"
+
 echo
-echo "=> Swarm [${SWARM}]..."
+arrow black/on_white " ${count}-node swarm... "
+echo "$(print white "PRIMARY=")$(print green "\"$PRIMARY\"")"
+echo "$(print white "REPLICAS=")$(print green "\"$REPLICAS\"")"
+echo "$(print white "ADDITIONS=")$(print green "\"$ADDITIONS\"")"
+echo
+arrow black/on_white " Configuration... "
+echo "$(print white "DROPLET_IMAGE=")$(print green "\"$DROPLET_IMAGE\"")"
+echo "$(print white "DROPLET_SIZE=")$(print green "\"$DROPLET_SIZE\"")"
+echo "$(print white "VOLUME_SIZE=")$(print green "\"$VOLUME_SIZE\"")"
+echo "$(print white "FS_TYPE=")$(print green "\"$FS_TYPE\"")"
+echo "$(print white "REGION=")$(print green "\"$REGION\"")"
+echo "$(print white "ROOT_PASSWORD=")$(print green "\"$ROOT_PASSWORD\"")"
+echo "$(print white "ROOT_PRIVATE_KEY=")$(print green "\"$(echo $ROOT_PRIVATE_KEY | head -c 30)...$(echo $ROOT_PRIVATE_KEY | tail -c 30)\"")"
+echo "$(print white "ROOT_PUBLIC_KEY=")$(print green "\"$(echo $ROOT_PUBLIC_KEY | head -c 30)...$(echo $ROOT_PUBLIC_KEY | tail -c 30)\"")"
+echo
 
-# PRIMARY NODE
-status="new" && has_droplet $SWARM && status="existing"
-echo "[1] ${status} primary"
-
-# EXISTING REPLICAS
-s="s" && [ "$EXISTING_REPLICAS" == "1" ] && s=""
-echo "[${EXISTING_REPLICAS}] existing replica${s}"
-
-# NEW REPLICAS
-s="s" && [ "$NEW_REPLICAS" == "1" ] && s=""
-echo "[${NEW_REPLICAS}] new replica${s}"
-
-
-# # PRIMARY NODE
-# status="NEW"
-# has_droplet $name && status="EXISTING"
-# node_row "${status} PRIMARY: ${name}"
-# get_droplet_info $name
-# get_volume_info $name
-# get_record_info $name
-# echo
-# echo
-
-# # EXISTING REPLICAS
-# for replica in $(get_droplet_replicas $name); do
-#   node_row "EXISTING REPLICA: ${replica}"
-#   get_droplet_info $replica
-#   get_volume_info $replica
-#   get_record_info $replica
-# done
-# echo
-# echo
-
-# # NEW REPLICAS
-# echo "" > /tmp/reserved_replicas
-# for i in $(seq $new_replicas); do
-#   replica=$(next_replica_name $name)
-#   node_row "NEW REPLICA: ${replica}"
-#   get_droplet_info $replica
-#   get_volume_info $replica
-#   get_record_info $replica  
-# done
-# echo
-# echo
-
-echo "=================================================================="
-if confirm "Make changes?"; then  
-  echo "=> Begining..."
+if ask "Process droplets in the swarm?"; then  
+  arrow black/on_greeen "Begining..."
 else
-  echo "=> Cancelled."  
+  arrow black/on_red "Cancelled."  
   exit 1;
 fi
 
-# ---------------------------------------------------------
-# Process Primary
-# ---------------------------------------------------------
-status="NEW"
-has_droplet $name && status="EXISTING"
-node_row "${status} PRIMARY: ${name}"
-get_droplet_info $name
-get_volume_info $name
-get_record_info $name
-echo
-echo
+role="primary"
+rm -f /tmp/dirty.txt
 
-if confirm "Process node?"; then  
-  create_or_resize_volume $name true
-  create_or_resize_droplet $name true
-  create_record "${name}" "$(get_droplet_public_ip $name)"
-  create_record "*.${name}" "$(get_droplet_public_ip $name)"
-  create_record "private.${name}" "$(get_droplet_private_ip $name)"
+for name in $(echo "$PRIMARY $REPLICAS" | xargs); do
+  
+  node_row "$(has_droplet $name && echo "EXISTING" || echo "NEW") ${role^^}: ${name}"
+  get_droplet_info $name
+  get_volume_info $name
+  get_record_info $name
+  echo
+
+  if has /tmp/dirty.txt; then 
+    if ask "Process droplet?"; then  
+      create_or_resize_volume $name $PRIMARY $role
+      create_or_resize_droplet $name $PRIMARY $role
+      create_record "${name}" "$(get_droplet_public_ip $name)"
+      create_record "*.${name}" "$(get_droplet_public_ip $name)"
+      #create_record "private.${name}" "$(get_droplet_private_ip $name)"
+    fi
+  fi  
+  
+  rm -f /tmp/dirty.txt
+  
+  role="replica"
+done
+
+
+if ask "Run configuration on each node in swarm?"; then  
+  arrow black/on_greeen "Begining..."
+else
+  arrow black/on_red "Cancelled."  
+  exit 1;
 fi
 
-# ---------------------------------------------------------
-# Process Existing Replicas
-# ---------------------------------------------------------
-for replica in $(get_droplet_replicas $name); do  
-  node_row "EXISTING REPLICA: ${replica}"
-  get_droplet_info $replica
-  get_volume_info $replica
-  get_record_info $replica
-  echo
-  echo
+# All available nodes in this swarm
+nodes="$PRIMARY $(get_droplet_replicas $PRIMARY)"
+
+# Build hosts file
+hosts="127.0.0.1 localhost"
+for name in $nodes; do
+  ip="$(get_droplet_private_ip $name)"
+  hosts="${hosts}\n${ip} ${name}"
+done
+
+# Loop all nodes in swarm
+docker_swarm_join=""
+for name in $nodes; do
   
-  if confirm "Process node?"; then  
-    create_or_resize_volume $replica
-    create_or_resize_droplet $replica
-    create_record "${replica}" "$(get_droplet_public_ip $replica)"
-    create_record "*.${replica}" "$(get_droplet_public_ip $replica)"
-    create_record "private.${replica}" "$(get_droplet_private_ip $replica)"
+  ip="$(get_droplet_public_ip $name)"  
+  
+  # Update password (once)
+  run $ip "if [ ! -e /etc/password_updated ]; then echo root:${ROOT_PASSWORD} | chpasswd && echo work:${ROOT_PASSWORD} | chpasswd && touch /etc/password_updated; fi"
+  
+  # Create ssh key if none exists
+  run $ip "cat /dev/zero | ssh-keygen -t rsa -q -N \"\""
+  
+  echo "=> Updating /etc/hosts on $name"
+  hosts_self="127.0.1.1 ${name}.${DOMAIN} $name"
+  run $ip "echo -e \"${hosts_self}\n${hosts}\" > /etc/hosts" 
+  
+  echo "=> Updating authorized_keys on $name"
+  keys="$(curl -sL https://github.com/nonfiction/workspace/raw/main/config/ssh/authorized_keys)"
+  keys=$(echo -e "${ROOT_PUBLIC_KEY}\n${keys}")
+  run $ip "echo \"$keys\" > /root/.ssh/authorized_keys"
+  run $ip "echo \"$keys\" > /work/.ssh/authorized_keys"
+  
+  if [ "$name" = "$PRIMARY" ]; then
+    private_ip="$(get_droplet_private_ip $name)"
+    run $ip "docker swarm init --advertise-addr $private_ip"
+    docker_swarm_join=$(run $ip "docker swarm join-token worker | grep docker")
+  
+    # GlusterFS probe nodes  
+    for n in $nodes; do
+      [ "$n" = "$PRIMARY" ] || run $ip "gluster peer probe $n"
+    done
+    run $ip "gluster pool list"
+    
+  else
+    run $ip "$docker_swarm_join"
   fi
-done
-
-# ---------------------------------------------------------
-# Process New Replicas
-# ---------------------------------------------------------
-echo "" > /tmp/reserved_replicas
-for i in $(seq $new_replicas); do
-  replica=$(next_replica_name $name)
-  node_row "NEW REPLICA: ${replica}"
-  get_droplet_info $replica
-  get_volume_info $replica
-  get_record_info $replica
+  
   echo
   echo
-  
-  if confirm "Process node?"; then  
-    create_or_resize_volume $replica
-    create_or_resize_droplet $replica
-    create_record "${replica}" "$(get_droplet_public_ip $replica)"
-    create_record "*.${replica}" "$(get_droplet_public_ip $replica)"
-    create_record "private.${replica}" "$(get_droplet_private_ip $replica)"
-  fi 
-  
 done
-echo
-echo
-
+  
 
 exit 0

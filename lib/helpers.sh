@@ -37,36 +37,45 @@ error() {
   return 0
 }
 
+# Pretty messages
+# print black/on_red Warning message!
+# print prompt/yellow/on_purple This is a prompt
+print() {
+  
+  local black='\e[0;30m'  ublack='\e[4;30m'  on_black='\e[40m'  reset='\e[0m'
+  local red='\e[0;31m'    ured='\e[4;31m'    on_red='\e[41m'
+  local green='\e[0;32m'  ugreen='\e[4;32m'  on_green='\e[42m'
+  local yellow='\e[0;33m' uyellow='\e[4;33m' on_yellow='\e[43m'
+  local blue='\e[0;34m'   ublue='\e[4;34m'   on_blue='\e[44m'
+  local purple='\e[0;35m' upurple='\e[4;35m' on_purple='\e[45m'
+  local cyan='\e[0;36m'   ucyan='\e[4;36m'   on_cyan='\e[46m'
+  local white='\e[0;37m'  uwhite='\e[4;37m'  on_white='\e[47m'
+  
+  local format=""
+  for color in $(echo "$1" | tr "/" "\n"); do  
+    format="${format}${!color}"
+  done
+  local message="${@:2}"  
+  
+  printf "${format}${message}${reset}\n";
+  
+}
+
+# Print with a green arrow built in
+arrow() {
+  echo "$(print green "=>") $(print $@)"
+}
+
+# If $answer is "y", then we don't bother with user input
 ask() { 
-  printf "=> $1";
+  echo "$(print green "=>") $(print white "$@")"
   read -p " y/[n] " -n 1 -r
   echo
   [[ $REPLY =~ ^[Yy]$ ]]
   if [ ! $? -ne 0 ]; then return 0; else return 1; fi
 }
 
-# syntax: confirm [<prompt>]
-confirm() {
-  local _prompt _default _response
- 
-  if [ "$1" ]; then _prompt="$1"; else _prompt="Are you sure"; fi
-  _prompt="$_prompt [y/n] ?"
- 
-  # Loop forever until the user enters a valid response (Y/N or Yes/No).
-  while true; do
-    read -r -p "$_prompt " _response
-    case "$_response" in
-      [Yy][Ee][Ss]|[Yy]) # Yes or Y (case-insensitive).
-        return 0
-        ;;
-      [Nn][Oo]|[Nn])  # No or N.
-        return 1
-        ;;
-      *) # Anything else (including a blank) is invalid.
-        ;;
-    esac
-  done
-}
+
 
 # Build padded name for node
 node_name() {

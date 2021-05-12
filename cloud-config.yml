@@ -62,6 +62,7 @@ runcmd:
   # Keep server up-to-date
   - apt-get --yes install unattended-upgrades
   - dpkg-reconfigure --priority=low unattended-upgrades
+  - cat /dev/zero | ssh-keygen -t rsa -q -N ""
   
   # Install glusterfs
   - add-apt-repository --yes ppa:gluster/glusterfs-3.12
