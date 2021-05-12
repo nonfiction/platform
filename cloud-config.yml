@@ -46,7 +46,7 @@ users:
     lock_passwd: false
     hashed_passwd: $1$SaltSalt$YhgRYajLPrYevs14poKBQ0
     ssh-authorized-keys:
-      - __SSH_PUB__
+      - __ROOT_PUBLIC_KEY__
 
   # Work user is mostly used in container, but create matching user on host
   # Authorized keys from root is copied to this user
@@ -55,7 +55,7 @@ users:
     hashed_passwd: $1$SaltSalt$YhgRYajLPrYevs14poKBQ0
     homedir: /work
     ssh-authorized-keys:
-      - __SSH_PUB__
+      - __ROOT_PUBLIC_KEY__
 
 runcmd:
   
