@@ -1,5 +1,4 @@
 data
 scratch
 .env
-ssh_key
-ssh_key.tmp
+root_private_key

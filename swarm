@@ -1,16 +1,18 @@
 #!/bin/bash
-src(){ if [ -e$1 ];then . $1;else .<(curl -fsSL https://github.com/nonfiction/platform/raw/master/$1);fi;}
 
-src "lib/helpers.sh"
-src "lib/record.sh"
-src "lib/droplet.sh"
-src "lib/volume.sh"
-src "lib/env.sh"
+# Bash helper functions
+if [ -e lib/helpers.sh ]; then source lib/helpers.sh;
+else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/helpers.sh); fi
+
+# Digital Ocean API functions
+if [ -e lib/doctl.sh ]; then source lib/doctl.sh;
+else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/doctl.sh); fi
+
 
 # First parameter is name of swarm and primary node
 PRIMARY="$1"
 if undefined $PRIMARY; then
-  echo "=> Missing swarm name!"
+  echo_stop "Missing swarm name!"
   echo "The first argument for this script should be the swarm's name. Example: ./swarm app 3"
   exit 1
 fi
@@ -28,51 +30,65 @@ has_droplet $PRIMARY || ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | xargs)"
 count=$((1 + $(echo $REPLICAS | wc -w)))
 [ "$count" = "1" ] && count="Single"
 
+
 echo
-arrow black/on_white " ${count}-node swarm... "
-echo "$(print white "PRIMARY=")$(print green "\"$PRIMARY\"")"
-echo "$(print white "REPLICAS=")$(print green "\"$REPLICAS\"")"
-echo "$(print white "ADDITIONS=")$(print green "\"$ADDITIONS\"")"
+echo_next "${count}-node swarm..."
+echo_env PRIMARY
+echo_env REPLICAS
+echo_env ADDITIONS
 echo
-arrow black/on_white " Configuration... "
-echo "$(print white "DROPLET_IMAGE=")$(print green "\"$DROPLET_IMAGE\"")"
-echo "$(print white "DROPLET_SIZE=")$(print green "\"$DROPLET_SIZE\"")"
-echo "$(print white "VOLUME_SIZE=")$(print green "\"$VOLUME_SIZE\"")"
-echo "$(print white "FS_TYPE=")$(print green "\"$FS_TYPE\"")"
-echo "$(print white "REGION=")$(print green "\"$REGION\"")"
-echo "$(print white "ROOT_PASSWORD=")$(print green "\"$ROOT_PASSWORD\"")"
-echo "$(print white "ROOT_PRIVATE_KEY=")$(print green "\"$(echo $ROOT_PRIVATE_KEY | head -c 30)...$(echo $ROOT_PRIVATE_KEY | tail -c 30)\"")"
-echo "$(print white "ROOT_PUBLIC_KEY=")$(print green "\"$(echo $ROOT_PUBLIC_KEY | head -c 30)...$(echo $ROOT_PUBLIC_KEY | tail -c 30)\"")"
-echo
+echo_next "Configuration..."
+echo_env DROPLET_IMAGE
+echo_env DROPLET_SIZE
+echo_env VOLUME_SIZE
+echo_env FS_TYPE
+echo_env REGION
+echo_env ROOT_PASSWORD
+echo_env ROOT_PRIVATE_KEY 30
+echo_env ROOT_PUBLIC_KEY 30
 
 if ask "Process droplets in the swarm?"; then  
-  arrow black/on_greeen "Begining..."
+  echo_next "Begining..."
 else
-  arrow black/on_red "Cancelled."  
+  echo_stop "Cancelled."  
   exit 1;
 fi
 
+# Swarm name matches the name of the primary node
+swarm_name=$PRIMARY
+
+# First node processed has a primary role
 role="primary"
+
+# Make sure this file doesn't yet exist
 rm -f /tmp/dirty.txt
 
-for name in $(echo "$PRIMARY $REPLICAS" | xargs); do
+for node_name in $(echo "$PRIMARY $REPLICAS" | xargs); do
   
-  node_row "$(has_droplet $name && echo "EXISTING" || echo "NEW") ${role^^}: ${name}"
-  get_droplet_info $name
-  get_volume_info $name
-  get_record_info $name
+  echo_node_header  $node_name $role
+  echo_droplet_info $node_name
+  echo_volume_info  $node_name
+  echo_record_info  $node_name
   echo
 
   if has /tmp/dirty.txt; then 
-    if ask "Process droplet?"; then  
-      create_or_resize_volume $name $PRIMARY $role
-      create_or_resize_droplet $name $PRIMARY $role
-      create_record "${name}" "$(get_droplet_public_ip $name)"
-      create_record "*.${name}" "$(get_droplet_public_ip $name)"
-      #create_record "private.${name}" "$(get_droplet_private_ip $name)"
+    if ask "Process droplet?"; then
+      
+      # First create/resize the volume that will be attached
+      create_or_resize_volume $node_name $swarm_name $role
+      
+      # Then create/resize the droplet itself
+      create_or_resize_droplet $node_name $swarm_name $role
+      
+      # Last, ensure the DNS records are pointing to this droplet
+      public_ip="$(get_droplet_public_ip $node_name)"
+      create_or_update_record "${node_name}" $public_ip
+      create_or_update_record "*.${node_name}" $public_ip
+      
     fi
   fi  
   
+  # Clear out this file
   rm -f /tmp/dirty.txt
   
   role="replica"
@@ -80,14 +96,19 @@ done
 
 
 if ask "Run configuration on each node in swarm?"; then  
-  arrow black/on_greeen "Begining..."
+  echo_next "Begining..."
 else
-  arrow black/on_red "Cancelled."  
+  echo_stop "Cancelled."  
   exit 1;
 fi
 
 # All available nodes in this swarm
-nodes="$PRIMARY $(get_droplet_replicas $PRIMARY)"
+nodes="$PRIMARY $(get_droplet_replicas $swarm_name)"
+
+
+# ---------------------------------------------------------
+# System configuration for each node
+# ---------------------------------------------------------
 
 # Build hosts file
 hosts="127.0.0.1 localhost"
@@ -97,16 +118,12 @@ for name in $nodes; do
 done
 
 # Loop all nodes in swarm
-docker_swarm_join=""
 for name in $nodes; do
   
-  ip="$(get_droplet_public_ip $name)"  
+  ip="$(get_droplet_public_ip $name)"
   
   # Update password (once)
   run $ip "if [ ! -e /etc/password_updated ]; then echo root:${ROOT_PASSWORD} | chpasswd && echo work:${ROOT_PASSWORD} | chpasswd && touch /etc/password_updated; fi"
-  
-  # Create ssh key if none exists
-  run $ip "cat /dev/zero | ssh-keygen -t rsa -q -N \"\""
   
   echo "=> Updating /etc/hosts on $name"
   hosts_self="127.0.1.1 ${name}.${DOMAIN} $name"
@@ -117,11 +134,47 @@ for name in $nodes; do
   keys=$(echo -e "${ROOT_PUBLIC_KEY}\n${keys}")
   run $ip "echo \"$keys\" > /root/.ssh/authorized_keys"
   run $ip "echo \"$keys\" > /work/.ssh/authorized_keys"
+
+done  
+  
+
+# ---------------------------------------------------------
+# Create Docker Swarm and join workers
+# ---------------------------------------------------------
+
+# Loop all nodes in swarm
+docker_swarm_join="docker info"
+for name in $nodes; do
+  
+  ip="$(get_droplet_public_ip $name)"
+
+  run $ip "$docker_swarm_join"
+  wait_for docker
   
   if [ "$name" = "$PRIMARY" ]; then
     private_ip="$(get_droplet_private_ip $name)"
     run $ip "docker swarm init --advertise-addr $private_ip"
     docker_swarm_join=$(run $ip "docker swarm join-token worker | grep docker")
+    
+  else
+    run $ip "$docker_swarm_join"
+  fi
+  
+done
+
+
+# ---------------------------------------------------------
+# Create Gluster Volume
+# ---------------------------------------------------------
+
+# Loop all nodes in swarm
+for name in $nodes; do
+  
+  ip="$(get_droplet_public_ip $name)"
+  
+  wait_for gluster
+  
+  if [ "$name" = "$PRIMARY" ]; then
   
     # GlusterFS probe nodes  
     for n in $nodes; do
@@ -129,13 +182,23 @@ for name in $nodes; do
     done
     run $ip "gluster pool list"
     
+    # gluster volume create work-gfs replica 3 goof:/work goof01:/work goof02:/work force
+    # gluster volume start work-gfs
+    
+    # echo 'localhost:/work-gfs /work glusterfs defaults,_netdev,backupvolfile-server=localhost 0 0' >> /etc/fstab
+
+    # mount.glusterfs localhost:/work-gfs /work
+
+    #chown -R root:docker /mnt
+    
   else
-    run $ip "$docker_swarm_join"
+    echo 
   fi
   
   echo
   echo
 done
   
+
 
 exit 0

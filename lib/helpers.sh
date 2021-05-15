@@ -61,9 +61,30 @@ print() {
   
 }
 
-# Print with a green arrow built in
-arrow() {
-  echo "$(print green "=>") $(print $@)"
+echo_env() {
+  defined $1 || return
+  local key="$1" val="${!1}" trim=$2
+  if defined $trim; then
+    val="$(echo $val | head -c $trim)...$(echo $val | tail -c $trim)"
+  fi
+  echo "$(print white "${key}=")$(print green "\"${val}\"")"
+}
+
+echo_env_example() {
+  defined $1 || return
+  defined $2 || return
+  local key="$1" val="${2}"
+  echo "$(print white "export ${key}=")$(print green "\"${val}\"")"
+}
+
+echo_next() {
+  defined $1 || return
+  echo "$(print green "=>") $(print black/on_white " ${@} ")"
+}
+
+echo_stop() {
+  defined $1 || return
+  echo "$(print red "=>") $(print black/on_red " ${@} ")"
 }
 
 # If $answer is "y", then we don't bother with user input
@@ -75,34 +96,6 @@ ask() {
   if [ ! $? -ne 0 ]; then return 0; else return 1; fi
 }
 
-
-
-# Build padded name for node
-node_name() {
-  local name="$1"
-  local number="$2"
-  local pad=""
-  [ "$number" -lt "10" ] && pad="0"
-  echo "${name}${pad}${number}"
-}
-
-
-next_replica_name() {
-  local pad
-  local replica  
-  touch /tmp/reserved_replicas
-
-  for i in $(seq 99); do
-    pad="" && [ $i -lt 10 ] && pad="0"
-    replica="${1}${pad}${i}"
-    if [[ ! "$(cat /tmp/reserved_replicas)" =~ "[${replica}]" ]]; then
-      has_droplet $replica || break
-    fi
-  done
-
-  echo "[${replica}]" >> /tmp/reserved_replicas
-  echo $replica
-}
 
 # Check for environment variable, or fall back on up to 2 files
 env_or_file() {
@@ -116,41 +109,5 @@ env_or_file() {
   echo "$variable"
 }
 
-# ---------------------------------------------------------
-# Header & Row helper functions
-# ---------------------------------------------------------
-
-# Print row for DNS record
-record_row() { 
-  printf "%2s %25s %-2s %-15s %-14s %2s\n" "|" "$1" "=>" "$2" "$3" "|"
-}
-
-# Print row for droplet
-droplet_row() {
-  printf "%2s %-10s %14s %-2s %-15s %-14s %2s\n" "|" " $1" "$2" "=>" "$3" "$4" "|"
-}
-
-# Print row for volume
-volume_row() {
-  printf "%2s %-19s %5s %-2s %-15s %-14s %2s\n" "|" " $1" "$2" "=>" "$3" "$4" "|"
-}
-
-# Print header row for node
-node_row() {
-  echo
-  echo "=================================================================="
-  echo " ${1}"
-  echo "=================================================================="
-}
-
-divider_row() {
-  printf "%2s %-60s %-2s\n" "|" " " "|"
-  printf "%2s %-60s %-2s\n" "|" "============================================================" "|"
-}
-
-# Print header row for section
-header_row() {
-  printf "%2s %-60s %-2s\n" "|" " " "|"
-  printf "%2s %-60s %-2s\n" "|" " $1" "|"
-  printf "%2s %-60s %-2s\n" "|" "------------------------------------------------------------" "|"
-}
+# Mark this as loaded
+export HELPERS_LOADED=1
