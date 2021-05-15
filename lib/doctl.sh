@@ -185,7 +185,6 @@ get_droplet_size() {
 
 get_droplet_replicas() {
   defined $1 || return
-  #echo "$(__droplet_list | grep ":replica_${1}" | awk '{print $2}' | tr '\n' ' ' | xargs)"
   echo "$(droplets_by_tag :replica_${1} | awk '{print $2}' | tr '\n' ' ' | xargs)"
 }
 

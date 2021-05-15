@@ -38,9 +38,9 @@ error() {
 }
 
 # Pretty messages
-# print black/on_red Warning message!
-# print prompt/yellow/on_purple This is a prompt
-print() {
+# echo_color black/on_red Warning message!
+# echo_color prompt/yellow/on_purple This is a prompt
+echo_color() {
   
   local black='\e[0;30m'  ublack='\e[4;30m'  on_black='\e[40m'  reset='\e[0m'
   local red='\e[0;31m'    ured='\e[4;31m'    on_red='\e[41m'
@@ -67,38 +67,38 @@ echo_env() {
   if defined $trim; then
     val="$(echo $val | head -c $trim)...$(echo $val | tail -c $trim)"
   fi
-  echo "$(print white "${key}=")$(print green "\"${val}\"")"
+  echo "$(echo_color white "${key}=")$(echo_color green "\"${val}\"")"
 }
 
 echo_env_example() {
   defined $1 || return
   defined $2 || return
   local key="$1" val="${2}"
-  echo "$(print white "export ${key}=")$(print green "\"${val}\"")"
+  echo "$(echo_color white "export ${key}=")$(echo_color green "\"${val}\"")"
 }
 
 echo_next() {
   defined $1 || return
   echo
-  echo "$(print green "=>") $(print black/on_white " ${@} ")"
+  echo "$(echo_color green "=>") $(echo_color black/on_white " ${@} ")"
 }
 
 echo_info() {
   defined $1 || return
   echo
-  echo "$(print yellow "=>") $(print black/on_white " ${@} ")"
+  echo "$(echo_color yellow "=>") $(echo_color black/on_yellow " ${@} ")"
 }
 
 echo_stop() {
   defined $1 || return
   echo
-  echo "$(print red "=>") $(print black/on_red " ${@} ")"
+  echo "$(echo_color red "=>") $(echo_color black/on_red " ${@} ")"
 }
 
 # If $answer is "y", then we don't bother with user input
 ask() { 
   echo
-  echo "$(print green "=>") $(print white "$@")"
+  echo "$(echo_color green "=>") $(echo_color white "$@")"
   read -p " y/[n] " -n 1 -r
   echo
   [[ $REPLY =~ ^[Yy]$ ]]
