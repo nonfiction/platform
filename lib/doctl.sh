@@ -18,7 +18,13 @@ if hasnt doctl; then
   # https://github.com/digitalocean/doctl/releases
   version="1.59.0"
   curl -sL https://github.com/digitalocean/doctl/releases/download/v${version}/doctl-${version}-linux-amd64.tar.gz | tar -xzv
-  mv ./doctl /usr/local/bin/doctl
+  mv doctl .doctl
+  if error "mv ./.doctl /usr/local/bin/doctl"; then
+    rm -f ./.doctl
+    echo_stop "Missing permissions to move doctl to /usr/local/bin"
+    echo "chown that directory so your user can write to it."
+    exit 1
+  fi
 
 fi
 
@@ -33,7 +39,7 @@ if error "doctl compute droplet list"; then
     echo_stop "Missing DO_AUTH_TOKEN!"
     echo "Create a Personal Access Token on Digital Ocean and set it to an environment variable named:"
     echo_env_example "DO_AUTH_TOKEN" "..."
-    return 1 2> /dev/null || exit 1
+    exit 1
   fi     
 
   echo_next "Authorizing doctl..."
