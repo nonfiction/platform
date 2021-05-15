@@ -43,7 +43,9 @@ if error "doctl compute droplet list"; then
   fi     
 
   echo_next "Authorizing doctl..."
-  if error "doctl auth init -t $DO_AUTH_TOKEN"; then
+  doctl auth init -t $DO_AUTH_TOKEN
+
+  if error "doctl compute droplet list"; then
     echo_stop "Supplied DO_AUTH_TOKEN is invalid!"
     exit 1
   fi
