@@ -2,3 +2,4 @@ data
 scratch
 .env
 root_private_key
+root_private_key.tmp
