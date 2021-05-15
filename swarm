@@ -31,7 +31,7 @@ count=$((1 + $(echo $REPLICAS | wc -w)))
 [ "$count" = "1" ] && count="Single"
 
 
-echo_info "${count}-node swarm..."
+echo_env "${count}-node swarm..."
 echo_env PRIMARY
 echo_env REPLICAS
 echo_env ADDITIONS
