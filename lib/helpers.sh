@@ -79,16 +79,25 @@ echo_env_example() {
 
 echo_next() {
   defined $1 || return
+  echo
   echo "$(print green "=>") $(print black/on_white " ${@} ")"
+}
+
+echo_info() {
+  defined $1 || return
+  echo
+  echo "$(print yellow "=>") $(print black/on_white " ${@} ")"
 }
 
 echo_stop() {
   defined $1 || return
+  echo
   echo "$(print red "=>") $(print black/on_red " ${@} ")"
 }
 
 # If $answer is "y", then we don't bother with user input
 ask() { 
+  echo
   echo "$(print green "=>") $(print white "$@")"
   read -p " y/[n] " -n 1 -r
   echo

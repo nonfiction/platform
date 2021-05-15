@@ -31,12 +31,11 @@ count=$((1 + $(echo $REPLICAS | wc -w)))
 [ "$count" = "1" ] && count="Single"
 
 
-echo
-echo_next "${count}-node swarm..."
+echo_info "${count}-node swarm..."
 echo_env PRIMARY
 echo_env REPLICAS
 echo_env ADDITIONS
-echo
+
 echo_next "Configuration..."
 echo_env DROPLET_IMAGE
 echo_env DROPLET_SIZE
@@ -48,7 +47,7 @@ echo_env ROOT_PRIVATE_KEY 30
 echo_env ROOT_PUBLIC_KEY 30
 
 if ask "Process droplets in the swarm?"; then  
-  echo_next "Begining..."
+  echo_next "Beginning..."
 else
   echo_stop "Cancelled."  
   exit 1;
@@ -69,7 +68,6 @@ for node_name in $(echo "$PRIMARY $REPLICAS" | xargs); do
   echo_droplet_info $node_name
   echo_volume_info  $node_name
   echo_record_info  $node_name
-  echo
 
   if has /tmp/dirty.txt; then 
     if ask "Process droplet?"; then
@@ -96,7 +94,7 @@ done
 
 
 if ask "Run configuration on each node in swarm?"; then  
-  echo_next "Begining..."
+  echo_next "Beginning..."
 else
   echo_stop "Cancelled."  
   exit 1;
@@ -125,11 +123,11 @@ for name in $nodes; do
   # Update password (once)
   run $ip "if [ ! -e /etc/password_updated ]; then echo root:${ROOT_PASSWORD} | chpasswd && echo work:${ROOT_PASSWORD} | chpasswd && touch /etc/password_updated; fi"
   
-  echo "=> Updating /etc/hosts on $name"
+  echo_next "Updating /etc/hosts on $name"
   hosts_self="127.0.1.1 ${name}.${DOMAIN} $name"
   run $ip "echo -e \"${hosts_self}\n${hosts}\" > /etc/hosts" 
   
-  echo "=> Updating authorized_keys on $name"
+  echo_next "Updating authorized_keys on $name"
   keys="$(curl -sL https://github.com/nonfiction/workspace/raw/main/config/ssh/authorized_keys)"
   keys=$(echo -e "${ROOT_PUBLIC_KEY}\n${keys}")
   run $ip "echo \"$keys\" > /root/.ssh/authorized_keys"
@@ -137,6 +135,9 @@ for name in $nodes; do
 
 done  
   
+
+# stop here for now
+exit
 
 # ---------------------------------------------------------
 # Create Docker Swarm and join workers

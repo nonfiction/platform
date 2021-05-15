@@ -13,7 +13,7 @@ fi
 # Install doctl (if it isn't already)
 if hasnt doctl; then
   
-  echo "=> Installing doctl..."
+  echo_next "Installing doctl..."
   
   # https://github.com/digitalocean/doctl/releases
   version="1.59.0"
@@ -25,18 +25,18 @@ fi
 # Check if doctl is already authorized to list droplets
 if error "doctl compute droplet list"; then
   
-  echo "=> doctl unauthorized"
+  echo_info "doctl unauthorized, checking for token..."
   
   #  https://cloud.digitalocean.com/account/api/tokens
   DO_AUTH_TOKEN=$(env_or_file DO_AUTH_TOKEN /run/secrets/do_token)
   if undefined "$DO_AUTH_TOKEN"; then
-    echo "=> Missing DO_AUTH_TOKEN!"
+    echo_stop "Missing DO_AUTH_TOKEN!"
     echo "Create a Personal Access Token on Digital Ocean and set it to an environment variable named:"
-    echo "export DO_AUTH_TOKEN=\"...\""
+    echo_env_example "DO_AUTH_TOKEN" "..."
     return 1 2> /dev/null || exit 1
   fi     
 
-  echo "=> Authorizing doctl..."
+  echo_next "Authorizing doctl..."
   doctl auth init -t $DO_AUTH_TOKEN 
   
 fi
@@ -287,7 +287,7 @@ create_droplet() {
   sed -i "s/__DOMAIN__/${DOMAIN}/" $config
   sed -i "s|__ROOT_PUBLIC_KEY__|${ROOT_PUBLIC_KEY}|" $config
   
-  echo "=> Creating droplet $node_name"
+  echo_next "Creating droplet $node_name"
   doctl compute droplet create $node_name \
     --region="${REGION}" \
     --size="${DROPLET_SIZE}" \
@@ -324,14 +324,14 @@ resize_droplet() {
   droplet_memory_env=$(get_droplet_memory_from_size $DROPLET_SIZE)    
     
   if [ $droplet_cpu_env -gt $droplet_cpu ] || [ $droplet_memory_env -gt $droplet_memory ]; then
-    echo "=> Turning OFF droplet $droplet_name"
+    echo_info "Turning OFF droplet $droplet_name"
     doctl compute droplet-action power-off "$droplet_id" --verbose --wait
-    echo "=> Expanding droplet $droplet_name"
+    echo_next "Expanding droplet $droplet_name"
     doctl compute droplet-action resize "$droplet_id" --size="$droplet_size" --verbose --wait
-    echo "=> Turning ON droplet $droplet_name"
+    echo_next "Turning ON droplet $droplet_name"
     doctl compute droplet-action power-on "$droplet_id" --verbose --wait
   else
-    echo "=> Droplet $droplet_name unchanged"
+    echo_info "Droplet $droplet_name unchanged"
   fi
 }
 
@@ -421,7 +421,7 @@ create_volume() {
   defined $VOLUME_SIZE || return
   defined $FS_TYPE || return  
   
-  echo "=> Creating volume $volume_name"
+  echo_next "Creating volume $volume_name"
   doctl compute volume create $volume_name \
     --region="${REGION}" \
     --size="${VOLUME_SIZE}GiB" \
@@ -444,13 +444,13 @@ resize_volume() {
   defined $VOLUME_SIZE || return
 
   if [ "$VOLUME_SIZE" -gt "$(get_volume_size $volume_name)" ]; then 
-    echo "=> Expanding volume $volume_name"
+    echo_next "Expanding volume $volume_name"
     doctl compute volume-action resize "$(get_volume_id $volume_name)" \
       --region="$REGION" 
       --size="$VOLUME_SIZE" 
       --wait 
   else
-    echo "=> Volume $volume_name unchanged"
+    echo_info "Volume $volume_name unchanged"
   fi
   
 }
@@ -550,10 +550,10 @@ create_or_update_record() {
   if defined $record_id; then
     
     if [ "$record_data" = "$(get_record_data $record_name)" ]; then
-      echo "=> Record ${record_name} unchanged"
+      echo_info "Record ${record_name} unchanged"
 
     else
-      echo "=> Updating record $record_name"
+      echo_next "Updating record $record_name"
       doctl compute domain records update $DOMAIN \
       --record-id="${record_id}" \
       --record-data="${record_data}" \
@@ -562,7 +562,7 @@ create_or_update_record() {
     
   # Create new DNS record
   else
-    echo "=> Creating record $record_name"
+    echo_next "Creating record $record_name"
     doctl compute domain records create $DOMAIN \
     --record-type="A" \
     --record-name="${record_name}" \
