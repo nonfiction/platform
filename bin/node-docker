@@ -9,15 +9,26 @@ if defined $JOIN_TOKEN && defined $PRIVATE_IP; then
   # Primary node - create swarm
   if [ "$JOIN_TOKEN" = "primary" ]; then
 
-    echo_next "Initializing swarm mode"
-    docker swarm init --advertise-addr $PRIVATE_IP
-    docker swarm join-token worker | grep docker | tee /etc/docker-join-token
+    if [ "$(docker info --format '{{.Swarm.LocalNodeState}}')" != "active" ]; then
+      echo_next "Initializing swarm mode"
+      docker swarm init --advertise-addr $PRIVATE_IP
+    else
+      echo_info "Swarm mode is already active for primary"
+    fi
+
+    echo_next "Writing token to /etc/docker-join-token"
+    echo "$(docker swarm join-token worker | grep docker | awk '{print $5, $6}')" | tee /etc/docker-join-token
 
   # Replica node - join swarm
   else
 
-    echo_next "Joining swarm"
-    $JOIN_TOKEN
+    if [ "$(docker info --format '{{.Swarm.LocalNodeState}}')" != "active" ]; then
+      echo_next "Joining swarm as worker"
+      docker swarm join --token "${JOIN_TOKEN}"
+    else
+      echo_info "Swarm mode is already active for replica"
+    fi
 
   fi
+
 fi
