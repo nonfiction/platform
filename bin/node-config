@@ -10,25 +10,22 @@ cd /root/platform && git pull
 
 # Set root password
 if defined $ROOT_PASSWORD; then
-  echo_next "Setting password to $ROOT_PASSWORD"
-  echo "- root"
-  echo root:${ROOT_PASSWORD} | chpasswd
-  echo "- work"
-  echo work:${ROOT_PASSWORD} | chpasswd
+  echo_next "Setting password" 
+  for user in root work; do
+    echo "${user}:${ROOT_PASSWORD}"
+    echo "${user}:${ROOT_PASSWORD}" | chpasswd
+  done
 fi
 
 # Settings authorized_keys
-if defined $ROOT_PUBLIC_KEY && defined $NAME; then
-  echo_next "Setting authorized_keys on $NAME"
+if defined $ROOT_PUBLIC_KEY; then
   keys="$(curl -sL https://github.com/nonfiction/workspace/raw/main/config/ssh/authorized_keys)"
   keys=$(echo -e "${ROOT_PUBLIC_KEY}\n${keys}")
-  echo -e $keys
-  echo "- root"
-  echo "$keys" > /root/.ssh/authorized_keys
-  echo "- work"
-  echo "$keys" > /work/.ssh/authorized_keys
+  for user in root work; do
+    echo_next "Writing /$user/.ssh/authorized_keys"
+    echo "$keys" | tee /$user/.ssh/authorized_keys
+  done
 fi
-
 
 # Update /etc/hosts file
 if defined $HOSTS_FILE && defined $NAME && defined $DOMAIN; then

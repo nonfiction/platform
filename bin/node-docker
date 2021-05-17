@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Bash helper functions
+if [ -e ../lib/helpers.sh ]; then source ../lib/helpers.sh;
+else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/helpers.sh); fi
+
+if defined $JOIN_TOKEN && defined $PRIVATE_IP; then
+
+  # Primary node - create swarm
+  if [ "$JOIN_TOKEN" = "primary" ]; then
+
+    echo_next "Initializing swarm mode"
+    docker swarm init --advertise-addr $PRIVATE_IP
+    docker swarm join-token worker | grep docker | tee /etc/docker-join-token
+
+  # Replica node - join swarm
+  else
+
+    echo_next "Joining swarm"
+    $JOIN_TOKEN
+
+  fi
+fi

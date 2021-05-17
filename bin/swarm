@@ -48,7 +48,7 @@ echo_env ROOT_PASSWORD
 echo_env ROOT_PRIVATE_KEY 20
 echo_env ROOT_PUBLIC_KEY 20
 
-if ask "Process droplets in the swarm?"; then  
+if ask "Continue?"; then  
   echo_next "Beginning..."
 else
   echo_stop "Cancelled."  
@@ -95,12 +95,12 @@ for node_name in $(echo "$PRIMARY $REPLICAS" | xargs); do
 done
 
 
-if ask "Run configuration on each node in swarm?"; then  
-  echo_next "Beginning..."
-else
-  echo_stop "Cancelled."  
-  exit 1;
-fi
+# if ask "Run configuration on each node in swarm?"; then  
+#   echo_next "Beginning..."
+# else
+#   echo_stop "Cancelled."  
+#   exit 1;
+# fi
 
 # All available nodes in this swarm
 nodes="$PRIMARY $(get_droplet_replicas $swarm_name)"
@@ -119,62 +119,60 @@ done
 
 # Loop all nodes in swarm
 for name in $nodes; do
+  if ask "Run system configuation on $name?"; then
   
-  ip="$(get_droplet_public_ip $name)"
+    ip="$(get_droplet_public_ip $name)"
 
-  # Prepare environment variables for run command
-  env=""
-  env="${env} NAME=\"$name\""
-  env="${env} DOMAIN=\"$DOMAIN\""
-  env="${env} HOSTS_FILE=\"$hosts\""
-  env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
-  env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""
+    # Prepare environment variables for run command
+    env=""
+    env="${env} NAME=\"$name\""
+    env="${env} DOMAIN=\"$DOMAIN\""
+    env="${env} HOSTS_FILE=\"$hosts\""
+    env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
+    env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""
 
-  run $ip "${env} /root/platform/bin/node-config"
-  
-  # # Update password (once)
-  # run $ip "if [ ! -e /etc/password_updated ]; then echo root:${ROOT_PASSWORD} | chpasswd && echo work:${ROOT_PASSWORD} | chpasswd && touch /etc/password_updated; fi"
-  #
-  # echo_next "Updating /etc/hosts on $name"
-  # hosts_self="127.0.1.1 ${name}.${DOMAIN} $name"
-  # run $ip "echo -e \"${hosts_self}\n${hosts}\" > /etc/hosts" 
-  #
-  # echo_next "Updating authorized_keys on $name"
-  # keys="$(curl -sL https://github.com/nonfiction/workspace/raw/main/config/ssh/authorized_keys)"
-  # keys=$(echo -e "${ROOT_PUBLIC_KEY}\n${keys}")
-  # run $ip "echo \"$keys\" > /root/.ssh/authorized_keys"
-  # run $ip "echo \"$keys\" > /work/.ssh/authorized_keys"
+    # Run script on node
+    run $ip "${env} /root/platform/bin/node-config"
 
+  fi
 done  
   
-
-# stop here for now
-exit
 
 # ---------------------------------------------------------
 # Create Docker Swarm and join workers
 # ---------------------------------------------------------
 
 # Loop all nodes in swarm
-docker_swarm_join="docker info"
 for name in $nodes; do
-  
-  ip="$(get_droplet_public_ip $name)"
+  if ask "Run swarm configuration on $name?"; then
 
-  run $ip "$docker_swarm_join"
-  wait_for docker
-  
-  if [ "$name" = "$PRIMARY" ]; then
-    private_ip="$(get_droplet_private_ip $name)"
-    run $ip "docker swarm init --advertise-addr $private_ip"
-    docker_swarm_join=$(run $ip "docker swarm join-token worker | grep docker")
+    # this node's IP address
+    ip="$(get_droplet_public_ip $name)"
+
+    # Set join token to "primary" if not replica
+    if [ "$name" = "$PRIMARY" ]; then
+      join_token="primary"
+
+    # Else, get join token from primary node
+    else
+      primary_ip="$(get_droplet_public_ip $PRIMARY)"
+      join_token="$(run $primary_ip "cat /etc/docker-join-token")"
+    fi
     
-  else
-    run $ip "$docker_swarm_join"
-  fi
+    # Prepare environment variables for run command
+    env=""
+    env="${env} PRIVATE_IP=\"$(get_droplet_private_ip $name)\""
+    env="${env} JOIN_TOKEN=\"$join_token\""
+
+    # Run script on node
+    run $ip "${env} /root/platform/bin/node-docker"
   
+  fi
 done
 
+
+# stop here for now
+exit
 
 # ---------------------------------------------------------
 # Create Gluster Volume
