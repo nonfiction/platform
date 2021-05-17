@@ -43,7 +43,7 @@ error() {
 echo_color() {
   
   local black='\e[0;30m'  ublack='\e[4;30m'  on_black='\e[40m'  reset='\e[0m'
-  local red='\e[0;31m'    ured='\e[4;31m'    on_red='\e[41m'
+  local red='\e[0;31m'    ured='\e[4;31m'    on_red='\e[41m'    default='\e[0m'
   local green='\e[0;32m'  ugreen='\e[4;32m'  on_green='\e[42m'
   local yellow='\e[0;33m' uyellow='\e[4;33m' on_yellow='\e[43m'
   local blue='\e[0;34m'   ublue='\e[4;34m'   on_blue='\e[44m'
@@ -61,11 +61,21 @@ echo_color() {
   
 }
 
+echo_line() {
+  local color=$1 char=$2 line=""
+  defined $1 || color="reset"
+  defined $2 || char="⎯"
+  for i in $(seq $(tput cols)); do
+    line="${line}${char}"
+  done
+  echo_color $color $line
+}
+
 echo_env() {
   defined $1 || return
   local key="$1" val="${!1}" trim=$2
   if defined $trim; then
-    val="$(echo $val | head -c $trim)...$(echo $val | tail -c $trim)"
+    val="$(echo $val | head -c $trim)[...]$(echo $val | tail -c $trim)"
   fi
   echo "$(echo_color white "${key}=")$(echo_color green "\"${val}\"")"
 }
@@ -74,38 +84,34 @@ echo_env_example() {
   defined $1 || return
   defined $2 || return
   local key="$1" val="${2}"
-  echo_color purple "⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯"
-  echo "$(echo_color purple "export") $(echo_color white "${key}")$(echo_color purple "=")$(echo_color green "\"${val}\"")"
-  echo_color purple "⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯"
+  echo_line yellow
+  echo "$(echo_color yellow "export") $(echo_color white "${key}=")$(echo_color green "\"${val}\"")"
+  echo_line yellow
 }
+
+
 
 echo_next() {
   defined $1 || return
   echo
-  # echo "$(echo_color green "=>") $(echo_color black/on_white " ${@} ")"
-  # echo "$(echo_color black/on_green " ➜ ") $(echo_color green " ${@} ")"
   echo "$(echo_color black/on_green " ▶︎ ") $(echo_color green " ${@} ")"
 }
 
 echo_info() {
   defined $1 || return
   echo
-  # echo "$(echo_color yellow "=>") $(echo_color black/on_yellow " ${@} ")"
   echo "$(echo_color black/on_yellow " ✔︎ ") $(echo_color yellow " ${@} ")"
 }
 
 echo_stop() {
   defined $1 || return
   echo
-  # echo "$(echo_color black/on_red " ⚑➤ ") $(echo_color black/on_red " ${@} ")"
-  # echo "$(echo_color black/on_red " ⚑ ") $(echo_color red " ${@} ")"
   echo "$(echo_color black/on_red " ✖︎ ") $(echo_color red " ${@} ")"
 }
 
 # If $answer is "y", then we don't bother with user input
 ask() { 
   echo
-  # echo "$(echo_color green "=>") $(echo_color white "$@")"
   echo "$(echo_color black/on_yellow " ? ") $(echo_color yellow " ${@} ")"
   read -p " y/[n] " -n 1 -r
   echo

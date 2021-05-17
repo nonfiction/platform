@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Bash helper functions
-if [ -e lib/helpers.sh ]; then source lib/helpers.sh;
+if [ -e ../lib/helpers.sh ]; then source ../lib/helpers.sh;
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/helpers.sh); fi
 
 # Digital Ocean API functions
-if [ -e lib/doctl.sh ]; then source lib/doctl.sh;
+if [ -e ../lib/doctl.sh ]; then source ../lib/doctl.sh;
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/doctl.sh); fi
 
 
@@ -32,19 +32,21 @@ count=$((1 + $(echo $REPLICAS | wc -w)))
 
 
 echo_next "${count}-node swarm..."
+echo_line green
 echo_env PRIMARY
 echo_env REPLICAS
 echo_env ADDITIONS
 
 echo_next "Configuration..."
+echo_line green
 echo_env DROPLET_IMAGE
 echo_env DROPLET_SIZE
 echo_env VOLUME_SIZE
 echo_env FS_TYPE
 echo_env REGION
 echo_env ROOT_PASSWORD
-echo_env ROOT_PRIVATE_KEY 30
-echo_env ROOT_PUBLIC_KEY 30
+echo_env ROOT_PRIVATE_KEY 20
+echo_env ROOT_PUBLIC_KEY 20
 
 if ask "Process droplets in the swarm?"; then  
   echo_next "Beginning..."
@@ -119,19 +121,29 @@ done
 for name in $nodes; do
   
   ip="$(get_droplet_public_ip $name)"
+
+  # Prepare environment variables for run command
+  env=""
+  env="${env} NAME=\"$name\""
+  env="${env} DOMAIN=\"$DOMAIN\""
+  env="${env} HOSTS_FILE=\"$hosts\""
+  env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
+  env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""
+
+  run $ip "${env} /root/platform/bin/node-config"
   
-  # Update password (once)
-  run $ip "if [ ! -e /etc/password_updated ]; then echo root:${ROOT_PASSWORD} | chpasswd && echo work:${ROOT_PASSWORD} | chpasswd && touch /etc/password_updated; fi"
-  
-  echo_next "Updating /etc/hosts on $name"
-  hosts_self="127.0.1.1 ${name}.${DOMAIN} $name"
-  run $ip "echo -e \"${hosts_self}\n${hosts}\" > /etc/hosts" 
-  
-  echo_next "Updating authorized_keys on $name"
-  keys="$(curl -sL https://github.com/nonfiction/workspace/raw/main/config/ssh/authorized_keys)"
-  keys=$(echo -e "${ROOT_PUBLIC_KEY}\n${keys}")
-  run $ip "echo \"$keys\" > /root/.ssh/authorized_keys"
-  run $ip "echo \"$keys\" > /work/.ssh/authorized_keys"
+  # # Update password (once)
+  # run $ip "if [ ! -e /etc/password_updated ]; then echo root:${ROOT_PASSWORD} | chpasswd && echo work:${ROOT_PASSWORD} | chpasswd && touch /etc/password_updated; fi"
+  #
+  # echo_next "Updating /etc/hosts on $name"
+  # hosts_self="127.0.1.1 ${name}.${DOMAIN} $name"
+  # run $ip "echo -e \"${hosts_self}\n${hosts}\" > /etc/hosts" 
+  #
+  # echo_next "Updating authorized_keys on $name"
+  # keys="$(curl -sL https://github.com/nonfiction/workspace/raw/main/config/ssh/authorized_keys)"
+  # keys=$(echo -e "${ROOT_PUBLIC_KEY}\n${keys}")
+  # run $ip "echo \"$keys\" > /root/.ssh/authorized_keys"
+  # run $ip "echo \"$keys\" > /work/.ssh/authorized_keys"
 
 done  
   

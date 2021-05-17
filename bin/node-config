@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Bash helper functions
+if [ -e ../lib/helpers.sh ]; then source ../lib/helpers.sh;
+else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/helpers.sh); fi
+
+# Update repo
+echo_next "Updating platform repo from git"
+cd /root/platform && git pull
+
+# Set root password
+if defined $ROOT_PASSWORD; then
+  echo_next "Setting password to $ROOT_PASSWORD"
+  echo "- root"
+  echo root:${ROOT_PASSWORD} | chpasswd
+  echo "- work"
+  echo work:${ROOT_PASSWORD} | chpasswd
+fi
+
+# Settings authorized_keys
+if defined $ROOT_PUBLIC_KEY && defined $NAME; then
+  echo_next "Setting authorized_keys on $NAME"
+  keys="$(curl -sL https://github.com/nonfiction/workspace/raw/main/config/ssh/authorized_keys)"
+  keys=$(echo -e "${ROOT_PUBLIC_KEY}\n${keys}")
+  echo -e $keys
+  echo "- root"
+  echo "$keys" > /root/.ssh/authorized_keys
+  echo "- work"
+  echo "$keys" > /work/.ssh/authorized_keys
+fi
+
+
+# Update /etc/hosts file
+if defined $HOSTS_FILE && defined $NAME && defined $DOMAIN; then
+  echo_next "Setting /etc/hosts on $NAME"
+  hosts_self="127.0.1.1 ${NAME}.${DOMAIN} $NAME"
+  echo -e "${hosts_self}\n${HOSTS_FILE}" | tee /etc/hosts
+fi
+                                                                              
+if undefined "$(cat /etc/cloud/cloud.cfg | grep manage_etc_hosts)"; then
+  echo_next "Appending /etc/cloud/cloud.cfg"
+  echo "manage_etc_hosts: False" | tee --append /etc/cloud/cloud.cfg
+fi
