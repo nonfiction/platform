@@ -11,6 +11,7 @@ if defined $JOIN_TOKEN && defined $PRIVATE_IP; then
 
     if [ "$(docker info --format '{{.Swarm.LocalNodeState}}')" != "active" ]; then
       echo_next "Initializing swarm mode"
+      echo "docker swarm init --advertise-addr $PRIVATE_IP"
       docker swarm init --advertise-addr $PRIVATE_IP
     else
       echo_info "Swarm mode is already active for primary"
