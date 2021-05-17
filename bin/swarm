@@ -194,6 +194,19 @@ for name in $nodes; do
 done
 
 
+# Messaging about droplets not all being ready
+not_ready="$(cat /tmp/droplets-not-ready.txt | xargs)"
+if defined "$not_ready"; then 
+  echo_line red
+  echo_stop "Re-run when all droplet's are ready: $not_ready"
+  echo_line red
+else
+  echo_line green
+  echo_next "...COMPLETE!"
+  echo_line green
+fi
+
+
 # stop here for now
 exit
 
