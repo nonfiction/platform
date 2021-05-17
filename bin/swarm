@@ -120,8 +120,11 @@ done
 # Loop all nodes in swarm
 for name in $nodes; do
   if ask "Run system configuation on $name?"; then
-  
+
     ip="$(get_droplet_public_ip $name)"
+
+    # Pull updates from git
+    run $ip "/root/platform/bin/node-update"
 
     # Prepare environment variables for run command
     env=""

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Bash helper functions
+if [ -e ../lib/helpers.sh ]; then source ../lib/helpers.sh;
+else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/helpers.sh); fi
+
+# Update repo
+echo_next "Updating platform repo from git"
+cd /root/platform && git pull
