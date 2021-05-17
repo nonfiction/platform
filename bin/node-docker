@@ -24,7 +24,8 @@ if defined $JOIN_TOKEN && defined $PRIVATE_IP; then
 
     if [ "$(docker info --format '{{.Swarm.LocalNodeState}}')" != "active" ]; then
       echo_next "Joining swarm as worker"
-      docker swarm join --token "${JOIN_TOKEN}"
+      echo "docker swarm join --token $JOIN_TOKEN"
+      docker swarm join --token $JOIN_TOKEN
     else
       echo_info "Swarm mode is already active for replica"
     fi
