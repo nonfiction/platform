@@ -74,31 +74,39 @@ echo_env_example() {
   defined $1 || return
   defined $2 || return
   local key="$1" val="${2}"
-  echo "$(echo_color white "export ${key}=")$(echo_color green "\"${val}\"")"
+  echo_color purple "⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯"
+  echo "$(echo_color purple "export") $(echo_color white "${key}")$(echo_color purple "=")$(echo_color green "\"${val}\"")"
+  echo_color purple "⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯"
 }
 
 echo_next() {
   defined $1 || return
   echo
-  echo "$(echo_color green "=>") $(echo_color black/on_white " ${@} ")"
+  # echo "$(echo_color green "=>") $(echo_color black/on_white " ${@} ")"
+  # echo "$(echo_color black/on_green " ➜ ") $(echo_color green " ${@} ")"
+  echo "$(echo_color black/on_green " ▶︎ ") $(echo_color green " ${@} ")"
 }
 
 echo_info() {
   defined $1 || return
   echo
-  echo "$(echo_color yellow "=>") $(echo_color black/on_yellow " ${@} ")"
+  # echo "$(echo_color yellow "=>") $(echo_color black/on_yellow " ${@} ")"
+  echo "$(echo_color black/on_yellow " ✔︎ ") $(echo_color yellow " ${@} ")"
 }
 
 echo_stop() {
   defined $1 || return
   echo
-  echo "$(echo_color red "=>") $(echo_color black/on_red " ${@} ")"
+  # echo "$(echo_color black/on_red " ⚑➤ ") $(echo_color black/on_red " ${@} ")"
+  # echo "$(echo_color black/on_red " ⚑ ") $(echo_color red " ${@} ")"
+  echo "$(echo_color black/on_red " ✖︎ ") $(echo_color red " ${@} ")"
 }
 
 # If $answer is "y", then we don't bother with user input
 ask() { 
   echo
-  echo "$(echo_color green "=>") $(echo_color white "$@")"
+  # echo "$(echo_color green "=>") $(echo_color white "$@")"
+  echo "$(echo_color black/on_yellow " ? ") $(echo_color yellow " ${@} ")"
   read -p " y/[n] " -n 1 -r
   echo
   [[ $REPLY =~ ^[Yy]$ ]]
