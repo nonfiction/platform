@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Webhook fires when droplet is ready
+val="$(hostname)"
+url=$(cat /etc/webhook)
+
+if [ "$url" != "__WEBHOOK__" ]; then
+  curl -X POST -H "Content-Type: application/json" -d "{\"value1\":\"$val\"}" $url
+fi

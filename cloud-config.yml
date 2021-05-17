@@ -79,6 +79,10 @@ runcmd:
   - git clone https://github.com/nonfiction/platform.git /root/platform
   - cd /root/platform && make init
 
+  # It's done!
+  - echo "__WEBHOOK__" > /etc/webhook
+  - /root/platform/bin/droplet-ready
+
 # Reboot server after everything is installed
 power_state:
   delay: now
