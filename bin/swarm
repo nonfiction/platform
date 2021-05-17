@@ -62,7 +62,7 @@ swarm_name=$PRIMARY
 role="primary"
 
 # Make sure this file doesn't yet exist
-rm -f /tmp/dirty.txt
+rm -f /tmp/process-droplet.txt
 
 for node_name in $(echo "$PRIMARY $REPLICAS" | xargs); do
   
@@ -71,7 +71,7 @@ for node_name in $(echo "$PRIMARY $REPLICAS" | xargs); do
   echo_volume_info  $node_name
   echo_record_info  $node_name
 
-  if has /tmp/dirty.txt; then 
+  if has /tmp/process-droplet.txt; then 
     if ask "Process droplet?"; then
       
       # First create/resize the volume that will be attached
@@ -89,7 +89,7 @@ for node_name in $(echo "$PRIMARY $REPLICAS" | xargs); do
   fi  
   
   # Clear out this file
-  rm -f /tmp/dirty.txt
+  rm -f /tmp/process-droplet.txt
   
   role="replica"
 done
@@ -117,27 +117,41 @@ for name in $nodes; do
   hosts="${hosts}\n${ip} ${name}"
 done
 
+# Track any droplets that are still spinning up
+echo "" > /tmp/droplets-not-ready.txt
+
 # Loop all nodes in swarm
 for name in $nodes; do
-  if ask "Run system configuation on $name?"; then
 
-    ip="$(get_droplet_public_ip $name)"
+  # Ensure this droplet is ready (if it was recently created)
+  ip="$(get_droplet_public_ip $name)"
+  if undefined "$(run $ip "ls /root" | grep platform)"; then
+    echo "[${name}]" >> /tmp/droplets-not-ready.txt
+    echo_info "Droplet $name is not yet ready..."
 
-    # Pull updates from git
-    run $ip "/root/platform/bin/node-update"
+  else
 
-    # Prepare environment variables for run command
-    env=""
-    env="${env} NAME=\"$name\""
-    env="${env} DOMAIN=\"$DOMAIN\""
-    env="${env} HOSTS_FILE=\"$hosts\""
-    env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
-    env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""
+    if ask "Run system configuation on $name?"; then
 
-    # Run script on node
-    run $ip "${env} /root/platform/bin/node-config"
+      ip="$(get_droplet_public_ip $name)"
 
+      # Pull updates from git
+      run $ip "/root/platform/bin/node-update"
+
+      # Prepare environment variables for run command
+      env=""
+      env="${env} NAME=\"$name\""
+      env="${env} DOMAIN=\"$DOMAIN\""
+      env="${env} HOSTS_FILE=\"$hosts\""
+      env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
+      env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""
+
+      # Run script on node
+      run $ip "${env} /root/platform/bin/node-config"
+
+    fi
   fi
+
 done  
   
 
@@ -147,30 +161,36 @@ done
 
 # Loop all nodes in swarm
 for name in $nodes; do
-  if ask "Run swarm configuration on $name?"; then
 
-    # this node's IP address
-    ip="$(get_droplet_public_ip $name)"
+  # Ensure this droplet is ready (if it was recently created)
+  ip="$(get_droplet_public_ip $name)"
+  if [[ "$(cat /tmp/droplets-not-ready.txt)" =~ "[${name}]" ]]; then
+    echo_info "Droplet $name is not yet ready..."
+  else
 
-    # Set join token to "primary" if not replica
-    if [ "$name" = "$PRIMARY" ]; then
-      join_token="primary"
+    if ask "Run swarm configuration on $name?"; then
 
-    # Else, get join token from primary node
-    else
-      primary_ip="$(get_droplet_public_ip $PRIMARY)"
-      join_token="$(run $primary_ip "cat /etc/docker-join-token")"
-    fi
-    
-    # Prepare environment variables for run command
-    env=""
-    env="${env} PRIVATE_IP=\"$(get_droplet_private_ip $name)\""
-    env="${env} JOIN_TOKEN=\"$join_token\""
+      # Set join token to "primary" if not replica
+      if [ "$name" = "$PRIMARY" ]; then
+        join_token="primary"
 
-    # Run script on node
-    run $ip "${env} /root/platform/bin/node-docker"
+      # Else, get join token from primary node
+      else
+        primary_ip="$(get_droplet_public_ip $PRIMARY)"
+        join_token="$(run $primary_ip "cat /etc/docker-join-token")"
+      fi
+      
+      # Prepare environment variables for run command
+      env=""
+      env="${env} PRIVATE_IP=\"$(get_droplet_private_ip $name)\""
+      env="${env} JOIN_TOKEN=\"$join_token\""
+
+      # Run script on node
+      run $ip "${env} /root/platform/bin/node-docker"
   
+    fi
   fi
+
 done
 
 

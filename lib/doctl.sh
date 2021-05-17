@@ -254,14 +254,14 @@ echo_droplet_info() {
     droplet_memory_env=$(get_droplet_memory_from_size $DROPLET_SIZE)    
     
     if [ $droplet_cpu_env -gt $droplet_cpu ] || [ $droplet_memory_env -gt $droplet_memory ]; then
-      touch /tmp/dirty.txt
+      touch /tmp/process-droplet.txt
       echo_droplet_size $droplet_name "${droplet_size}" "${DROPLET_SIZE}" "(expand)"
     else
       echo_droplet_size $droplet_name "${droplet_size}" "${DROPLET_SIZE}" "(no change)"
     fi
     
   else
-    touch /tmp/dirty.txt
+    touch /tmp/process-droplet.txt
     echo_droplet_size $droplet_name "..." "${DROPLET_SIZE}" "(new)"
   fi
   
@@ -296,6 +296,7 @@ create_droplet() {
   sed -i "s/__NAME__/${node_name}/" $config
   sed -i "s/__DOMAIN__/${DOMAIN}/" $config
   sed -i "s|__ROOT_PUBLIC_KEY__|${ROOT_PUBLIC_KEY}|" $config
+  sed -i "s|__WEBHOOK__|${WEBHOOK}|" $config
   
   echo_next "Creating droplet $node_name"
   doctl compute droplet create $node_name \
@@ -397,7 +398,7 @@ echo_volume_info() {
     if [ "$VOLUME_SIZE" -gt "$volume_size" ]; then 
       # sudo resize2fs /dev/disk/by-id/scsi-0DO_example
       #will_resize_volume=true
-      touch /tmp/dirty.txt
+      touch /tmp/process-droplet.txt
       echo_volume_size $1 "${volume_size}GB" "${VOLUME_SIZE}GB" "(expand)"
     else
       #will_resize_volume=false
@@ -405,7 +406,7 @@ echo_volume_info() {
     fi
     
   else
-    touch /tmp/dirty.txt
+    touch /tmp/process-droplet.txt
     echo_volume_size "${node}" "..." "${VOLUME_SIZE}GB" "(new)"
   fi
   
@@ -532,10 +533,10 @@ echo_record_info() {
     if defined "$record_data" && [ "$record_data" = "$droplet_ip" ]; then
       echo_record_data "${record_name}" "${record_data}" "(no change)"
     elif defined "$record_data" && [ "$record_data" != "$droplet_ip" ]; then
-      touch /tmp/dirty.txt
+      touch /tmp/process-droplet.txt
       echo_record_data "${record_name}" "${droplet_ip}" "(update)"
     else
-      touch /tmp/dirty.txt
+      touch /tmp/process-droplet.txt
       echo_record_data "${record_name}" "${droplet_ip}" "(new)"
     fi
 
