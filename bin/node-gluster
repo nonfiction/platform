@@ -6,11 +6,6 @@ else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/h
 
 if defined $NAME && defined $PRIMARY; then
 
-  # # Gluster create volume
-  # brick="/gluster/swarm/data"
-  # mkdir -p $brick
-
-
   # Primary node
   if [ "$NAME" = "$PRIMARY" ]; then
     if defined $NODES; then
@@ -19,8 +14,7 @@ if defined $NAME && defined $PRIMARY; then
       echo_next "Gluster probe peers"
       for node in $NODES; do
         if [ "$node" != "$PRIMARY" ]; then
-          echo "gluster peer prob $node"
-          gluster peer probe $node
+          echo "${node} - $(gluster peer probe $node)"
         fi
       done
 
@@ -30,8 +24,7 @@ if defined $NAME && defined $PRIMARY; then
       # Build command
       count=$(echo $NODES | wc -w) cmd=""
       for node in $NODES; do
-        # cmd="${cmd} ${node}:${brick}"
-        cmd="${cmd} ${node}:/mnt/${node}"
+        cmd="${cmd} ${node}:/mnt/${node}/swarm-gfs"
       done
       cmd="gluster volume create swarm-gfs replica ${count} ${cmd}"
 
@@ -63,4 +56,7 @@ fi
 # gluster volume start work-gfs
 # echo 'localhost:/work-gfs /work glusterfs defaults,_netdev,backupvolfile-server=localhost 0 0' >> /etc/fstab
 # mount.glusterfs localhost:/work-gfs /work
-#chown -R root:docker /mnt
+# chown -R root:docker /mnt
+# # Gluster create volume
+# brick="/gluster/swarm/data"
+# mkdir -p $brick

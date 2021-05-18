@@ -30,7 +30,13 @@ if defined $HOSTS_FILE && defined $NAME && defined $DOMAIN; then
   echo -e "${hosts_self}\n${HOSTS_FILE}" | tee /etc/hosts
 fi
                                                                               
+# Self-manage /etc/hosts file
 if undefined "$(cat /etc/cloud/cloud.cfg | grep manage_etc_hosts)"; then
   echo_next "Appending /etc/cloud/cloud.cfg"
   echo "manage_etc_hosts: False" | tee --append /etc/cloud/cloud.cfg
 fi
+
+# Ensure gluster's brick directory exists on block storage volume
+echo_next "Prepare block storage"
+cmd="mkdir -p /mnt/${NAME}/swarm-gfs"
+$cmd
