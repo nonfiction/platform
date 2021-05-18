@@ -6,6 +6,11 @@ else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/h
 
 if defined $NAME && defined $PRIMARY; then
 
+  # # Gluster create volume
+  # brick="/gluster/swarm/data"
+  # mkdir -p $brick
+
+
   # Primary node
   if [ "$NAME" = "$PRIMARY" ]; then
     if defined $NODES; then
@@ -13,28 +18,49 @@ if defined $NAME && defined $PRIMARY; then
       # GlusterFS probe nodes  
       echo_next "Gluster probe peers"
       for node in $NODES; do
-        [ "$node" != "$PRIMARY" ] && gluster peer probe $node
+        if [ "$node" != "$PRIMARY" ]; then
+          echo "gluster peer prob $node"
+          gluster peer probe $node
+        fi
       done
 
       echo_info "Gluster pool list"
       gluster pool list
+      
+      # Build command
+      count=$(echo $NODES | wc -w) cmd=""
+      for node in $NODES; do
+        # cmd="${cmd} ${node}:${brick}"
+        cmd="${cmd} ${node}:/mnt/${node}"
+      done
+      cmd="gluster volume create swarm-gfs replica ${count} ${cmd}"
+
+      # Run command
+      echo_next "Gluster create swarm-gfs"
+      echo $cmd
+      $cmd
+      sleep 3
+
+      # Start volume
+      echo_next "Gluster start swarm-gfs"
+      cmd="gluster volume start swarm-gfs"
+      echo $cmd
+      $cmd
+      sleep 3
 
     fi
-
-  # Replica nodes
-  else
-
-    echo_info "Replica node"
-
   fi
+
+  
+  # Mount volume
+  echo_next "Gluster mount swarm-gfs"
+  cmd="mount.glusterfs localhost:/swarm-gfs /swarm"
+  $cmd
 
 fi
 
 # gluster volume create work-gfs replica 3 goof:/work goof01:/work goof02:/work force
 # gluster volume start work-gfs
-
 # echo 'localhost:/work-gfs /work glusterfs defaults,_netdev,backupvolfile-server=localhost 0 0' >> /etc/fstab
-
 # mount.glusterfs localhost:/work-gfs /work
-
 #chown -R root:docker /mnt
