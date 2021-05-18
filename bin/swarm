@@ -50,6 +50,7 @@ echo_env REGION
 echo_env ROOT_PASSWORD
 echo_env ROOT_PRIVATE_KEY 20
 echo_env ROOT_PUBLIC_KEY 20
+echo_env WEBHOOK
 
 if ask "Continue?"; then  
   echo_next "Beginning..."
@@ -138,6 +139,7 @@ for name in $nodes; do
       env=""
       env="${env} NAME=\"$name\""
       env="${env} DOMAIN=\"$DOMAIN\""
+      env="${env} FS_TYPE=\"$FS_TYPE\""
       env="${env} HOSTS_FILE=\"$hosts\""
       env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
       env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""

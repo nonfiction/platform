@@ -120,6 +120,9 @@ if undefined $FS_TYPE; then
   FS_TYPE="ext4"
 fi
 
+# WEBHOOK from env or secret
+WEBHOOK="$(env_or_file WEBHOOK /run/secrets/webhook)"
+
 
 # ---------------------------------------------------------
 # Droplet functions
