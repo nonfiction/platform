@@ -1,11 +1,7 @@
 #!/bin/bash
 
 # Load up .env
-# set -o allexport
-# [[ -f .env ]] && source .env
-# set +o allexport
-
-export $(cat .env)
+[ -e .env ] && export $(cat .env)
 
 # Bash helper functions
 if [ -e ../lib/helpers.sh ]; then source ../lib/helpers.sh;
@@ -20,7 +16,7 @@ else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/d
 PRIMARY="$1"
 if undefined $PRIMARY; then
   echo_stop "Missing swarm name!"
-  echo "The first argument for this script should be the swarm's name. Example: ./swarm app 3"
+  echo "The first argument for this script should be the swarm's name. Example: bin/swarm app 3"
   exit 1
 fi
 
@@ -44,7 +40,7 @@ echo_env PRIMARY
 echo_env REPLICAS
 echo_env ADDITIONS
 
-echo_next "Configuration..."
+echo_next "Swarm Config..."
 echo_line green
 echo_env DROPLET_IMAGE
 echo_env DROPLET_SIZE
@@ -103,11 +99,15 @@ done
 
 
 # All available nodes in this swarm
-nodes="$PRIMARY $(get_droplet_replicas $swarm_name)"
+nodes="$PRIMARY $(get_droplet_replicas $swarm_name | tr ' ' '\n' | sort | uniq | xargs)"
+
 
 # ---------------------------------------------------------
 # System configuration for each node
 # ---------------------------------------------------------
+echo
+echo_next "Node Config..."
+echo_line green
 
 # Build hosts file
 hosts="127.0.0.1 localhost"
@@ -129,7 +129,7 @@ for name in $nodes; do
 
   else
 
-    if ask "Run system configuation on $name?"; then
+    if ask "Run node configuation on $name?"; then
 
       # Pull updates from git
       run $name "/root/platform/bin/node-update"
@@ -154,6 +154,9 @@ done
 # ---------------------------------------------------------
 # Create Docker Swarm and join workers
 # ---------------------------------------------------------
+echo
+echo_next "Swarm Config..."
+echo_line green
 
 # Loop all nodes in swarm
 for name in $nodes; do
@@ -191,6 +194,9 @@ done
 # ---------------------------------------------------------
 # Create Gluster Volume
 # ---------------------------------------------------------
+echo
+echo_next "Gluster Config..."
+echo_line green
 
 # Loop all nodes in swarm
 for name in $nodes; do
@@ -202,14 +208,11 @@ for name in $nodes; do
 
     if ask "Run gluster configuration on $name?"; then
 
-      # # GlusterFS probe nodes  
-      # for n in $nodes; do
-      #   [ "$n" = "$PRIMARY" ] || run $name "gluster peer probe $n"
-      # done
-      # run $name "gluster pool list"
-
       # Prepare environment variables for run command
       env=""
+      env="${env} NAME=\"$name\""
+      env="${env} NODES=\"$nodes\""
+      env="${env} PRIMARY=\"$PRIMARY\""
 
       # Run script on node
       run $name "${env} /root/platform/bin/node-gluster"

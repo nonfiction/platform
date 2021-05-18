@@ -4,4 +4,37 @@
 if [ -e ../lib/helpers.sh ]; then source ../lib/helpers.sh;
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/helpers.sh); fi
 
-echo_info "gluster placeholder"
+if defined $NAME && defined $PRIMARY; then
+
+  # Primary node
+  if [ "$NAME" = "$PRIMARY" ]; then
+    if defined $NODES; then
+
+      # GlusterFS probe nodes  
+      echo_next "Gluster probe peers"
+      for node in $NODES; do
+        [ "$node" != "$PRIMARY" ] && gluster peer probe $node
+      done
+
+      echo_info "Gluster pool list"
+      gluster pool list
+
+    fi
+
+  # Replica nodes
+  else
+
+    echo_info "Replica node"
+
+  fi
+
+fi
+
+# gluster volume create work-gfs replica 3 goof:/work goof01:/work goof02:/work force
+# gluster volume start work-gfs
+
+# echo 'localhost:/work-gfs /work glusterfs defaults,_netdev,backupvolfile-server=localhost 0 0' >> /etc/fstab
+
+# mount.glusterfs localhost:/work-gfs /work
+
+#chown -R root:docker /mnt
