@@ -119,6 +119,16 @@ ask() {
   if [ ! $? -ne 0 ]; then return 0; else return 1; fi
 }
 
+# Print command before running, optional sleep in seconds
+echo_cmd() {
+  defined $1 || return  
+  local cmd=$1 seconds=0
+  defined $2 && seconds=$2  
+  echo "$cmd"
+  $cmd
+  sleep $seconds
+}
+
 
 # Check for environment variable, or fall back on up to 2 files
 env_or_file() {

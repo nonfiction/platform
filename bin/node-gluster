@@ -4,54 +4,20 @@
 if [ -e ../lib/helpers.sh ]; then source ../lib/helpers.sh;
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/helpers.sh); fi
 
+# Digital Ocean API functions
+if [ -e ../lib/gluster.sh ]; then source ../lib/gluster.sh;
+else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/gluster.sh); fi
 
-# Returns number of bricks in a volume
-get_bricks() {
-  defined $1 || return  
-  gluster volume info $1 | grep "Number of Bricks" | tail -c 3 | xargs
-}
-
-# Check if volume exists, pass volume name
-undefined_volume() {
-  undefined $1 && return 0  
-  undefined "$(gluster volume info $1 | grep Started)" && return 0
-  return 1
-}
-
-# Check if brick exists, pass volume name & mount path
-undefined_brick() {
-  undefined $1 && return 0  
-  undefined $2 && return 0  
-  undefined "$(gluster volume info $1 | grep $2)" && return 0
-  return 1
-}
-
-# Check if volume isn't mounted
-unmounted_volume() {
-  undefined $1 && return 0  
-  local volume=$1
-  undefined "$(df | grep localhost:/$volume)" && return 0
-  return 1
-}
-
-# Print command before running, optional sleep in seconds
-echo_cmd() {
-  defined $1 || return  
-  local cmd=$1 seconds=0
-  defined $2 && seconds=$2  
-  echo "$cmd"
-  $cmd
-  sleep $seconds
-}
 
 # Defaults 
 undefined $VOLUME_NAME && VOLUME_NAME="swarm-gfs"
 undefined $VOLUME_MOUNT && VOLUME_MOUNT="/swarm"
 
+
 # Proceed!
 if defined $NAME && defined $PRIMARY; then
 
-  # Primary node
+  # Most of this occurs on the primary node
   if [ "$NAME" = "$PRIMARY" ]; then
     if defined $NODES; then
 
@@ -70,35 +36,22 @@ if defined $NAME && defined $PRIMARY; then
       echo_next "Gluster create volumes & bricks"
       for node in $NODES; do
 
+        # $BRICK_DIR will override this
+        brick_dir="$(get_brick_dir $node)"
+
         # Primary node
         if [ "$node" = "$PRIMARY" ]; then
 
           # Check if volume does not yet exist
-          # if [ undefined "$(gluster volume info swarm-gfs | grep Started)" ]; then
           if undefined_volume $VOLUME_NAME; then
 
-            # # Create volume 
-            # echo_next "Gluster create swarm-gfs"
-            # cmd="gluster volume create swarm-gfs replica 1 ${node}:/mnt/${node}/swarm-gfs"
-            # echo $cmd
-            # $cmd
-            # sleep
-
             # Ensure brick directory exists
-            brick_dir="/mnt/${node}/${VOLUME_NAME}"
+            # brick_dir="/mnt/${node}/${VOLUME_NAME}"
             mkdir -p $brick_dir
 
             # Create volume 
             echo_next "Gluster create $VOLUME_NAME"
             echo_cmd "gluster volume create $VOLUME_NAME ${node}:${brick_dir}" 3
-
-
-            # # Start volume
-            # echo_next "Gluster start swarm-gfs"
-            # cmd="gluster volume start swarm-gfs"
-            # echo $cmd
-            # $cmd
-            # sleep 3
 
             # Start volume
             echo_next "Gluster start $VOLUME_NAME"
@@ -110,56 +63,24 @@ if defined $NAME && defined $PRIMARY; then
         else
 
           # Check if brick does not yet exist
-          # if [ undefined "$(gluster volume info swarm-gfs | grep /mnt/$node/swarm-gfs)" ]; then
-          if undefined_brick $VOLUME_NAME "/mnt/${node}/${VOLUME_NAME}"; then
-
-            # # Add brick to volume
-            # bricks=$(gluster volume info swarm-gfs | awk -F ' = ' '/Number of Bricks/{print $2}')
-            # cmd="gluster volume add-brick swarm-gfs replica $((bricks + 1)) ${node}:/mnt/${node}/swarm-gfs force"
-            # echo $cmd
-            # $cmd
+          # if undefined_brick $VOLUME_NAME "/mnt/${node}/${VOLUME_NAME}"; then
+          if undefined_brick $VOLUME_NAME $brick_dir; then
 
             # Add brick to volume
             bricks=$(get_bricks $VOLUME_NAME)
-            brick_dir="/mnt/${node}/${VOLUME_NAME}"
+            # brick_dir="/mnt/${node}/${VOLUME_NAME}"
             echo_cmd "gluster volume add-brick ${VOLUME_NAME} replica $((bricks + 1)) ${node}:${brick_dir} force" 3
 
           fi
 
         fi
       done
-      
-      # gluster volume add-brick swarm-gfs replica 4 goof03:/mnt/goof03/swarm-gfs
-      # gluster volume remove-brick swarm-gfs replica 4 goof03:/mnt/goof03/swarm-gfs force
-      # gluster volume info swarm-gfs | grep Started && echo exists
-
-
-
-      # # (old) Build command
-      # count=$(echo $NODES | wc -w) cmd=""
-      # for node in $NODES; do
-      #   cmd="${cmd} ${node}:/mnt/${node}/swarm-gfs"
-      # done
-      # cmd="gluster volume create swarm-gfs replica ${count} ${cmd}"
-
-      # # Run command
-      # echo_next "Gluster create swarm-gfs"
-      # echo $cmd
-      # $cmd
-      # sleep 3
-      #
-      # # Start volume
-      # echo_next "Gluster start swarm-gfs"
-      # cmd="gluster volume start swarm-gfs"
-      # echo $cmd
-      # $cmd
-      # sleep 3
 
     fi
   fi
 
   
-  # Mount volume
+  # Every node must mount the volume
   if unmounted_volume $VOLUME_NAME; then
     echo_next "Gluster mount $VOLUME_NAME"
     mkdir -p $VOLUME_MOUNT
@@ -167,12 +88,3 @@ if defined $NAME && defined $PRIMARY; then
   fi
 
 fi
-
-# gluster volume create work-gfs replica 3 goof:/work goof01:/work goof02:/work force
-# gluster volume start work-gfs
-# echo 'localhost:/work-gfs /work glusterfs defaults,_netdev,backupvolfile-server=localhost 0 0' >> /etc/fstab
-# mount.glusterfs localhost:/work-gfs /work
-# chown -R root:docker /mnt
-# # Gluster create volume
-# brick="/gluster/swarm/data"
-# mkdir -p $brick
