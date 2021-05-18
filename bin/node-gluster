@@ -84,9 +84,13 @@ if defined $NAME && defined $PRIMARY; then
             # $cmd
             # sleep
 
+            # Ensure brick directory exists
+            brick_dir="/mnt/${node}/${VOLUME_NAME}"
+            mkdir -p $brick_dir
+
             # Create volume 
             echo_next "Gluster create $VOLUME_NAME"
-            echo_cmd "gluster volume create $VOLUME_NAME replica 1 ${node}:/mnt/${node}/${VOLUME_NAME}" 3
+            echo_cmd "gluster volume create $VOLUME_NAME replica 1 ${node}:${brick_dir}" 3
 
 
             # # Start volume
@@ -117,7 +121,8 @@ if defined $NAME && defined $PRIMARY; then
 
             # Add brick to volume
             bricks=$(get_bricks $VOLUME_NAME)
-            echo_cmd "gluster volume add-brick ${VOLUME_NAME} replica $((bricks + 1)) ${node}:/mnt/${node}/${VOLUME_NAME} force" 3
+            brick_dir="/mnt/${node}/${VOLUME_NAME}"
+            echo_cmd "gluster volume add-brick ${VOLUME_NAME} replica $((bricks + 1)) ${node}:${brick_dir} force" 3
 
           fi
 
@@ -157,6 +162,7 @@ if defined $NAME && defined $PRIMARY; then
   # Mount volume
   if unmounted_volume $VOLUME_NAME; then
     echo_next "Gluster mount $VOLUME_NAME"
+    mkdir -p $VOLUME_MOUNT
     echo_cmd "mount.glusterfs localhost:/${VOLUME_NAME} ${VOLUME_MOUNT}"
   fi
 
