@@ -90,7 +90,7 @@ if defined $NAME && defined $PRIMARY; then
 
             # Create volume 
             echo_next "Gluster create $VOLUME_NAME"
-            echo_cmd "gluster volume create $VOLUME_NAME replica 1 ${node}:${brick_dir}" 3
+            echo_cmd "gluster volume create $VOLUME_NAME ${node}:${brick_dir}" 3
 
 
             # # Start volume
