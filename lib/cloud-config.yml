@@ -36,6 +36,12 @@ write_files:
        0 3 * * * root /usr/bin/docker system prune -f > /dev/null 2>&1
     append: true
 
+  # Run script on reboot
+  - path: /etc/crontab
+    content: | 
+       @reboot /root/platform/bin/droplet-reboot
+    append: true
+
 disable_root: false
 ssh_pwauth: false
 
