@@ -60,11 +60,12 @@ if defined $NAME && defined $PRIMARY; then
         else
 
           # Check if brick does not yet exist
-          if undefined_brick $VOLUME_NAME $brick_dir; then
+          node_brick="${node}:${brick_dir}"
+          if undefined_brick $VOLUME_NAME $node_brick; then
 
             # Add brick to volume
             bricks=$(get_bricks $VOLUME_NAME)
-            echo_cmd "gluster volume add-brick ${VOLUME_NAME} replica $((bricks + 1)) ${node}:${brick_dir} force" 3
+            echo_cmd "gluster volume add-brick ${VOLUME_NAME} replica $((bricks + 1)) ${node_brick} force" 3
 
           fi
 
