@@ -38,5 +38,5 @@ fi
 
 # Ensure gluster's brick directory exists on block storage volume
 echo_next "Prepare block storage"
-cmd="mkdir -p /mnt/${NAME}/swarm-gfs"
+cmd="mkdir -p /mnt/${NAME}/swarm-gfs /swarm"
 $cmd

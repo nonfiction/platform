@@ -14,7 +14,7 @@ if defined $NAME && defined $PRIMARY; then
       echo_next "Gluster probe peers"
       for node in $NODES; do
         if [ "$node" != "$PRIMARY" ]; then
-          echo "${node} - $(gluster peer probe $node)"
+          echo "${node}: $(gluster peer probe $node)"
         fi
       done
 
