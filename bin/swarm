@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Load up .env
+# set -o allexport
+# [[ -f .env ]] && source .env
+# set +o allexport
+
+export $(cat .env)
+
 # Bash helper functions
 if [ -e ../lib/helpers.sh ]; then source ../lib/helpers.sh;
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/helpers.sh); fi
@@ -95,16 +102,8 @@ for node_name in $(echo "$PRIMARY $REPLICAS" | xargs); do
 done
 
 
-# if ask "Run configuration on each node in swarm?"; then  
-#   echo_next "Beginning..."
-# else
-#   echo_stop "Cancelled."  
-#   exit 1;
-# fi
-
 # All available nodes in this swarm
 nodes="$PRIMARY $(get_droplet_replicas $swarm_name)"
-
 
 # ---------------------------------------------------------
 # System configuration for each node
@@ -124,8 +123,7 @@ echo "" > /tmp/droplets-not-ready.txt
 for name in $nodes; do
 
   # Ensure this droplet is ready (if it was recently created)
-  ip="$(get_droplet_public_ip $name)"
-  if undefined "$(run $ip "ls /root" | grep platform)"; then
+  if undefined "$(run $name "ls /root" | grep platform)"; then
     echo "[${name}]" >> /tmp/droplets-not-ready.txt
     echo_info "Droplet $name is not yet ready..."
 
@@ -133,10 +131,8 @@ for name in $nodes; do
 
     if ask "Run system configuation on $name?"; then
 
-      ip="$(get_droplet_public_ip $name)"
-
       # Pull updates from git
-      run $ip "/root/platform/bin/node-update"
+      run $name "/root/platform/bin/node-update"
 
       # Prepare environment variables for run command
       env=""
@@ -147,7 +143,7 @@ for name in $nodes; do
       env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""
 
       # Run script on node
-      run $ip "${env} /root/platform/bin/node-config"
+      run $name "${env} /root/platform/bin/node-config"
 
     fi
   fi
@@ -163,7 +159,6 @@ done
 for name in $nodes; do
 
   # Ensure this droplet is ready (if it was recently created)
-  ip="$(get_droplet_public_ip $name)"
   if [[ "$(cat /tmp/droplets-not-ready.txt)" =~ "[${name}]" ]]; then
     echo_info "Droplet $name is not yet ready..."
   else
@@ -176,8 +171,7 @@ for name in $nodes; do
 
       # Else, get join token from primary node
       else
-        primary_ip="$(get_droplet_public_ip $PRIMARY)"
-        join_token="$(run $primary_ip "cat /etc/docker-join-token")"
+        join_token="$(run $PRIMARY "cat /etc/docker-join-token")"
       fi
       
       # Prepare environment variables for run command
@@ -186,7 +180,39 @@ for name in $nodes; do
       env="${env} JOIN_TOKEN=\"$join_token\""
 
       # Run script on node
-      run $ip "${env} /root/platform/bin/node-docker"
+      run $name "${env} /root/platform/bin/node-docker"
+  
+    fi
+  fi
+
+done
+
+
+# ---------------------------------------------------------
+# Create Gluster Volume
+# ---------------------------------------------------------
+
+# Loop all nodes in swarm
+for name in $nodes; do
+
+  # Ensure this droplet is ready (if it was recently created)
+  if [[ "$(cat /tmp/droplets-not-ready.txt)" =~ "[${name}]" ]]; then
+    echo_info "Droplet $name is not yet ready..."
+  else
+
+    if ask "Run gluster configuration on $name?"; then
+
+      # # GlusterFS probe nodes  
+      # for n in $nodes; do
+      #   [ "$n" = "$PRIMARY" ] || run $name "gluster peer probe $n"
+      # done
+      # run $name "gluster pool list"
+
+      # Prepare environment variables for run command
+      env=""
+
+      # Run script on node
+      run $name "${env} /root/platform/bin/node-gluster"
   
     fi
   fi

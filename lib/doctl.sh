@@ -589,15 +589,16 @@ create_or_update_record() {
 # Run SSH command on droplet
 # --------------------------------------------------------- 
 
-# First arg is the IP address, all other args are commands
-# run 192.168.1.2 touch ~/file.txt 
+# First arg is the node name, all other args are commands
+# run test01 touch ~/file.txt 
 run() {
   defined "$ROOT_PRIVATE_KEY" || return
   defined $1 || return
-  local host=$1
+  local name=$1 ip
+  ip="$(get_droplet_public_ip $name)"
   echo "$ROOT_PRIVATE_KEY" > /tmp/root_private_key.txt
   chmod 400 /tmp/root_private_key.txt
-  ssh -o "StrictHostKeyChecking=no" -i /tmp/root_private_key.txt root@$host "${@:2}"
+  ssh -o "StrictHostKeyChecking=no" -i /tmp/root_private_key.txt root@$ip "${@:2}"
   rm -f /tmp/root_private_key.txt
 }
 
