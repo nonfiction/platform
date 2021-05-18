@@ -142,5 +142,14 @@ env_or_file() {
   echo "$variable"
 }
 
+# Append line to end of file if it doesn't exist
+append() {
+  if [ $# -lt 2 ] || [ ! -r "$2" ]; then
+    echo 'Usage: append "line to append" /path/to/file'
+  else
+    grep -q "^$1" $2 || echo "$1" | tee --append $2
+  fi
+}
+
 # Mark this as loaded
 export HELPERS_LOADED=1

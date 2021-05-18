@@ -292,7 +292,7 @@ create_droplet() {
   
   # Download cloud-config.yml and fill out variables
   local config=/tmp/cloud-config.yml
-  curl -sL https://github.com/nonfiction/platform/raw/master/cloud-config.yml > $config
+  curl -sL https://github.com/nonfiction/platform/raw/master/lib/cloud-config.yml > $config
   sed -i "s/__NAME__/${node_name}/" $config
   sed -i "s/__DOMAIN__/${DOMAIN}/" $config
   sed -i "s|__ROOT_PUBLIC_KEY__|${ROOT_PUBLIC_KEY}|" $config
@@ -312,6 +312,9 @@ create_droplet() {
     --format="ID,Name,PublicIPv4,PrivateIPv4,Memory,VCPUs,Tags" \
     --verbose \
     --wait
+
+  # Clean-up
+  rm -f $config
 
 }
 

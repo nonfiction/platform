@@ -12,7 +12,7 @@ else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/g
 # Defaults 
 undefined $VOLUME_NAME && VOLUME_NAME="swarm-gfs"
 undefined $VOLUME_MOUNT && VOLUME_MOUNT="/swarm"
-
+# BRICK_DIR optional
 
 # Proceed!
 if defined $NAME && defined $PRIMARY; then
@@ -82,5 +82,8 @@ if defined $NAME && defined $PRIMARY; then
     mkdir -p $VOLUME_MOUNT
     echo_cmd "mount.glusterfs localhost:/${VOLUME_NAME} ${VOLUME_MOUNT}"
   fi
+
+  # Make sure this volume is mounted upon reboot
+  append "localhost:/${VOLUME_NAME} ${VOLUME_MOUNT} glusterfs defaults,_netdev,backupvolfile-server=localhost 0 0" /etc/fstab
 
 fi
