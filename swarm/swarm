@@ -105,7 +105,7 @@ done
 # All available nodes in this swarm
 nodes="$PRIMARY $(get_droplet_replicas $swarm_name | tr ' ' '\n' | sort | uniq | xargs)"
 
-if ask "Run swarm & gluster configuration on each node? Newly created droplets require 5-10 minutes before they're ready for this."; then  
+if ask "Run docker & gluster configuration on each node? Newly created droplets require 5-10 minutes before they're ready for this."; then  
   echo "Continuing..."
 else
   echo_stop "Cancelled."  
@@ -116,7 +116,7 @@ fi
 # System configuration for each node
 # ---------------------------------------------------------
 echo
-echo_next "Node Config..."
+echo_next "1. Node Config..."
 echo_line green
 
 # Build hosts file
@@ -139,24 +139,21 @@ for name in $nodes; do
 
   else
 
-    # if ask "Run node configuation on $name?"; then
+    # Pull updates from git
+    run $name "/root/platform/swarm/node/update"
 
-      # Pull updates from git
-      run $name "/root/platform/swarm/node/update"
+    # Prepare environment variables for run command
+    env=""
+    env="${env} NAME=\"$name\""
+    env="${env} DOMAIN=\"$DOMAIN\""
+    env="${env} FS_TYPE=\"$FS_TYPE\""
+    env="${env} HOSTS_FILE=\"$hosts\""
+    env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
+    env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""
 
-      # Prepare environment variables for run command
-      env=""
-      env="${env} NAME=\"$name\""
-      env="${env} DOMAIN=\"$DOMAIN\""
-      env="${env} FS_TYPE=\"$FS_TYPE\""
-      env="${env} HOSTS_FILE=\"$hosts\""
-      env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
-      env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""
+    # Run script on node
+    run $name "${env} /root/platform/swarm/node/config"
 
-      # Run script on node
-      run $name "${env} /root/platform/swarm/node/config"
-
-    # fi
   fi
 
 done  
@@ -166,7 +163,7 @@ done
 # Create Docker Swarm and join workers
 # ---------------------------------------------------------
 echo
-echo_next "Swarm Config..."
+echo_next "2. Docker Config..."
 echo_line green
 
 # Loop all nodes in swarm
@@ -177,27 +174,24 @@ for name in $nodes; do
     echo_info "Droplet $name is not yet ready..."
   else
 
-    # if ask "Run swarm configuration on $name?"; then
+    # Set join token to "primary" if not replica
+    if [ "$name" = "$PRIMARY" ]; then
+      join_token="primary"
 
-      # Set join token to "primary" if not replica
-      if [ "$name" = "$PRIMARY" ]; then
-        join_token="primary"
+    # Else, get join token from primary node
+    else
+      join_token="$(run $PRIMARY "cat /etc/docker-join-token")"
+    fi
+    
+    # Prepare environment variables for run command
+    env=""
+    env="${env} NAME=\"$name\""
+    env="${env} PRIVATE_IP=\"$(get_droplet_private_ip $name)\""
+    env="${env} JOIN_TOKEN=\"$join_token\""
 
-      # Else, get join token from primary node
-      else
-        join_token="$(run $PRIMARY "cat /etc/docker-join-token")"
-      fi
-      
-      # Prepare environment variables for run command
-      env=""
-      env="${env} NAME=\"$name\""
-      env="${env} PRIVATE_IP=\"$(get_droplet_private_ip $name)\""
-      env="${env} JOIN_TOKEN=\"$join_token\""
-
-      # Run script on node
-      run $name "${env} /root/platform/swarm/node/docker"
+    # Run script on node
+    run $name "${env} /root/platform/swarm/node/docker"
   
-    # fi
   fi
 
 done
@@ -207,7 +201,7 @@ done
 # Create Gluster Volume
 # ---------------------------------------------------------
 echo
-echo_next "Gluster Config..."
+echo_next "3. Gluster Config..."
 echo_line green
 
 # Loop all nodes in swarm
@@ -218,18 +212,15 @@ for name in $nodes; do
     echo_info "Droplet $name is not yet ready..."
   else
 
-    # if ask "Run gluster configuration on $name?"; then
+    # Prepare environment variables for run command
+    env=""
+    env="${env} NAME=\"$name\""
+    env="${env} NODES=\"$nodes\""
+    env="${env} PRIMARY=\"$PRIMARY\""
 
-      # Prepare environment variables for run command
-      env=""
-      env="${env} NAME=\"$name\""
-      env="${env} NODES=\"$nodes\""
-      env="${env} PRIMARY=\"$PRIMARY\""
-
-      # Run script on node
-      run $name "${env} /root/platform/swarm/node/gluster"
+    # Run script on node
+    run $name "${env} /root/platform/swarm/node/gluster"
   
-    # fi
   fi
 
 done
@@ -239,9 +230,14 @@ done
 # Deploy Swarm
 # ---------------------------------------------------------
 echo
-echo_next "Deploy Swarm..."
+echo_next "4. Deploy Swarm..."
 echo_line green
-run $PRIMARY "cd /root/platform && ls -lah"
+
+if [[ "$(cat /tmp/droplets-not-ready.txt)" =~ "[${PRIMARY}]" ]]; then
+  echo_info "Droplet $PRIMARY is not yet ready..."
+else
+  run $PRIMARY "cd /root/platform && ls -lah"
+fi
 
 
 # ---------------------------------------------------------

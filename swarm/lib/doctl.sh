@@ -403,12 +403,9 @@ echo_volume_info() {
     volume_size=$(get_volume_size $1)
 
     if [ "$VOLUME_SIZE" -gt "$volume_size" ]; then 
-      # sudo resize2fs /dev/disk/by-id/scsi-0DO_example
-      #will_resize_volume=true
       touch /tmp/process-droplet.txt
       echo_volume_size $1 "${volume_size}GB" "${VOLUME_SIZE}GB" "(expand)"
     else
-      #will_resize_volume=false
       echo_volume_size $1 "${volume_size}GB" "${VOLUME_SIZE}GB" "(no change)"
     fi
     
