@@ -340,14 +340,14 @@ resize_droplet() {
   echo "Waiting 30 seconds for node to drain..."
   sleep 30
 
-  echo_next "Turning OFF and EXPANDING droplet $droplet_name"
+  echo_next "Turning OFF and RESIZING droplet $droplet_name"
   echo_run "doctl compute droplet-action resize $droplet_id --size=${DROPLET_SIZE} --verbose --wait"
 
   echo_next "Turning ON droplet $droplet_name"
   echo_run "doctl compute droplet-action power-on $droplet_id --verbose --wait"
 
-  echo "Waiting 10 seconds for node to boot..."
-  sleep 10
+  echo "Waiting 20 seconds for node to boot..."
+  sleep 20
 
   echo_run $primary_name "docker node update --availability=active ${droplet_name}"
 }
