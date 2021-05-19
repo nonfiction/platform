@@ -456,17 +456,31 @@ create_volume() {
 resize_volume() { 
 
   defined $1 || return  
-  local volume_name=$1
+  local volume_name=$1 droplet_name=$1 volume_id= droplet_id=
   
   defined $REGION || return
   defined $VOLUME_SIZE || return
 
   if [ "$VOLUME_SIZE" -gt "$(get_volume_size $volume_name)" ]; then 
     echo_next "Expanding volume $volume_name"
-    doctl compute volume-action resize "$(get_volume_id $volume_name)" \
-      --region="$REGION" 
-      --size="$VOLUME_SIZE" 
+
+    volume_id="$(get_volume_id $volume_name)"
+    droplet_id="$(get_droplet_id $droplet_name)"
+
+    echo_run $droplet_name "service glusterd stop && umount /data"
+
+    doctl compute volume-action detach "$volume_id" "$droplet_id" --wait
+
+    doctl compute volume-action resize "$volume_id" \
+      --region="$REGION" \
+      --size="$VOLUME_SIZE" \
       --wait 
+
+    doctl compute volume-action attach "$volume_id" "$droplet_id" --wait
+
+    echo_run $droplet_name "resize2fs /dev/sda || xfs_growfs /dev/sda"
+    echo_run $droplet_name "service glusterd start"
+
   else
     echo_info "Volume $volume_name unchanged"
   fi
@@ -607,6 +621,20 @@ run() {
   chmod 400 /tmp/root_private_key.txt
   ssh -o "StrictHostKeyChecking=no" -i /tmp/root_private_key.txt root@$ip "${@:2}"
   rm -f /tmp/root_private_key.txt
+}
+
+# Echo the command before running it. 
+# If 2 parameters, first one is remote, second is command to run on remote
+# If 1 parameter, the command is run locally
+echo_run() {
+  defined $1 || return
+  if defined $2; then
+    echo "[{$1}] ${2}"
+    run "${1}" "${2}"
+  else
+    echo "$1"
+    $1
+  fi
 }
 
 

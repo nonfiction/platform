@@ -19,7 +19,7 @@ if defined $ROOT_PUBLIC_KEY; then
   keys=$(echo -e "${ROOT_PUBLIC_KEY}\n${keys}")
   echo_next "Writing /root/.ssh/authorized_keys"
   echo "$keys" | tee /root/.ssh/authorized_keys
-  echo_cmd "cp -f /root/.ssh/authorized_keys /work/.ssh/authorized_keys"
+  echo_run "cp -f /root/.ssh/authorized_keys /work/.ssh/authorized_keys"
 fi
 
 # Update /etc/hosts file
@@ -59,10 +59,10 @@ if defined $NAME; then
   # Mount it right now
   echo_next "Mount block storage"
   mkdir -p /mnt/$NAME
-  echo_cmd "mount -o discard,defaults,noatime /dev/disk/by-id/scsi-0DO_Volume_${NAME} /mnt/${NAME}"
+  echo_run "mount -o discard,defaults,noatime /dev/disk/by-id/scsi-0DO_Volume_${NAME} /mnt/${NAME}"
 
   # Ensure gluster's brick directory exists on block storage volume
   echo_next "Prepare block storage"
-  echo_cmd "mkdir -p /mnt/${NAME}/${VOLUME_NAME} ${VOLUME_MOUNT}"
+  echo_run "mkdir -p /mnt/${NAME}/${VOLUME_NAME} ${VOLUME_MOUNT}"
 
 fi

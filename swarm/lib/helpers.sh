@@ -119,14 +119,11 @@ ask() {
   if [ ! $? -ne 0 ]; then return 0; else return 1; fi
 }
 
-# Print command before running, optional sleep in seconds
-echo_cmd() {
+# Print command before running
+echo_run() {
   defined $1 || return  
-  local cmd=$1 seconds=0
-  defined $2 && seconds=$2  
-  echo "$cmd"
-  $cmd
-  sleep $seconds
+  echo "${1}"
+  $1
 }
 
 
