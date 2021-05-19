@@ -2,7 +2,7 @@
 
 if [ -z "$HELPERS_LOADED" ]; then 
   if [ -e helpers.sh ]; then source helpers.sh;
-  else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/helpers.sh); fi
+  else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 fi
 
 # Returns number of bricks in a volume

@@ -4,19 +4,19 @@
 [ -e .env ] && export $(cat .env)
 
 # Bash helper functions
-if [ -e ../lib/helpers.sh ]; then source ../lib/helpers.sh;
-else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/helpers.sh); fi
+if [ -e ./lib/helpers.sh ]; then source ./lib/helpers.sh;
+else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 
 # Digital Ocean API functions
-if [ -e ../lib/doctl.sh ]; then source ../lib/doctl.sh;
-else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/doctl.sh); fi
+if [ -e ./lib/doctl.sh ]; then source ./lib/doctl.sh;
+else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/doctl.sh); fi
 
 
 # First parameter is name of swarm and primary node
 PRIMARY="$1"
 if undefined $PRIMARY; then
   echo_stop "Missing swarm name!"
-  echo "The first argument for this script should be the swarm's name. Example: bin/swarm app 3"
+  echo "The first argument for this script should be the swarm's name. Example: swarm app 3"
   exit 1
 fi
 
@@ -102,6 +102,12 @@ done
 # All available nodes in this swarm
 nodes="$PRIMARY $(get_droplet_replicas $swarm_name | tr ' ' '\n' | sort | uniq | xargs)"
 
+if ask "Run swarm & gluster configuration on each node? Newly created droplets require 5-10 minutes before they're ready for this."; then  
+  echo_next "Continuing..."
+else
+  echo_stop "Cancelled."  
+  exit 1;
+fi
 
 # ---------------------------------------------------------
 # System configuration for each node
@@ -130,10 +136,10 @@ for name in $nodes; do
 
   else
 
-    if ask "Run node configuation on $name?"; then
+    # if ask "Run node configuation on $name?"; then
 
       # Pull updates from git
-      run $name "/root/platform/bin/node-update"
+      run $name "/root/platform/swarm/node/update"
 
       # Prepare environment variables for run command
       env=""
@@ -145,9 +151,9 @@ for name in $nodes; do
       env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""
 
       # Run script on node
-      run $name "${env} /root/platform/bin/node-config"
+      run $name "${env} /root/platform/swarm/node/config"
 
-    fi
+    # fi
   fi
 
 done  
@@ -168,7 +174,7 @@ for name in $nodes; do
     echo_info "Droplet $name is not yet ready..."
   else
 
-    if ask "Run swarm configuration on $name?"; then
+    # if ask "Run swarm configuration on $name?"; then
 
       # Set join token to "primary" if not replica
       if [ "$name" = "$PRIMARY" ]; then
@@ -185,9 +191,9 @@ for name in $nodes; do
       env="${env} JOIN_TOKEN=\"$join_token\""
 
       # Run script on node
-      run $name "${env} /root/platform/bin/node-docker"
+      run $name "${env} /root/platform/swarm/node/docker"
   
-    fi
+    # fi
   fi
 
 done
@@ -208,7 +214,7 @@ for name in $nodes; do
     echo_info "Droplet $name is not yet ready..."
   else
 
-    if ask "Run gluster configuration on $name?"; then
+    # if ask "Run gluster configuration on $name?"; then
 
       # Prepare environment variables for run command
       env=""
@@ -217,14 +223,27 @@ for name in $nodes; do
       env="${env} PRIMARY=\"$PRIMARY\""
 
       # Run script on node
-      run $name "${env} /root/platform/bin/node-gluster"
+      run $name "${env} /root/platform/swarm/node/gluster"
   
-    fi
+    # fi
   fi
 
 done
 
 
+# ---------------------------------------------------------
+# Deploy Swarm
+# ---------------------------------------------------------
+echo
+echo_next "Deploy Swarm..."
+echo_line green
+run $PRIMARY "cd /root/platform && ls -lah"
+
+
+# ---------------------------------------------------------
+# Finish
+# ---------------------------------------------------------
+echo
 # Messaging about droplets not all being ready
 not_ready="$(cat /tmp/droplets-not-ready.txt | xargs)"
 if defined "$not_ready"; then 
@@ -237,6 +256,4 @@ else
   echo_line green
 fi
 
-
-# stop here for now
 exit

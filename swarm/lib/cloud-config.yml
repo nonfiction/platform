@@ -30,7 +30,7 @@ write_files:
        MaxSessions 500
     append: true
     
-  # Autoprune docker once in a while
+  # Auto-prune docker once in a while
   - path: /etc/crontab
     content: | 
        0 3 * * * root /usr/bin/docker system prune -f > /dev/null 2>&1
@@ -39,7 +39,7 @@ write_files:
   # Run script on reboot
   - path: /etc/crontab
     content: | 
-       @reboot /root/platform/bin/droplet-reboot
+       @reboot /root/platform/swarm/node/reboot
     append: true
 
 disable_root: false
@@ -68,6 +68,8 @@ runcmd:
   # Keep server up-to-date
   - apt-get --yes install unattended-upgrades
   - dpkg-reconfigure --priority=low unattended-upgrades
+
+  # Generate ssh keys
   - cat /dev/zero | ssh-keygen -t rsa -q -N ""
   
   # Install glusterfs
@@ -83,11 +85,11 @@ runcmd:
   # Install platform git repo
   - apt-get update && apt-get --yes install make
   - git clone https://github.com/nonfiction/platform.git /root/platform
-  - cd /root/platform && make init
+  - ln -sf /root/platform/swarm/swarm /usr/local/bin/swarm
 
   # It's done!
   - echo "__WEBHOOK__" > /etc/webhook
-  - /root/platform/bin/droplet-ready
+  - /root/platform/swarm/node/ready
 
 # Reboot server after everything is installed
 power_state:

@@ -2,7 +2,7 @@
 
 # Bash helper functions
 if [ -e ../lib/helpers.sh ]; then source ../lib/helpers.sh;
-else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/helpers.sh); fi
+else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 
 # Set root password
 if defined $ROOT_PASSWORD; then

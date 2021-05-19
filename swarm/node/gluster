@@ -2,11 +2,11 @@
 
 # Bash helper functions
 if [ -e ../lib/helpers.sh ]; then source ../lib/helpers.sh;
-else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/helpers.sh); fi
+else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 
 # Digital Ocean API functions
 if [ -e ../lib/gluster.sh ]; then source ../lib/gluster.sh;
-else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/gluster.sh); fi
+else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/gluster.sh); fi
 
 
 # Defaults 

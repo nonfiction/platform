@@ -2,7 +2,7 @@
 
 if [ -z "$HELPERS_LOADED" ]; then 
   if [ -e helpers.sh ]; then source helpers.sh;
-  else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/lib/helpers.sh); fi
+  else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 fi
 
 
@@ -16,7 +16,7 @@ if hasnt doctl; then
   echo_next "Installing doctl..."
   
   # https://github.com/digitalocean/doctl/releases
-  version="1.59.0"
+  version="1.61.0"
   curl -sL https://github.com/digitalocean/doctl/releases/download/v${version}/doctl-${version}-linux-amd64.tar.gz | tar -xzv
   mv doctl .doctl
   if error "mv ./.doctl /usr/local/bin/doctl"; then
@@ -295,7 +295,7 @@ create_droplet() {
   
   # Download cloud-config.yml and fill out variables
   local config=/tmp/cloud-config.yml
-  curl -sL https://github.com/nonfiction/platform/raw/master/lib/cloud-config.yml > $config
+  curl -sL https://github.com/nonfiction/platform/raw/master/swarm/lib/cloud-config.yml > $config
   sed -i "s/__NAME__/${node_name}/" $config
   sed -i "s/__DOMAIN__/${DOMAIN}/" $config
   sed -i "s|__ROOT_PUBLIC_KEY__|${ROOT_PUBLIC_KEY}|" $config
