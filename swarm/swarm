@@ -43,6 +43,9 @@ has_droplet $PRIMARY || ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | xargs)"
 count=$((1 + $(echo $REPLICAS | wc -w)))
 [ "$count" = "1" ] && count="Single"
 
+echo_line blue
+echo_color black/on_blue "          ${PRIMARY}.${DOMAIN}          "
+echo_line blue
 
 echo_next "${count}-node swarm..."
 echo_line green
@@ -122,9 +125,7 @@ fi
 # ---------------------------------------------------------
 # System configuration for each node
 # ---------------------------------------------------------
-echo
-echo_next "1. Node Config..."
-echo_line green
+echo_main "1. Node Config..."
 
 # Build hosts file
 hosts="127.0.0.1 localhost"
@@ -169,9 +170,7 @@ done
 # ---------------------------------------------------------
 # Create Docker Swarm and join workers
 # ---------------------------------------------------------
-echo
-echo_next "2. Docker Config..."
-echo_line green
+echo_main "2. Docker Config..."
 
 # Loop all nodes in swarm
 for name in $nodes; do
@@ -207,9 +206,7 @@ done
 # ---------------------------------------------------------
 # Create Gluster Volume
 # ---------------------------------------------------------
-echo
-echo_next "3. Gluster Config..."
-echo_line green
+echo_main "3. Gluster Config..."
 
 # Loop all nodes in swarm
 for name in $nodes; do
@@ -236,9 +233,7 @@ done
 # ---------------------------------------------------------
 # Deploy Swarm
 # ---------------------------------------------------------
-echo
-echo_next "4. Deploy Swarm..."
-echo_line green
+echo_main "4. Deploy Swarm..."
 
 if [[ "$(cat /tmp/droplets-not-ready.txt)" =~ "[${PRIMARY}]" ]]; then
   echo_info "Droplet $PRIMARY is not yet ready..."
@@ -259,7 +254,7 @@ if defined "$not_ready"; then
   echo_line red
 else
   echo_line green
-  echo_next "...COMPLETE!"
+  echo_color black/on_green " COMPLETE! "
   echo_line green
 fi
 

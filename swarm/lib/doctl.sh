@@ -648,10 +648,7 @@ echo_node_header() {
   defined $1 || return
   defined $2 || return
   local node_name=$1 role=$2
-  echo
-  echo_line default =
-  echo "$(has_droplet $node_name && echo "EXISTING" || echo "NEW") ${role^^}: ${node_name}"
-  echo_line default =
+  echo_main "$(has_droplet $node_name && echo "EXISTING" || echo "NEW") ${role^^}: ${node_name}"
 }
 
 # Print divider
