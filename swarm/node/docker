@@ -4,17 +4,17 @@
 if [ -e /root/platform/swarm/lib/helpers.sh ]; then source /root/platform/swarm/lib/helpers.sh;
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 
-if defined $JOIN_TOKEN && defined $PRIVATE_IP; then
+if defined $NAME && defined $JOIN_TOKEN && defined $PRIVATE_IP; then
 
   # Primary node - create swarm
   if [ "$JOIN_TOKEN" = "primary" ]; then
 
     if [ "$(docker info --format '{{.Swarm.LocalNodeState}}')" != "active" ]; then
-      echo_next "Initializing swarm mode"
+      echo_next "Initializing swarm mode [${NAME}]"
       echo "docker swarm init --advertise-addr $PRIVATE_IP"
       docker swarm init --advertise-addr $PRIVATE_IP
     else
-      echo_info "Swarm mode is already active for primary"
+      echo_info "Swarm mode is already active for primary [${NAME}]"
     fi
 
     echo_next "Writing token to /etc/docker-join-token"
@@ -24,11 +24,11 @@ if defined $JOIN_TOKEN && defined $PRIVATE_IP; then
   else
 
     if [ "$(docker info --format '{{.Swarm.LocalNodeState}}')" != "active" ]; then
-      echo_next "Joining swarm as worker"
+      echo_next "Joining swarm as worker [${NAME}]"
       echo "docker swarm join --token $JOIN_TOKEN"
       docker swarm join --token $JOIN_TOKEN
     else
-      echo_info "Swarm mode is already active for replica"
+      echo_info "Swarm mode is already active for replica [${NAME}]"
     fi
 
   fi

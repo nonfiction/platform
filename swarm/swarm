@@ -190,6 +190,7 @@ for name in $nodes; do
       
       # Prepare environment variables for run command
       env=""
+      env="${env} NAME=\"$name\""
       env="${env} PRIVATE_IP=\"$(get_droplet_private_ip $name)\""
       env="${env} JOIN_TOKEN=\"$join_token\""
 
