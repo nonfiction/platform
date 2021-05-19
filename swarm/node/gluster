@@ -4,7 +4,7 @@
 if [ -e /root/platform/swarm/lib/helpers.sh ]; then source /root/platform/swarm/lib/helpers.sh;
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 
-# Digital Ocean API functions
+# Gluster functions
 if [ -e /root/platform/swarm/lib/gluster.sh ]; then source /root/platform/swarm/lib/gluster.sh;
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/gluster.sh); fi
 
@@ -62,12 +62,14 @@ if defined $NAME && defined $PRIMARY; then
         else
 
           # Check if brick does not yet exist
-          node_brick="${node}:${brick_dir}"
-          if undefined_brick $VOLUME_NAME $node_brick; then
+          # node_brick="${node}:${brick_dir}"
+          # if undefined_brick $VOLUME_NAME $node_brick; then
+          if undefined_brick $VOLUME_NAME $(get_brick $node); then
 
             # Add brick to volume
             bricks=$(get_bricks $VOLUME_NAME)
-            echo_run "gluster volume add-brick ${VOLUME_NAME} replica $((bricks + 1)) ${node_brick} force"
+            # echo_run "gluster volume add-brick ${VOLUME_NAME} replica $((bricks + 1)) ${node_brick} force"
+            echo_run "gluster volume add-brick ${VOLUME_NAME} replica $((bricks + 1)) $(get_brick $node) force"
             sleep 3
 
           fi
@@ -83,7 +85,9 @@ if defined $NAME && defined $PRIMARY; then
   if unmounted_volume $VOLUME_NAME; then
     echo_next "Gluster mount $VOLUME_NAME"
     mkdir -p $VOLUME_MOUNT
-    echo_run "umount ${VOLUME_MOUNT} && mount.glusterfs localhost:/${VOLUME_NAME} ${VOLUME_MOUNT}"
+    # echo_run "umount ${VOLUME_MOUNT} && mount.glusterfs localhost:/${VOLUME_NAME} ${VOLUME_MOUNT}"
+    echo_run "umount ${VOLUME_MOUNT}"
+    echo_run "mount.glusterfs ${NAME}:/${VOLUME_NAME} ${VOLUME_MOUNT}"
   fi
 
   # Make sure this volume is mounted upon reboot

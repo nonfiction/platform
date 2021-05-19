@@ -4,21 +4,42 @@
 if [ -e /root/platform/swarm/lib/helpers.sh ]; then source /root/platform/swarm/lib/helpers.sh;
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 
-# Stop gluster service
-if defined $BEFORE_RESIZE; then
-  echo "before resize"
-  # echo_run "service glusterd stop"
-  # echo_run "umount /data"
-fi
+# Gluster functions
+if [ -e /root/platform/swarm/lib/gluster.sh ]; then source /root/platform/swarm/lib/gluster.sh;
+else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/gluster.sh); fi
 
-# Resize disk, remount, and start gluster again
-if defined $VOLUME; then
-  disk="/dev/disk/by-id/scsi-0DO_Volume_${VOLUME}"
-  mount="/mnt/${VOLUME}"
-  # echo_run "resize2fs ${disk} || xfs_growfs ${disk}"
-  umount $mount
-  echo_run "resize2fs ${disk}"
-  echo_run "mount -o discard,defaults,noatime ${disk} ${mount}"
-  echo_run "umount /data && mount /data"
-  # echo_run "service glusterd start"
+undefined $VOLUME_NAME && VOLUME_NAME="data-gfs"
+undefined $VOLUME_MOUNT && VOLUME_MOUNT="/data"
+
+if defined $NAME; then
+
+  if defined $BEFORE; then
+    echo "before resize"
+
+    echo_run "service cron stop"
+    echo_run "gluster volume reset-brick ${VOLUME_NAME} $(get_brick $NAME) start"
+    
+  fi
+
+  if defined $AFTER; then
+    echo "after resize"
+
+    echo_run "resize2fs $(get_disk $NAME)"
+    echo_run "gluster volume reset-brick ${VOLUME_NAME} $(get_brick $NAME) ${VOLUME_NAME} $(get_brick $NAME) commit force"
+    echo_run "service cron start"
+
+  fi
+
+  # # Resize disk, remount, and start gluster again
+  # if defined $VOLUME; then
+  #   disk="/dev/disk/by-id/scsi-0DO_Volume_${VOLUME}"
+  #   mount="/mnt/${VOLUME}"
+  #   # echo_run "resize2fs ${disk} || xfs_growfs ${disk}"
+  #   umount $mount
+  #   echo_run "resize2fs ${disk}"
+  #   echo_run "mount -o discard,defaults,noatime ${disk} ${mount}"
+  #   echo_run "umount /data && mount /data"
+  #   # echo_run "service glusterd start"
+  # fi
+
 fi

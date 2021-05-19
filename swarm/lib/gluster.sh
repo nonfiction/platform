@@ -23,6 +23,12 @@ get_brick_dir() {
   fi
 }
 
+# abc:/mnt/abc/data-gfs
+get_brick() {
+  defined $1 || return  
+  echo "${1}:$(get_brick_dir $1)"
+}
+
 # Check if volume exists, pass volume name
 undefined_volume() {
   undefined $1 && return 0  
@@ -44,4 +50,10 @@ unmounted_volume() {
   local volume=$1
   undefined "$(df | grep localhost:/$volume)" && return 0
   return 1
+}
+
+# Get location of DO's mounted volume
+get_disk() {
+  defined $1 || return  
+  echo "/dev/disk/by-id/scsi-0DO_Volume_${1}"
 }
