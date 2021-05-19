@@ -4,12 +4,15 @@
 [ -e .env ] && export $(cat .env)
 
 # Bash helper functions
-if [ -e ./lib/helpers.sh ]; then source ./lib/helpers.sh;
+if [ -e /root/platform/swarm/lib/helpers.sh ]; then source /root/platform/swarm/lib/helpers.sh;
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 
 # Digital Ocean API functions
-if [ -e ./lib/doctl.sh ]; then source ./lib/doctl.sh;
+if [ -e /root/platform/swarm/lib/doctl.sh ]; then source /root/platform/swarm/lib/doctl.sh;
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/doctl.sh); fi
+
+# Symlink swarm command if locally installed
+[ -e /root/platform/swarm/swarm ] && ln -sf /root/platform/swarm/swarm /usr/local/bin/swarm >/dev/null 2>&1
 
 
 # First parameter is name of swarm and primary node
