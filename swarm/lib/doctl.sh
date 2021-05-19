@@ -467,19 +467,24 @@ resize_volume() {
     volume_id="$(get_volume_id $volume_name)"
     droplet_id="$(get_droplet_id $droplet_name)"
 
-    echo_run $droplet_name "service glusterd stop && umount /data"
+    env="BEFORE_RESIZE=1"
+    echo_run $droplet_name "${env} /root/platform/swarm/node/resize"
 
+    # Detach volume from droplet
     doctl compute volume-action detach "$volume_id" "$droplet_id" --wait
 
+    # Resize volume
     doctl compute volume-action resize "$volume_id" \
       --region="$REGION" \
       --size="$VOLUME_SIZE" \
       --wait 
 
+    # Re-attach volume to droplet
     doctl compute volume-action attach "$volume_id" "$droplet_id" --wait
 
-    echo_run $droplet_name "resize2fs /dev/sda || xfs_growfs /dev/sda"
-    echo_run $droplet_name "service glusterd start"
+    # Resize volume on node and start up gluster again
+    env="VOLUME=\"$volume_name\""
+    echo_run $droplet_name "${env} /root/platform/swarm/node/resize"
 
   else
     echo_info "Volume $volume_name unchanged"
@@ -629,7 +634,7 @@ run() {
 echo_run() {
   defined $1 || return
   if defined $2; then
-    echo "[{$1}] ${2}"
+    echo "[${1}] ${2}"
     run "${1}" "${2}"
   else
     echo "$1"
