@@ -14,7 +14,11 @@ fi
 # Resize disk, remount, and start gluster again
 if defined $VOLUME; then
   disk="/dev/disk/by-id/scsi-0DO_Volume_${VOLUME}"
-  echo_run "resize2fs ${disk} || xfs_growfs ${disk}"
-  echo_run "mount -o discard,defaults,noatime ${disk} /mnt/${VOLUME}"
+  mount="/mnt/${VOLUME}"
+  # echo_run "resize2fs ${disk} || xfs_growfs ${disk}"
+  umount $mount
+  echo_run "resize2fs ${disk}"
+  echo_run "mount -o discard,defaults,noatime ${disk} ${mount}"
+  echo_run "umount /data && mount /data"
   # echo_run "service glusterd start"
 fi

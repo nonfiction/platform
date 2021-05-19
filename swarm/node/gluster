@@ -83,7 +83,7 @@ if defined $NAME && defined $PRIMARY; then
   if unmounted_volume $VOLUME_NAME; then
     echo_next "Gluster mount $VOLUME_NAME"
     mkdir -p $VOLUME_MOUNT
-    echo_run "mount.glusterfs localhost:/${VOLUME_NAME} ${VOLUME_MOUNT}"
+    echo_run "umount ${VOLUME_MOUNT} && mount.glusterfs localhost:/${VOLUME_NAME} ${VOLUME_MOUNT}"
   fi
 
   # Make sure this volume is mounted upon reboot
