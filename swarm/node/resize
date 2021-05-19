@@ -6,8 +6,8 @@ else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm
 
 # Stop gluster service
 if defined $BEFORE_RESIZE; then
-  echo_run "service glusterd stop"
-  echo_run "umount /data"
+  # echo_run "service glusterd stop"
+  # echo_run "umount /data"
 fi
 
 # Resize disk, remount, and start gluster again
@@ -15,5 +15,5 @@ if defined $VOLUME; then
   disk="/dev/disk/by-id/scsi-0DO_Volume_${VOLUME}"
   echo_run "resize2fs ${disk} || xfs_growfs ${disk}"
   echo_run "mount -o discard,defaults,noatime ${disk} /mnt/${VOLUME}"
-  echo_run "service glusterd start"
+  # echo_run "service glusterd start"
 fi
