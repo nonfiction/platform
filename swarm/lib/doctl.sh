@@ -467,7 +467,7 @@ resize_volume() {
     volume_id="$(get_volume_id $volume_name)"
     droplet_id="$(get_droplet_id $droplet_name)"
 
-    env="BEFORE_RESIZE=1"
+    env="BEFORE=1 NAME=${droplet_name}"
     echo_run $droplet_name "${env} /root/platform/swarm/node/resize"
 
     # Detach volume from droplet
@@ -483,7 +483,7 @@ resize_volume() {
     doctl compute volume-action attach "$volume_id" "$droplet_id" --wait
 
     # Resize volume on node and start up gluster again
-    env="VOLUME=\"$volume_name\""
+    env="AFTER=1 NAME=${droplet_name}"
     echo_run $droplet_name "${env} /root/platform/swarm/node/resize"
 
   else
