@@ -106,7 +106,7 @@ done
 nodes="$PRIMARY $(get_droplet_replicas $swarm_name | tr ' ' '\n' | sort | uniq | xargs)"
 
 if ask "Run swarm & gluster configuration on each node? Newly created droplets require 5-10 minutes before they're ready for this."; then  
-  echo_next "Continuing..."
+  echo "Continuing..."
 else
   echo_stop "Cancelled."  
   exit 1;
