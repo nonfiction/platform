@@ -257,9 +257,9 @@ echo_droplet_info() {
     droplet_memory=$(get_droplet_memory_from_size $droplet_size)
     droplet_memory_env=$(get_droplet_memory_from_size $DROPLET_SIZE)    
     
-    if [ $droplet_cpu_env -gt $droplet_cpu ] || [ $droplet_memory_env -gt $droplet_memory ]; then
+    if [ $droplet_cpu_env != $droplet_cpu ] || [ $droplet_memory_env != $droplet_memory ]; then
       touch /tmp/process-droplet.txt
-      echo_droplet_size $droplet_name "${droplet_size}" "${DROPLET_SIZE}" "(expand)"
+      echo_droplet_size $droplet_name "${droplet_size}" "${DROPLET_SIZE}" "(update)"
     else
       echo_droplet_size $droplet_name "${droplet_size}" "${DROPLET_SIZE}" "(no change)"
     fi
@@ -329,28 +329,27 @@ create_droplet() {
 
 resize_droplet() { 
   defined $1 || return
+  defined $2 || return
   
-  local droplet_name=$1 droplet_id droplet_size droplet_cpu droplet_cpu_env droplet_memory droplet_memory_env
+  local droplet_name=$1 primary_name=$2 droplet_id=
+  # local droplet_id droplet_size droplet_cpu droplet_cpu_env droplet_memory droplet_memory_env
   
   droplet_id=$(get_droplet_id $droplet_name)
-  droplet_size=$(get_droplet_size $droplet_name)
-    
-  droplet_cpu=$(get_droplet_cpu_from_size $droplet_size)
-  droplet_cpu_env=$(get_droplet_cpu_from_size $DROPLET_SIZE)
-    
-  droplet_memory=$(get_droplet_memory_from_size $droplet_size)
-  droplet_memory_env=$(get_droplet_memory_from_size $DROPLET_SIZE)    
-    
-  if [ $droplet_cpu_env -gt $droplet_cpu ] || [ $droplet_memory_env -gt $droplet_memory ]; then
-    echo_info "Turning OFF droplet $droplet_name"
-    doctl compute droplet-action power-off "$droplet_id" --verbose --wait
-    echo_next "Expanding droplet $droplet_name"
-    doctl compute droplet-action resize "$droplet_id" --size="$droplet_size" --verbose --wait
-    echo_next "Turning ON droplet $droplet_name"
-    doctl compute droplet-action power-on "$droplet_id" --verbose --wait
-  else
-    echo_info "Droplet $droplet_name unchanged"
-  fi
+
+  echo_run $primary_name "docker node update --availability=drain ${droplet_name}"
+  echo "Waiting 30 seconds for node to drain..."
+  sleep 30
+
+  echo_next "Turning OFF and EXPANDING droplet $droplet_name"
+  echo_run "doctl compute droplet-action resize $droplet_id --size=${DROPLET_SIZE} --verbose --wait"
+
+  echo_next "Turning ON droplet $droplet_name"
+  echo_run "doctl compute droplet-action power-on $droplet_id --verbose --wait"
+
+  echo "Waiting 10 seconds for node to boot..."
+  sleep 10
+
+  echo_run $primary_name "docker node update --availability=active ${droplet_name}"
 }
 
 
@@ -364,7 +363,7 @@ create_or_resize_droplet() {
   local node_name=$1 swarm_name=$2 role=$3
   
   if has_droplet $node_name; then
-    resize_droplet $node_name
+    resize_droplet $node_name $swarm_name
   else
     create_droplet $node_name $swarm_name $role
   fi
@@ -459,7 +458,7 @@ resize_volume() {
   defined $VOLUME_SIZE || return
 
   if [ "$VOLUME_SIZE" -gt "$(get_volume_size $volume_name)" ]; then 
-    echo_next "Expanding volume $volume_name"
+    echo_next "EXPANDING volume $volume_name"
 
     volume_id="$(get_volume_id $volume_name)"
     droplet_id="$(get_droplet_id $droplet_name)"
@@ -682,4 +681,12 @@ echo_droplet_size() {
 # Print row for volume
 echo_volume_size() {
   printf "%2s %-19s %5s %-2s %-15s %-14s %2s\n" "|" " $1" "$2" "=>" "$3" "$4" "|"
+}
+
+# Show price chart for droplet sizes
+echo_droplet_prices() {
+  local f="Slug,Disk,PriceMonthly"
+  doctl compute size list --format="$f" | head -1 && \
+  doctl compute size list --format="$f" | grep --color=never -e "s-[0-9]vcpu-[0-9]gb "
+  echo_env_example "DROPLET_SIZE" "s-2vcpu-2gb"
 }

@@ -15,6 +15,13 @@ else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm
 [ -e /root/platform/swarm/swarm ] && ln -sf /root/platform/swarm/swarm /usr/local/bin/swarm >/dev/null 2>&1
 
 
+# Print droplet price chart
+if [ "$1" = "\$" ]; then
+  echo_droplet_prices
+  exit 0
+fi
+
+
 # First parameter is name of swarm and primary node
 PRIMARY="$1"
 if undefined $PRIMARY; then
