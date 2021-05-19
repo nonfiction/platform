@@ -6,6 +6,7 @@ else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm
 
 # Stop gluster service
 if defined $BEFORE_RESIZE; then
+  echo "before resize"
   # echo_run "service glusterd stop"
   # echo_run "umount /data"
 fi
