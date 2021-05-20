@@ -483,24 +483,36 @@ resize_droplet() {
   defined $2 || return
   
   local droplet_name=$1 primary_name=$2 droplet_id=
-  # local droplet_id droplet_size droplet_cpu droplet_cpu_env droplet_memory droplet_memory_env
+  local droplet_id droplet_size droplet_cpu droplet_cpu_env droplet_memory droplet_memory_env
   
   droplet_id=$(get_droplet_id $droplet_name)
+  droplet_size=$(get_droplet_size $droplet_name)
+    
+  droplet_cpu=$(get_droplet_cpu_from_size $droplet_size)
+  droplet_cpu_env=$(get_droplet_cpu_from_size $DROPLET_SIZE)
+    
+  droplet_memory=$(get_droplet_memory_from_size $droplet_size)
+  droplet_memory_env=$(get_droplet_memory_from_size $DROPLET_SIZE)    
+    
+  if [ $droplet_cpu_env != $droplet_cpu ] || [ $droplet_memory_env != $droplet_memory ]; then
 
-  echo_run $primary_name "docker node update --availability=drain ${droplet_name}"
-  echo "Waiting 30 seconds for node to drain..."
-  sleep 30
+    echo_run $primary_name "docker node update --availability=drain ${droplet_name}"
+    echo "Waiting 30 seconds for node to drain..."
+    sleep 30
 
-  echo_next "Turning OFF and RESIZING droplet $droplet_name"
-  echo_run "doctl compute droplet-action resize $droplet_id --size=${DROPLET_SIZE} --verbose --wait"
+    echo_next "Turning OFF and RESIZING droplet $droplet_name"
+    echo_run "doctl compute droplet-action resize $droplet_id --size=${DROPLET_SIZE} --verbose --wait"
 
-  echo_next "Turning ON droplet $droplet_name"
-  echo_run "doctl compute droplet-action power-on $droplet_id --verbose --wait"
+    echo_next "Turning ON droplet $droplet_name"
+    echo_run "doctl compute droplet-action power-on $droplet_id --verbose --wait"
 
-  echo "Waiting 20 seconds for node to boot..."
-  sleep 20
+    echo "Waiting 20 seconds for node to boot..."
+    sleep 20
 
-  echo_run $primary_name "docker node update --availability=active ${droplet_name}"
+    echo_run $primary_name "docker node update --availability=active ${droplet_name}"
+
+  fi
+
 }
 
 

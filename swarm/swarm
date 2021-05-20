@@ -106,7 +106,7 @@ NODES="$(echo "${PRIMARY} ${REPLICAS}" | args)"
 role="primary"
 
 reset_changes
-for node_name in $(echo "$PRIMARY $REPLICAS" | args); do
+for node_name in $NODES; do
   
   echo_node_header  $node_name $role
   echo_droplet_info $node_name
