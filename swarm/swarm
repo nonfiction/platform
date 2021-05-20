@@ -37,9 +37,11 @@ PRIMARY=$(get_swarm_primary $SWARM)
 CHANGES=${@:2}
 
 # Determine these from the parameters after the first
-REMOVALS=$(get_swarm_removals $SWARM $CHANGES)
-ADDITIONS=$(get_swarm_additions $SWARM $CHANGES)
 PROMOTION=$(get_swarm_promotion $SWARM $CHANGES)
+if undefined $PROMOTION; then
+  REMOVALS=$(get_swarm_removals $SWARM $CHANGES)
+  ADDITIONS=$(get_swarm_additions $SWARM $CHANGES)
+fi
 
 # Temporarily reassign PRIMARY for display
 if defined $PROMOTION; then
@@ -47,15 +49,15 @@ if defined $PROMOTION; then
   PRIMARY=$PROMOTION
 fi
 
-# Look up number of existing replicas from $PRIMARY name, single node swarm is 0
-REPLICAS="$(echo "$(get_swarm_replicas $SWARM) $DEMOTION $ADDITIONS" | args)"
+# Look up number of existing replicas in swarm, including additions, without removals
+REPLICAS=$(get_potential_replicas $SWARM "$REMOVALS" "$ADDITIONS" $PROMOTION $DEMOTION)
 
 # If primary doesn't exist yet, count that as an addition
 has_droplet $PRIMARY || ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | args)"
 
 # Display the main header
 echo_line blue
-echo_color black/on_blue " [${SWARM}] SWARM MANAGER "
+echo " $(echo_color black/on_blue "[${SWARM}]") $(echo_color blue "SWARM MANAGER")"
 echo_line blue
 
 # Count the number of nodes in this swarm
@@ -69,10 +71,13 @@ echo_env REPLICAS
 # Display the changes to the swarm
 echo_next "Swarm Changes..."
 echo_line green
-echo_env REMOVALS
-echo_env ADDITIONS
-echo_env PROMOTION
-echo_env DEMOTION
+if undefined $PROMOTION; then
+  echo_env REMOVALS
+  echo_env ADDITIONS
+else
+  echo_env PROMOTION
+  echo_env DEMOTION
+fi
 
 # Display the env variables
 echo_next "Swarm Config..."
@@ -96,8 +101,17 @@ else
 fi
 
 
-# Revert PRIMARY to original for now, that'll change at the last step (if applicaple)
+# Revert PRIMARY to original for now, that'll change at the last step (if applicable)
 defined $DEMOTION && PRIMARY=$DEMOTION
+
+
+for node_name in $REMOVALS; do
+  echo_node_header  $node_name "DELETE"
+  if ask "Delete droplet?"; then
+    echo "deleted"
+  fi
+done
+
 
 # Combined with $PRIMARY is all nodes
 NODES="$(echo "${PRIMARY} ${REPLICAS}" | args)"

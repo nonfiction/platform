@@ -223,6 +223,23 @@ get_swarm_replicas() {
   echo "$(droplets_by_tag :replica_${1} | awk '{print $2}' | args)"
 }
 
+
+# Look up number of existing replicas in swarm, including additions, without removals
+get_potential_replicas() {
+  defined $1 || return
+  local swarm=$1 removals=$2 additions=$3 promotion=$4 demotion=$5 keep= replicas=
+  for node in $(echo "$(get_swarm_replicas $swarm) $demotion $additions" | args); do
+    if [ "$promotion" != "$node" ]; then
+      keep=yes
+      for removal in $removals; do
+        [ "$removal" = "$node" ] && keep=no 
+      done
+      [ "$keep" = "yes" ] && replicas+="$node " 
+    fi
+  done
+  echo $replicas | args
+}
+
 reset_changes() {
   rm -f /tmp/changes.txt
 }
@@ -309,7 +326,7 @@ get_swarm_removals() {
   # Build removals with node names available
   local i next removals
 
-  # Add all the named removals, so long as it doesn't yet exist
+  # Add all the named removals, so long as it's not primary
   for next in $named_removals; do
     if [ "${next}" != "${primary}" ]; then
       has_droplet $next && removals="${removals} ${next}"
