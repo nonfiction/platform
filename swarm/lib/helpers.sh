@@ -155,11 +155,18 @@ append() {
   fi
 }
 
-uniq_args() {
+args() {
   local args
   args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)
   echo "$args" | tr ' ' '\n' | sort | uniq | xargs
 }
+
+rargs() {
+  local args
+  args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)
+  echo "$args" | tr ' ' '\n' | sort | uniq | tac | xargs
+}
+
 
 # Mark this as loaded
 export HELPERS_LOADED=1

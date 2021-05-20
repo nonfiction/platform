@@ -131,7 +131,7 @@ WEBHOOK="$(env_or_file WEBHOOK /run/secrets/webhook)"
 
 droplets_by_tag() {
   defined $1 || return  
-  doctl compute droplet list --no-header --format "ID,Name,PublicIPv4,PrivateIPv4,Memory,VCPUs,Tags" --tag-name="$1"
+  doctl compute droplet list --no-header --format "ID,Name,PublicIPv4,PrivateIPv4,Memory,VCPUs,Status,Tags" --tag-name="$1"
 }
 
 droplet_by_tag() {
@@ -142,6 +142,18 @@ droplet_by_tag() {
 has_droplet() {
   defined $1 || return
   defined $(get_droplet_id $1)
+}
+
+droplet_active() {
+  defined $1 || return 1
+  [ "$(droplet_by_tag :$1 | awk '{print $7}')" = "active" ] && return 0
+  return 1
+}
+
+droplet_ready() {
+  defined $1 || return 1
+  droplet_active $1 && run $1 "ls /root" | grep platform > /dev/null && return 0
+  return 1
 }
 
 get_droplet_id() {
@@ -208,43 +220,173 @@ get_swarm_primary() {
 get_swarm_replicas() {
   defined $1 || return
   # echo "$(droplets_by_tag :replica_${1} | awk '{print $2}' | tr '\n' ' ' | xargs)"
-  echo "$(droplets_by_tag :replica_${1} | awk '{print $2}' | uniq_args)"
+  echo "$(droplets_by_tag :replica_${1} | awk '{print $2}' | args)"
+}
+
+reset_changes() {
+  rm -f /tmp/changes.txt
+}
+
+set_changes() {
+  touch /tmp/changes.txt
+}
+
+has_changes() {
+  has /tmp/changes.txt && return 0
+  return 1
+}
+
+reset_reserved() {
+  echo "" > /tmp/reserved.txt
+}
+
+has_reserved() {
+  defined $1 || return 1
+  touch /tmp/reserved.txt
+  [[ "$(cat /tmp/reserved.txt)" =~ "[${replica_name}]" ]] && return 0
+  return 1
+}
+
+add_reserved() {
+  defined $1 || return 1
+  has_reserved $1 || echo "[${1}]" >> /tmp/reserved.txt
+}
+
+get_swarm_promotion() {
+  defined $1 || return
+  defined $2 || return
+
+  local swarm_name=$1 changes="$2" primary= promotion=
+  local arg val
+
+  # Get primary node in swarm
+  primary=$(get_swarm_primary $swarm_name)
+  defined $primary || return
+
+  # Look for ^mynode 
+  for arg in ${@:2}; do
+    if [ "${arg:0:1}" = "^" ]; then
+      val="${arg:1}"
+      promotion="${val}"
+    fi
+  done
+
+  # Only return if droplet exists and isn't already primary
+  if has_droplet $promotion; then
+    if [ "${promotion}" != "${primary}" ]; then
+      echo $promotion | xargs
+    fi
+  fi
+
 }
 
 
-get_droplet_additions() {
-  
-  local primary_name=$1 number_of_additions=0
+get_swarm_removals() {
   defined $1 || return
-  defined $2 && number_of_additions=$2
-  
-  local i next additions
+  defined $2 || return
 
-  echo "" > /tmp/reserved.txt
-  for i in $(seq $number_of_additions); do
-    next=$(__next_replica_name $primary_name)
+  local swarm_name=$1 changes="$2" primary=
+  local named_removals="" numbered_removals=0
+  local arg val
+
+  # Get primary node in swarm
+  primary=$(get_swarm_primary $swarm_name)
+  defined $primary || return
+
+  # Look for -mynode or -2 args and sort them into named/numbered
+  for arg in ${@:2}; do
+    if [ "${arg:0:1}" = "-" ]; then
+      val="${arg:1}"
+      if [[ $val =~ ^[0-9]+$ ]]; then 
+        numbered_removals=$(($numbered_removals + $val))
+      else
+        named_removals="$(echo "${named_removals} ${val}" | args)"
+      fi
+    fi
+  done
+
+  
+  # Build removals with node names available
+  local i next removals
+
+  # Add all the named removals, so long as it doesn't yet exist
+  for next in $named_removals; do
+    if [ "${next}" != "${primary}" ]; then
+      has_droplet $next && removals="${removals} ${next}"
+    fi
+  done
+
+  # Get existing replicas
+  replicas="$(get_swarm_replicas $swarm_name | rargs)"
+
+  # Add to the list of nodes to remove
+  for i in $(seq $numbered_removals); do
+    removals="${removals} $(echo $replicas | awk '{print $1}')"
+    replicas="$(echo $replicas | awk '{$1=""}1' | xargs)"
+  done
+  
+  # Return all these together
+  echo $removals | args
+
+}
+
+get_swarm_additions() {
+  defined $1 || return
+  defined $2 || return
+
+  local swarm_name=$1 changes="$2"
+  local named_additions="" numbered_additions=0
+  local arg val
+
+  # Look for +mynode or +2 args and sort them into named/numbered
+  for arg in ${@:2}; do
+    if [ "${arg:0:1}" = "+" ]; then
+      val="${arg:1}"
+      if [[ $val =~ ^[0-9]+$ ]]; then 
+        numbered_additions=$(($numbered_additions + $val))
+      else
+        named_additions="$(echo "${named_additions} ${val}" | args)"
+      fi
+    fi
+  done
+  
+  # Build additions with node names available
+  local i next additions
+  reset_reserved
+
+  # Add all the named additions, so long as it doesn't yet exist
+  for next in $named_additions; do
+    has_droplet $next || additions="${additions} ${next}"
+    add_reserved $next
+  done
+
+  # Generate names for nodes that were added via number (ie: +3)
+  for i in $(seq $numbered_additions); do
+    next=$(next_replica_name $swarm_name)
     additions="${additions} ${next}"
   done
-  rm -f /tmp/reserved.txt
   
-  echo $additions | xargs
+  # Return all these together
+  echo $additions | args
+
 }
 
-__next_replica_name() {
-  local primary_name=$1 replica_name pad i
-  touch /tmp/reserved.txt
+# Find the next available droplet name in a swarm
+next_replica_name() {
+  local swarm_name=$1 replica_name pad i
 
   for i in $(seq 99); do
     pad="" && [ $i -lt 10 ] && pad="0"
-    replica_name="${primary_name}${pad}${i}"
-    if [[ ! "$(cat /tmp/reserved.txt)" =~ "[${replica_name}]" ]]; then
-      echo "[${replica_name}]" >> /tmp/reserved.txt
+    replica_name="${swarm_name}${pad}${i}"
+    if ! has_reserved $replica_name; then
+      add_reserved $replica_name
       has_droplet $replica_name || break
     fi
   done
 
   echo $replica_name
 }
+
 
 # ---------------------------------------------------------
 # Show droplet info
@@ -267,14 +409,14 @@ echo_droplet_info() {
     droplet_memory_env=$(get_droplet_memory_from_size $DROPLET_SIZE)    
     
     if [ $droplet_cpu_env != $droplet_cpu ] || [ $droplet_memory_env != $droplet_memory ]; then
-      touch /tmp/process-droplet.txt
+      set_changes
       echo_droplet_size $droplet_name "${droplet_size}" "${DROPLET_SIZE}" "(update)"
     else
       echo_droplet_size $droplet_name "${droplet_size}" "${DROPLET_SIZE}" "(no change)"
     fi
     
   else
-    touch /tmp/process-droplet.txt
+    set_changes
     echo_droplet_size $droplet_name "..." "${DROPLET_SIZE}" "(new)"
   fi
   
@@ -411,14 +553,14 @@ echo_volume_info() {
     volume_size=$(get_volume_size $1)
 
     if [ "$VOLUME_SIZE" -gt "$volume_size" ]; then 
-      touch /tmp/process-droplet.txt
+      set_changes
       echo_volume_size $1 "${volume_size}GB" "${VOLUME_SIZE}GB" "(expand)"
     else
       echo_volume_size $1 "${volume_size}GB" "${VOLUME_SIZE}GB" "(no change)"
     fi
     
   else
-    touch /tmp/process-droplet.txt
+    set_changes
     echo_volume_size "${node}" "..." "${VOLUME_SIZE}GB" "(new)"
   fi
   
@@ -564,10 +706,10 @@ echo_record_info() {
     if defined "$record_data" && [ "$record_data" = "$droplet_ip" ]; then
       echo_record_data "${record_name}" "${record_data}" "(no change)"
     elif defined "$record_data" && [ "$record_data" != "$droplet_ip" ]; then
-      touch /tmp/process-droplet.txt
+      set_changes
       echo_record_data "${record_name}" "${droplet_ip}" "(update)"
     else
-      touch /tmp/process-droplet.txt
+      set_changes
       echo_record_data "${record_name}" "${droplet_ip}" "(new)"
     fi
 

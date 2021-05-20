@@ -33,32 +33,48 @@ fi
 # Primary usually matches swarm name (but it doesn't have to)
 PRIMARY=$(get_swarm_primary $SWARM)
 
+# Second paramter is changes to replicas (additions, removals, promotion)
+CHANGES=${@:2}
 
-# Second parameter is number of additions, or default 0
-ADDITIONS="$(get_droplet_additions $SWARM $2)"
+# Determine these from the parameters after the first
+REMOVALS=$(get_swarm_removals $SWARM $CHANGES)
+ADDITIONS=$(get_swarm_additions $SWARM $CHANGES)
+PROMOTION=$(get_swarm_promotion $SWARM $CHANGES)
 
+# Temporarily reassign PRIMARY for display
+if defined $PROMOTION; then
+  DEMOTION=$PRIMARY
+  PRIMARY=$PROMOTION
+fi
 
 # Look up number of existing replicas from $PRIMARY name, single node swarm is 0
-# REPLICAS="$(echo "$(get_swarm_replicas $1) $ADDITIONS" | tr ' ' '\n' | sort | uniq | xargs)"
-REPLICAS="$(echo "$(get_swarm_replicas $SWARM) $ADDITIONS" | uniq_args)"
+REPLICAS="$(echo "$(get_swarm_replicas $SWARM) $DEMOTION $ADDITIONS" | args)"
 
 # If primary doesn't exist yet, count that as an addition
-has_droplet $PRIMARY || ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | xargs)"
+has_droplet $PRIMARY || ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | args)"
 
-# Count the number of nodes in this swarm
-count=$((1 + $(echo $REPLICAS | wc -w)))
-[ "$count" = "1" ] && count="Single"
-
+# Display the main header
 echo_line blue
 echo_color black/on_blue " [${SWARM}] SWARM MANAGER "
 echo_line blue
 
+# Count the number of nodes in this swarm
+count=$((1 + $(echo $REPLICAS | wc -w)))
+[ "$count" = "1" ] && count="Single"
 echo_next "${count}-node swarm..."
 echo_line green
 echo_env PRIMARY
 echo_env REPLICAS
-echo_env ADDITIONS
 
+# Display the changes to the swarm
+echo_next "Swarm Changes..."
+echo_line green
+echo_env REMOVALS
+echo_env ADDITIONS
+echo_env PROMOTION
+echo_env DEMOTION
+
+# Display the env variables
 echo_next "Swarm Config..."
 echo_line green
 echo_env DOMAIN
@@ -73,27 +89,31 @@ echo_env ROOT_PUBLIC_KEY 20
 echo_env WEBHOOK
 
 if ask "Continue?"; then  
-  echo_next "Beginning..."
+  echo
 else
   echo_stop "Cancelled."  
   exit 1;
 fi
 
 
+# Revert PRIMARY to original for now, that'll change at the last step (if applicaple)
+defined $DEMOTION && PRIMARY=$DEMOTION
+
+# Combined with $PRIMARY is all nodes
+NODES="$(echo "${PRIMARY} ${REPLICAS}" | args)"
+
 # First node processed has a primary role
 role="primary"
 
-# Make sure this file doesn't yet exist
-rm -f /tmp/process-droplet.txt
-
-for node_name in $(echo "$PRIMARY $REPLICAS" | xargs); do
+reset_changes
+for node_name in $(echo "$PRIMARY $REPLICAS" | args); do
   
   echo_node_header  $node_name $role
   echo_droplet_info $node_name
   echo_volume_info  $node_name
   echo_record_info  $node_name
 
-  if has /tmp/process-droplet.txt; then 
+  if has_changes; then 
     if ask "Process droplet?"; then
       
       # First create/resize the volume that will be attached
@@ -109,24 +129,49 @@ for node_name in $(echo "$PRIMARY $REPLICAS" | xargs); do
       
     fi
   fi  
-  
-  # Clear out this file
-  rm -f /tmp/process-droplet.txt
+  reset_changes
   
   role="replica"
 done
 
 
-# All available nodes in this swarm
-# nodes="$PRIMARY $(get_swarm_replicas $swarm_name | tr ' ' '\n' | sort | uniq | xargs)"
-nodes="$PRIMARY $(get_swarm_replicas $SWARM | uniq_args)"
-
-if ask "Run docker & gluster configuration on each node? Newly created droplets require 5-10 minutes before they're ready for this."; then  
-  echo "Continuing..."
+if ask "Run docker & gluster configuration on each node?"; then  
+  echo
 else
   echo_stop "Cancelled."  
   exit 1;
 fi
+
+# # Get actual replicas that now exist
+# REPLICAS=$(get_swarm_replicas $SWARM)
+#
+# # Combined with $PRIMARY is all nodes
+# NODES="$(echo "${PRIMARY} ${REPLICAS}" | args)"
+
+
+# ---------------------------------------------------------
+# Verify all nodes are ready
+# ---------------------------------------------------------
+echo_next "Checking nodes..."
+
+nodes_ready="yes"
+for node in $NODES; do
+  echo -n "$node "
+  if droplet_ready $node; then 
+    echo_color green "✓" 
+  else
+    echo_color red "✕" 
+    nodes_ready=no
+  fi
+done
+
+if [ "${nodes_ready}" = "no" ]; then
+  echo_stop "Not ready for configuration! Newly created droplets require 5-10 minutes."
+  exit
+else
+  echo_next "...ready!"
+fi
+
 
 # ---------------------------------------------------------
 # System configuration for each node
@@ -135,30 +180,20 @@ echo_main "1. Node Config..."
 
 # Build hosts file
 hosts="127.0.0.1 localhost"
-for name in $nodes; do
-  ip="$(get_droplet_private_ip $name)"
-  hosts="${hosts}\n${ip} ${name}"
+for node in $NODES; do
+  ip="$(get_droplet_private_ip $node)"
+  hosts="${hosts}\n${ip} ${node}"
 done
 
-# Track any droplets that are still spinning up
-echo "" > /tmp/droplets-not-ready.txt
-
 # Loop all nodes in swarm
-for name in $nodes; do
-
-  # Ensure this droplet is ready (if it was recently created)
-  if undefined "$(run $name "ls /root" | grep platform)"; then
-    echo "[${name}]" >> /tmp/droplets-not-ready.txt
-    echo_info "Droplet $name is not yet ready..."
-
-  else
+for node in $NODES; do
 
     # Pull updates from git
-    run $name "/root/platform/swarm/node/update"
+    run $node "/root/platform/swarm/node/update"
 
     # Prepare environment variables for run command
     env=""
-    env="${env} NAME=\"$name\""
+    env="${env} NAME=\"$node\""
     env="${env} DOMAIN=\"$DOMAIN\""
     env="${env} FS_TYPE=\"$FS_TYPE\""
     env="${env} HOSTS_FILE=\"$hosts\""
@@ -166,9 +201,7 @@ for name in $nodes; do
     env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""
 
     # Run script on node
-    run $name "${env} /root/platform/swarm/node/config"
-
-  fi
+    run $node "${env} /root/platform/swarm/node/config"
 
 done  
   
@@ -179,32 +212,25 @@ done
 echo_main "2. Docker Config..."
 
 # Loop all nodes in swarm
-for name in $nodes; do
+for node in $NODES; do
 
-  # Ensure this droplet is ready (if it was recently created)
-  if [[ "$(cat /tmp/droplets-not-ready.txt)" =~ "[${name}]" ]]; then
-    echo_info "Droplet $name is not yet ready..."
+  # Set join token to "primary" if not replica
+  if [ "$node" = "$PRIMARY" ]; then
+    join_token="primary"
+
+  # Else, get join token from primary node
   else
-
-    # Set join token to "primary" if not replica
-    if [ "$name" = "$PRIMARY" ]; then
-      join_token="primary"
-
-    # Else, get join token from primary node
-    else
-      join_token="$(run $PRIMARY "cat /etc/docker-join-token")"
-    fi
-    
-    # Prepare environment variables for run command
-    env=""
-    env="${env} NAME=\"$name\""
-    env="${env} PRIVATE_IP=\"$(get_droplet_private_ip $name)\""
-    env="${env} JOIN_TOKEN=\"$join_token\""
-
-    # Run script on node
-    run $name "${env} /root/platform/swarm/node/docker"
-  
+    join_token="$(run $PRIMARY "cat /etc/docker-join-token")"
   fi
+  
+  # Prepare environment variables for run command
+  env=""
+  env="${env} NAME=\"$node\""
+  env="${env} PRIVATE_IP=\"$(get_droplet_private_ip $node)\""
+  env="${env} JOIN_TOKEN=\"$join_token\""
+
+  # Run script on node
+  run $node "${env} /root/platform/swarm/node/docker"
 
 done
 
@@ -215,23 +241,16 @@ done
 echo_main "3. Gluster Config..."
 
 # Loop all nodes in swarm
-for name in $nodes; do
+for node in $NODES; do
 
-  # Ensure this droplet is ready (if it was recently created)
-  if [[ "$(cat /tmp/droplets-not-ready.txt)" =~ "[${name}]" ]]; then
-    echo_info "Droplet $name is not yet ready..."
-  else
+  # Prepare environment variables for run command
+  env=""
+  env="${env} NAME=\"$node\""
+  env="${env} NODES=\"$NODES\""
+  env="${env} PRIMARY=\"$PRIMARY\""
 
-    # Prepare environment variables for run command
-    env=""
-    env="${env} NAME=\"$name\""
-    env="${env} NODES=\"$nodes\""
-    env="${env} PRIMARY=\"$PRIMARY\""
-
-    # Run script on node
-    run $name "${env} /root/platform/swarm/node/gluster"
-  
-  fi
+  # Run script on node
+  run $node "${env} /root/platform/swarm/node/gluster"
 
 done
 
@@ -240,28 +259,15 @@ done
 # Deploy Swarm
 # ---------------------------------------------------------
 echo_main "4. Deploy Swarm..."
-
-if [[ "$(cat /tmp/droplets-not-ready.txt)" =~ "[${PRIMARY}]" ]]; then
-  echo_info "Droplet $PRIMARY is not yet ready..."
-else
-  run $PRIMARY "cd /root/platform && ls -lah"
-fi
+run $PRIMARY "cd /root/platform && ls -lah"
 
 
 # ---------------------------------------------------------
 # Finish
 # ---------------------------------------------------------
 echo
-# Messaging about droplets not all being ready
-not_ready="$(cat /tmp/droplets-not-ready.txt | xargs)"
-if defined "$not_ready"; then 
-  echo_line red
-  echo_stop "Re-run when all droplet's are ready: $not_ready"
-  echo_line red
-else
-  echo_line green
-  echo_color black/on_green " COMPLETE! "
-  echo_line green
-fi
+echo_line green
+echo_color black/on_green " COMPLETE! "
+echo_line green
 
 exit
