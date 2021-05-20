@@ -198,10 +198,19 @@ get_droplet_size() {
   echo "s-${cpu}vcpu-${mem}gb"
 }
 
-get_droplet_replicas() {
+get_swarm_primary() {
   defined $1 || return
-  echo "$(droplets_by_tag :replica_${1} | awk '{print $2}' | tr '\n' ' ' | xargs)"
+  local primary
+  primary=$(droplet_by_tag :primary_${1} | awk '{print $2}')
+  defined $primary && echo $primary || echo $1
 }
+
+get_swarm_replicas() {
+  defined $1 || return
+  # echo "$(droplets_by_tag :replica_${1} | awk '{print $2}' | tr '\n' ' ' | xargs)"
+  echo "$(droplets_by_tag :replica_${1} | awk '{print $2}' | uniq_args)"
+}
+
 
 get_droplet_additions() {
   

@@ -23,18 +23,24 @@ fi
 
 
 # First parameter is name of swarm and primary node
-PRIMARY="$1"
-if undefined $PRIMARY; then
+SWARM="$1"
+if undefined $SWARM; then
   echo_stop "Missing swarm name!"
-  echo "The first argument for this script should be the swarm's name. Example: swarm app 3"
+  echo "The first argument for this script should be the swarm's name. Example: swarm app"
   exit 1
 fi
 
+# Primary usually matches swarm name (but it doesn't have to)
+PRIMARY=$(get_swarm_primary $SWARM)
+
+
 # Second parameter is number of additions, or default 0
-ADDITIONS="$(get_droplet_additions $1 $2)"
+ADDITIONS="$(get_droplet_additions $SWARM $2)"
+
 
 # Look up number of existing replicas from $PRIMARY name, single node swarm is 0
-REPLICAS="$(echo "$(get_droplet_replicas $1) $ADDITIONS" | tr ' ' '\n' | sort | uniq | xargs)"
+# REPLICAS="$(echo "$(get_swarm_replicas $1) $ADDITIONS" | tr ' ' '\n' | sort | uniq | xargs)"
+REPLICAS="$(echo "$(get_swarm_replicas $SWARM) $ADDITIONS" | uniq_args)"
 
 # If primary doesn't exist yet, count that as an addition
 has_droplet $PRIMARY || ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | xargs)"
@@ -44,7 +50,7 @@ count=$((1 + $(echo $REPLICAS | wc -w)))
 [ "$count" = "1" ] && count="Single"
 
 echo_line blue
-echo_color black/on_blue "          ${PRIMARY}.${DOMAIN}          "
+echo_color black/on_blue " [${SWARM}] SWARM MANAGER "
 echo_line blue
 
 echo_next "${count}-node swarm..."
@@ -55,6 +61,7 @@ echo_env ADDITIONS
 
 echo_next "Swarm Config..."
 echo_line green
+echo_env DOMAIN
 echo_env DROPLET_IMAGE
 echo_env DROPLET_SIZE
 echo_env VOLUME_SIZE
@@ -72,8 +79,6 @@ else
   exit 1;
 fi
 
-# Swarm name matches the name of the primary node
-swarm_name=$PRIMARY
 
 # First node processed has a primary role
 role="primary"
@@ -92,10 +97,10 @@ for node_name in $(echo "$PRIMARY $REPLICAS" | xargs); do
     if ask "Process droplet?"; then
       
       # First create/resize the volume that will be attached
-      create_or_resize_volume $node_name $swarm_name $role
+      create_or_resize_volume $node_name $SWARM $role
       
       # Then create/resize the droplet itself
-      create_or_resize_droplet $node_name $swarm_name $role
+      create_or_resize_droplet $node_name $SWARM $role
       
       # Last, ensure the DNS records are pointing to this droplet
       public_ip="$(get_droplet_public_ip $node_name)"
@@ -113,7 +118,8 @@ done
 
 
 # All available nodes in this swarm
-nodes="$PRIMARY $(get_droplet_replicas $swarm_name | tr ' ' '\n' | sort | uniq | xargs)"
+# nodes="$PRIMARY $(get_swarm_replicas $swarm_name | tr ' ' '\n' | sort | uniq | xargs)"
+nodes="$PRIMARY $(get_swarm_replicas $SWARM | uniq_args)"
 
 if ask "Run docker & gluster configuration on each node? Newly created droplets require 5-10 minutes before they're ready for this."; then  
   echo "Continuing..."
