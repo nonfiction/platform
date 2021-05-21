@@ -156,6 +156,22 @@ droplet_ready() {
   return 1
 }
 
+droplet_tag() {
+  defined $1 || return
+  defined $2 || return 
+  local id tag=$2
+  id=$(droplet_by_tag :$1)
+  defined $id && doctl compute droplet tag $id --tag-name="${tag}"
+}
+
+droplet_untag() {
+  defined $1 || return
+  defined $2 || return 
+  local id tag=$2
+  id=$(droplet_by_tag :$1)
+  defined $id && doctl compute droplet untag $id --tag-name="${tag}"
+}
+
 get_droplet_id() {
   defined $1 || return
   droplet_by_tag :$1 | awk '{print $1}'

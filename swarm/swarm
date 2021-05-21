@@ -38,15 +38,15 @@ CHANGES=${@:2}
 
 
 # Swap a replica and primary node
-PROMOTION=$(get_swarm_promotion $SWARM $CHANGES)
-if defined $PROMOTION; then
-  DEMOTION=$PRIMARY
+PROMOTED=$(get_swarm_promotion $SWARM $CHANGES)
+if defined $PROMOTED; then
+  DEMOTED=$PRIMARY
 
-  # Temporarily reassign PRIMARY for display
-  PRIMARY=$PROMOTION
+  # Reassign PRIMARY for display
+  PRIMARY=$PROMOTED
 
   # Add old primary to replicas, remove new primary from replicas
-  REPLICAS=$(get_swarm_replicas $SWARM $DEMOTION $PROMOTION)
+  REPLICAS=$(get_swarm_replicas $SWARM $DEMOTED $PROMOTED)
 
 
 # Add or remove replicas
@@ -90,12 +90,12 @@ echo_env REPLICAS
 # echo_env NODES
 
 # Display the changes to the swarm
-if defined $PROMOTION || defined $REMOVALS || defined $ADDITIONS; then
+if defined $PROMOTED || defined $REMOVALS || defined $ADDITIONS; then
   echo_next "Swarm Changes..."
   echo_line green
-  if defined $PROMOTION; then
-    echo_env PROMOTION
-    echo_env DEMOTION
+  if defined $PROMOTED; then
+    echo_env PROMOTED
+    echo_env DEMOTED
   elif defined $REMOVALS || defined $ADDITIONS; then
     echo_env REMOVALS
     echo_env ADDITIONS
@@ -126,8 +126,8 @@ fi
 
 
 # Promotion/demotion
-defined $DEMOTION && echo_main "New Primary: ${DEMOTION} => ${PROMOTION}"
-if defined $DEMOTION; then
+defined $DEMOTED && echo_main "New Primary: ${DEMOTED} => ${PROMOTED}"
+if defined $DEMOTED; then
 
   if droplets_ready "$NODES"; then
     echo_next "...ready!"
@@ -136,7 +136,34 @@ if defined $DEMOTION; then
     exit
   fi
 
-  echo "do reassignment"
+  # On primary, promote docker swarm manager to worker
+  echo_run $DEMOTED "PROMOTE=1 NAME=${PROMOTED} /root/platform/swarm/node/docker"
+  echo_info "Demoted $DEMOTED to worker in swarm"
+
+  # On demoted, demote docker swarm manager to worker
+  echo_run $PROMOTED "DEMOTE=1 NAME=${DEMOTED} /root/platform/swarm/node/docker"
+  echo_info "Promoted $PROMOTED to manager in swarm"
+
+  # Role tags for this swarm
+  primary_tag=":primary_${SWARM}"
+  replica_tag=":replica_${SWARM}"
+
+  # Change the demoted node from primary to replica
+  droplet_untag $DEMOTED $primary_tag
+  droplet_tag $DEMOTED $replica_tag
+  echo_info "Tagged $DEMOTED as ${replica_tag}"
+
+  # Change the promoted node from replica to primary
+  droplet_untag $PROMOTED $replica_tag
+  droplet_tag $PROMOTED $primary_tag
+  echo_info "Tagged $PROMOTED as ${primary_tag}"
+
+  # Done
+  echo
+  echo_line green
+  echo_color black/on_green " COMPLETE! "
+  echo_line green
+
   exit
 
 fi
