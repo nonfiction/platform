@@ -58,7 +58,17 @@ else
   REPLICAS=$(get_swarm_replicas $SWARM "$ADDITIONS" "$REMOVALS")
 
   # If primary doesn't exist yet, count that as an addition
-  has_droplet $PRIMARY || ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | args)"
+  if ! has_droplet $PRIMARY; then
+    ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | args)"
+  else
+
+    # Ensure new droplets have a volume size no smaller than primary's volume 
+    # This is because a replicated volume will only be as largest as it's smallest node
+    volume_size=$(get_volume_size $PRIMARY)
+    [ "$VOLUME_SIZE" -lt "$volume_size" ] && VOLUME_SIZE=$volume_size
+
+  fi
+
 fi
 
 # Combined with $PRIMARY is all nodes

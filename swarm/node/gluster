@@ -28,6 +28,7 @@ if defined $BEFORE_RESIZE && defined $NAME; then
 elif defined $AFTER_RESIZE && defined $NAME; then
 
   # After resizing with doctl, return the brick to gluster
+  brick_name=$(get_brick $NAME)
   echo_run "resize2fs $(get_disk $NAME)"
   echo_run "gluster volume reset-brick ${VOLUME_NAME} ${brick_name} ${brick_name} commit force"
   echo_info "Gluster brick ${brick_name} has been replaced on ${VOLUME_NAME}"
