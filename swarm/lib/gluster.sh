@@ -7,11 +7,15 @@ if [ -z "$HELPERS_LOADED" ]; then
 fi
 
 
-# Returns number of bricks in a volume
-get_bricks() {
+# Returns number of bricks in a volume (plus or minus the second argument)
+count_bricks() {
   defined $1 || return  
-  gluster volume info $1 | grep "Number of Bricks" | tail -c 3 | xargs
+  local bricks num=0
+  defined $2 && num=$2
+  bricks=$(gluster volume info $1 | grep "Number of Bricks" | tail -c 3 | xargs)
+  echo $((bricks + $num))
 }
+
 
 # Returns /mnt/node/volume_name unless BRICK_DIR env is set
 get_brick_dir() {

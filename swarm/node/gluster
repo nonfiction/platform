@@ -14,8 +14,38 @@ undefined $VOLUME_NAME && VOLUME_NAME="data-gfs"
 undefined $VOLUME_MOUNT && VOLUME_MOUNT="/data"
 # BRICK_DIR optional
 
-# Proceed!
-if defined $NAME && defined $PRIMARY; then
+
+# RESIZE GLUSTER CLUTER (run on primary node)
+# ---------------------------------------------
+if defined $BEFORE_RESIZE && defined $NAME; then
+
+  # Before resizing with doctl, remove the brick from gluster
+  echo_run "service cron stop"
+  echo_run "gluster volume reset-brick ${VOLUME_NAME} $(get_brick $NAME) start"
+
+elif defined $AFTER_RESIZE && defined $NAME; then
+
+  # After resizing with doctl, return the brick to gluster
+  echo_run "resize2fs $(get_disk $NAME)"
+  echo_run "gluster volume reset-brick ${VOLUME_NAME} $(get_brick $NAME) $(get_brick $NAME) commit force"
+  echo_run "service cron start"
+
+
+# LEAVE GLUSTER CLUTER (run on primary node)
+# ---------------------------------------------
+elif defined $LEAVE && defined $NAME; then
+
+  # yes | gluster volume remove-brick data-gfs replica 2 xyz02:/mnt/xyz02/data-gfs force
+  # gluster peer detach xyz02
+  brick_count=$(count_bricks $VOLUME_NAME -1)
+  brick_name=$(get_brick $NAME)             
+  echo_run "yes | gluster volume remove-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force"
+  echo_run "gluster peer detach ${NAME}"
+
+
+# JOIN GLUSTER CLUSTER (mostly run on primary node, last bit run on each replica)
+# -------------------------------------------------------------------------------
+elif defined $JOIN && defined $NAME && defined $PRIMARY; then
 
   # Most of this occurs on the primary node
   if [ "$NAME" = "$PRIMARY" ]; then
@@ -62,14 +92,12 @@ if defined $NAME && defined $PRIMARY; then
         else
 
           # Check if brick does not yet exist
-          # node_brick="${node}:${brick_dir}"
-          # if undefined_brick $VOLUME_NAME $node_brick; then
           if undefined_brick $VOLUME_NAME $(get_brick $node); then
 
             # Add brick to volume
-            bricks=$(get_bricks $VOLUME_NAME)
-            # echo_run "gluster volume add-brick ${VOLUME_NAME} replica $((bricks + 1)) ${node_brick} force"
-            echo_run "gluster volume add-brick ${VOLUME_NAME} replica $((bricks + 1)) $(get_brick $node) force"
+            brick_count=$(count_bricks $VOLUME_NAME +1)
+            brick_name=$(get_brick $node)             
+            echo_run "gluster volume add-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force"
             sleep 3
 
           fi
@@ -97,6 +125,5 @@ if defined $NAME && defined $PRIMARY; then
     echo_next "Appending $file"
     echo "${entry}" | tee --append $file
   fi
-
 
 fi

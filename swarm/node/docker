@@ -4,7 +4,23 @@
 if [ -e /root/platform/swarm/lib/helpers.sh ]; then source /root/platform/swarm/lib/helpers.sh;
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 
-if defined $NAME && defined $JOIN_TOKEN && defined $PRIVATE_IP; then
+
+# LEAVE DOCKER SWARM (run on each node)
+# ----------------------------------------
+if defined $LEAVE && defined $NAME; then
+
+  # Run on primary node to demote manager (it's probably only a worker, but just in case)
+  echo_run "docker node demote ${NAME}"
+
+elif defined $LEAVE; then
+
+  # Run on replica node to leave the swarm
+  echo_run "docker swarm leave"
+
+
+# JOIN/INIT DOCKER SWARM (run on each node)
+# ----------------------------------------
+elif defined $JOIN && defined $NAME && defined $JOIN_TOKEN && defined $PRIVATE_IP; then
 
   # Primary node - create swarm
   if [ "$JOIN_TOKEN" = "primary" ]; then

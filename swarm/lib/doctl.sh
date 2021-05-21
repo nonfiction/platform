@@ -217,28 +217,72 @@ get_swarm_primary() {
   defined $primary && echo $primary || echo $1
 }
 
+# Look up number of existing replicas in swarm (optionally including additions, without removals)
 get_swarm_replicas() {
+
   defined $1 || return
-  # echo "$(droplets_by_tag :replica_${1} | awk '{print $2}' | tr '\n' ' ' | xargs)"
-  echo "$(droplets_by_tag :replica_${1} | awk '{print $2}' | args)"
+  local swarm=$1 additions=$2 removals=$3 keep= current_replicas= replicas=
+
+  # Start with current replicas
+  current_replicas="$(droplets_by_tag :replica_${1} | awk '{print $2}' | args)"
+
+  # Loop through all current replicas + additions
+  for node in $(echo "$current_replicas $additions" | args); do
+
+    # Add most to the $replicas variable, but skip those contained within $removals
+    keep=yes
+    for removal in $removals; do
+      [ "$removal" = "$node" ] && keep=no 
+    done
+    [ "$keep" = "yes" ] && replicas+="$node " 
+
+  done
+
+  # Return (potentially modified) replicas 
+  echo $replicas | args
+
 }
 
+# Check if droplets ready 
+droplets_ready() {
 
-# Look up number of existing replicas in swarm, including additions, without removals
-get_potential_replicas() {
   defined $1 || return
-  local swarm=$1 removals=$2 additions=$3 promotion=$4 demotion=$5 keep= replicas=
-  for node in $(echo "$(get_swarm_replicas $swarm) $demotion $additions" | args); do
-    if [ "$promotion" != "$node" ]; then
-      keep=yes
-      for removal in $removals; do
-        [ "$removal" = "$node" ] && keep=no 
-      done
-      [ "$keep" = "yes" ] && replicas+="$node " 
+  nodes=$1
+
+  echo_next "Checking nodes..."
+
+  nodes_ready="yes"
+  for node in $nodes; do
+    echo -n "$node "
+    if droplet_ready $node; then 
+      echo_color green "✓" 
+    else
+      echo_color red "✕" 
+      nodes_ready=no
     fi
   done
-  echo $replicas | args
+
+  if [ "${nodes_ready}" = "no" ]; then
+    return 1
+  else
+    return 0
+  fi
+
 }
+
+# # Look up number of existing replicas in swarm, including additions, without removals
+# get_potential_replicas() {
+#   defined $1 || return
+#   local swarm=$1 removals=$2 additions=$3 keep= replicas=
+#   for node in $(echo "$(get_swarm_replicas $swarm) $additions" | args); do
+#     keep=yes
+#     for removal in $removals; do
+#       [ "$removal" = "$node" ] && keep=no 
+#     done
+#     [ "$keep" = "yes" ] && replicas+="$node " 
+#   done
+#   echo $replicas | args
+# }
 
 reset_changes() {
   rm -f /tmp/changes.txt
@@ -273,20 +317,14 @@ get_swarm_promotion() {
   defined $1 || return
   defined $2 || return
 
-  local swarm_name=$1 changes="$2" primary= promotion=
-  local arg val
+  local swarm_name=$1 primary= promotion=
 
   # Get primary node in swarm
   primary=$(get_swarm_primary $swarm_name)
   defined $primary || return
 
-  # Look for ^mynode 
-  for arg in ${@:2}; do
-    if [ "${arg:0:1}" = "^" ]; then
-      val="${arg:1}"
-      promotion="${val}"
-    fi
-  done
+  # Get node to promote
+  promotion=$(parse_args ^ ${@:2} | after_first | first)
 
   # Only return if droplet exists and isn't already primary
   if has_droplet $promotion; then
@@ -297,32 +335,42 @@ get_swarm_promotion() {
 
 }
 
+# Look for -mynode or -2 args and sort them into named/numbered
+parse_args() {
+  defined $1 || return
+  defined $2 || return
+
+  local arg val named numbered=0
+
+  for arg in ${@:2}; do
+    if [ "${arg:0:1}" = $1 ]; then
+      val="${arg:1}"
+      if [[ $val =~ ^[0-9]+$ ]]; then 
+        numbered=$(($numbered + $val))
+      else
+        named+="${val} "
+      fi
+    fi
+  done
+
+  echo "${numbered} ${named}" | args
+}
 
 get_swarm_removals() {
   defined $1 || return
   defined $2 || return
 
-  local swarm_name=$1 changes="$2" primary=
+  local swarm_name=$1 primary=
   local named_removals="" numbered_removals=0
-  local arg val
 
   # Get primary node in swarm
   primary=$(get_swarm_primary $swarm_name)
   defined $primary || return
 
-  # Look for -mynode or -2 args and sort them into named/numbered
-  for arg in ${@:2}; do
-    if [ "${arg:0:1}" = "-" ]; then
-      val="${arg:1}"
-      if [[ $val =~ ^[0-9]+$ ]]; then 
-        numbered_removals=$(($numbered_removals + $val))
-      else
-        named_removals="$(echo "${named_removals} ${val}" | args)"
-      fi
-    fi
-  done
+  # Get nodes to remove
+  numbered_removals=$(parse_args - ${@:2} | first)
+  named_removals=$(parse_args - ${@:2} | after_first)
 
-  
   # Build removals with node names available
   local i next removals
 
@@ -351,22 +399,13 @@ get_swarm_additions() {
   defined $1 || return
   defined $2 || return
 
-  local swarm_name=$1 changes="$2"
+  local swarm_name=$1
   local named_additions="" numbered_additions=0
-  local arg val
 
-  # Look for +mynode or +2 args and sort them into named/numbered
-  for arg in ${@:2}; do
-    if [ "${arg:0:1}" = "+" ]; then
-      val="${arg:1}"
-      if [[ $val =~ ^[0-9]+$ ]]; then 
-        numbered_additions=$(($numbered_additions + $val))
-      else
-        named_additions="$(echo "${named_additions} ${val}" | args)"
-      fi
-    fi
-  done
-  
+  # Get nodes to add
+  numbered_additions=$(parse_args + ${@:2} | first)
+  named_additions=$(parse_args + ${@:2} | after_first)
+
   # Build additions with node names available
   local i next additions
   reset_reserved
@@ -490,6 +529,18 @@ create_droplet() {
 
 }
 
+remove_droplet() {
+  defined $1 || return
+
+  local droplet_name=$1 droplet_id=
+  droplet_id=$(get_droplet_id $droplet_name)
+  
+  # Delete existing droplet
+  if defined $droplet_id; then
+    echo_next "Deleting droplet $droplet_name"
+    doctl compute droplet delete $droplet_id --force
+  fi
+}
 
 # ---------------------------------------------------------
 # Resize droplet
@@ -643,8 +694,11 @@ resize_volume() {
     volume_id="$(get_volume_id $volume_name)"
     droplet_id="$(get_droplet_id $droplet_name)"
 
-    env="BEFORE=1 NAME=${droplet_name}"
-    echo_run $droplet_name "${env} /root/platform/swarm/node/resize"
+    # env="BEFORE=1 NAME=${droplet_name}"
+    # echo_run $droplet_name "${env} /root/platform/swarm/node/resize"
+
+    env="BEFORE_RESIZE=1 NAME=${droplet_name}"
+    echo_run $droplet_name "${env} /root/platform/swarm/node/gluster"
 
     # Detach volume from droplet
     doctl compute volume-action detach "$volume_id" "$droplet_id" --wait
@@ -659,8 +713,11 @@ resize_volume() {
     doctl compute volume-action attach "$volume_id" "$droplet_id" --wait
 
     # Resize volume on node and start up gluster again
-    env="AFTER=1 NAME=${droplet_name}"
-    echo_run $droplet_name "${env} /root/platform/swarm/node/resize"
+    # env="AFTER=1 NAME=${droplet_name}"
+    # echo_run $droplet_name "${env} /root/platform/swarm/node/resize"
+
+    env="AFTER_RESIZE=1 NAME=${droplet_name}"
+    echo_run $droplet_name "${env} /root/platform/swarm/node/gluster"
 
   else
     echo_info "Volume $volume_name unchanged"
@@ -784,6 +841,20 @@ create_or_update_record() {
     --format="ID,Type,Name,Data,TTL"
   fi
 
+}
+
+remove_record() {
+  defined $1 || return
+  defined $DOMAIN || return
+
+  local record_name=$1 record_id=
+  record_id=$(get_record_id $record_name)
+  
+  # Delete existing DNS record
+  if defined $record_id; then
+    echo_next "Deleting record $record_name"
+    doctl compute domain records delete $DOMAIN $record_id --force
+  fi
 }
 
 

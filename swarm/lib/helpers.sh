@@ -167,6 +167,23 @@ rargs() {
   echo "$args" | tr ' ' '\n' | sort | uniq | tac | xargs
 }
 
+first() {
+  local args
+  args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)
+  echo "$args" | awk '{print $1}'
+}
+
+after_first() {
+  local args
+  args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)
+  echo "$args" | awk '{$1=""}1' | xargs
+}
+
+add() {
+  x=10
+  echo $((x + $1))
+}
+
 
 # Mark this as loaded
 export HELPERS_LOADED=1

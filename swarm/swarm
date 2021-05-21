@@ -22,6 +22,7 @@ if [ "$1" = "\$" ]; then
 fi
 
 
+
 # First parameter is name of swarm and primary node
 SWARM="$1"
 if undefined $SWARM; then
@@ -32,28 +33,37 @@ fi
 
 # Primary usually matches swarm name (but it doesn't have to)
 PRIMARY=$(get_swarm_primary $SWARM)
-
 # Second paramter is changes to replicas (additions, removals, promotion)
 CHANGES=${@:2}
 
-# Determine these from the parameters after the first
-PROMOTION=$(get_swarm_promotion $SWARM $CHANGES)
-if undefined $PROMOTION; then
-  REMOVALS=$(get_swarm_removals $SWARM $CHANGES)
-  ADDITIONS=$(get_swarm_additions $SWARM $CHANGES)
-fi
 
-# Temporarily reassign PRIMARY for display
+# Swap a replica and primary node
+PROMOTION=$(get_swarm_promotion $SWARM $CHANGES)
 if defined $PROMOTION; then
   DEMOTION=$PRIMARY
+
+  # Temporarily reassign PRIMARY for display
   PRIMARY=$PROMOTION
+
+  # Add old primary to replicas, remove new primary from replicas
+  REPLICAS=$(get_swarm_replicas $SWARM $DEMOTION $PROMOTION)
+
+
+# Add or remove replicas
+else
+  REMOVALS=$(get_swarm_removals $SWARM $CHANGES)
+  ADDITIONS=$(get_swarm_additions $SWARM $CHANGES)
+
+  # Look up number of existing replicas in swarm, including additions, without removals
+  REPLICAS=$(get_swarm_replicas $SWARM "$ADDITIONS" "$REMOVALS")
+
+  # If primary doesn't exist yet, count that as an addition
+  has_droplet $PRIMARY || ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | args)"
 fi
 
-# Look up number of existing replicas in swarm, including additions, without removals
-REPLICAS=$(get_potential_replicas $SWARM "$REMOVALS" "$ADDITIONS" $PROMOTION $DEMOTION)
+# Combined with $PRIMARY is all nodes
+NODES="$(echo "${PRIMARY} ${REPLICAS}" | args)"
 
-# If primary doesn't exist yet, count that as an addition
-has_droplet $PRIMARY || ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | args)"
 
 # Display the main header
 echo_line blue
@@ -67,16 +77,17 @@ echo_next "${count}-node swarm..."
 echo_line green
 echo_env PRIMARY
 echo_env REPLICAS
+# echo_env NODES
 
 # Display the changes to the swarm
 echo_next "Swarm Changes..."
 echo_line green
-if undefined $PROMOTION; then
-  echo_env REMOVALS
-  echo_env ADDITIONS
-else
+if defined $PROMOTION; then
   echo_env PROMOTION
   echo_env DEMOTION
+else
+  echo_env REMOVALS
+  echo_env ADDITIONS
 fi
 
 # Display the env variables
@@ -101,20 +112,52 @@ else
 fi
 
 
-# Revert PRIMARY to original for now, that'll change at the last step (if applicable)
-defined $DEMOTION && PRIMARY=$DEMOTION
+
+# Promotion/demotion
+defined $DEMOTION && echo_main "New Primary: ${DEMOTION} => ${PROMOTION}"
+if defined $DEMOTION; then
+
+  if droplets_ready "$NODES"; then
+    echo_next "...ready!"
+  else
+    echo_stop "Not ready for reassignment!"
+  fi
+
+  echo "do reassignment"
+  exit
+
+fi
 
 
-for node_name in $REMOVALS; do
-  echo_node_header  $node_name "DELETE"
-  if ask "Delete droplet?"; then
-    echo "deleted"
+# Deletions
+defined $REMOVALS && echo_main "Node removals: ${REMOVALS}"
+for node in $REMOVALS; do
+  if ask "Really DELETE droplet [${node}]?"; then
+
+    echo_next "Removing ${node} from docker swarm..."
+
+    # On primary, demote docker swarm manager to worker
+    echo_run $PRIMARY "LEAVE=1 NAME=${node} /root/platform/swarm/node/docker"
+
+    # On replica, leave docker swarm
+    echo_run $node    "LEAVE=1              /root/platform/swarm/node/docker"
+
+    echo_next "Removing ${node} from gluster volume..."
+
+    # On primary, remove brick and peer from gluster volume
+    echo_run $PRIMARY "LEAVE=1 NAME=${node} /root/platform/swarm/node/gluster"
+
+    # Delete DNS records 
+    remove_record "${node}"
+    remove_record "*.${node}"
+
+    # Delete droplet!
+    remove_droplet "${node}"
+
   fi
 done
 
 
-# Combined with $PRIMARY is all nodes
-NODES="$(echo "${PRIMARY} ${REPLICAS}" | args)"
 
 # First node processed has a primary role
 role="primary"
@@ -166,25 +209,31 @@ fi
 # ---------------------------------------------------------
 # Verify all nodes are ready
 # ---------------------------------------------------------
-echo_next "Checking nodes..."
-
-nodes_ready="yes"
-for node in $NODES; do
-  echo -n "$node "
-  if droplet_ready $node; then 
-    echo_color green "✓" 
-  else
-    echo_color red "✕" 
-    nodes_ready=no
-  fi
-done
-
-if [ "${nodes_ready}" = "no" ]; then
-  echo_stop "Not ready for configuration! Newly created droplets require 5-10 minutes."
-  exit
-else
+if droplets_ready "$NODES"; then
   echo_next "...ready!"
+else
+  echo_stop "Not ready for configuration! Newly created droplets require 5-10 minutes."
 fi
+
+# echo_next "Checking nodes..."
+#
+# nodes_ready="yes"
+# for node in $NODES; do
+#   echo -n "$node "
+#   if droplet_ready $node; then 
+#     echo_color green "✓" 
+#   else
+#     echo_color red "✕" 
+#     nodes_ready=no
+#   fi
+# done
+#
+# if [ "${nodes_ready}" = "no" ]; then
+#   echo_stop "Not ready for configuration! Newly created droplets require 5-10 minutes."
+#   exit
+# else
+#   echo_next "...ready!"
+# fi
 
 
 # ---------------------------------------------------------
@@ -238,7 +287,7 @@ for node in $NODES; do
   fi
   
   # Prepare environment variables for run command
-  env=""
+  env="JOIN=1"
   env="${env} NAME=\"$node\""
   env="${env} PRIVATE_IP=\"$(get_droplet_private_ip $node)\""
   env="${env} JOIN_TOKEN=\"$join_token\""
@@ -258,7 +307,7 @@ echo_main "3. Gluster Config..."
 for node in $NODES; do
 
   # Prepare environment variables for run command
-  env=""
+  env="JOIN=1"
   env="${env} NAME=\"$node\""
   env="${env} NODES=\"$NODES\""
   env="${env} PRIMARY=\"$PRIMARY\""
