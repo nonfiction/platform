@@ -24,7 +24,7 @@ fi
 
 
 # First parameter is name of swarm and primary node
-SWARM="$1"
+SWARM=$(echo $1 | awk '{print tolower($0)}');
 if undefined $SWARM; then
   echo_stop "Missing swarm name!"
   echo "The first argument for this script should be the swarm's name. Example: swarm app"

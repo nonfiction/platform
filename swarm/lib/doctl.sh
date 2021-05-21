@@ -398,6 +398,7 @@ get_swarm_additions() {
 
   # Add all the named additions, so long as it doesn't yet exist
   for next in $named_additions; do
+    next=$(echo $next | awk '{print tolower($0)}')
     has_droplet $next || additions="${additions} ${next}"
     add_reserved $next
   done
@@ -551,6 +552,7 @@ resize_droplet() {
   droplet_memory_env=$(get_droplet_memory_from_size $DROPLET_SIZE)    
     
   if [ $droplet_cpu_env != $droplet_cpu ] || [ $droplet_memory_env != $droplet_memory ]; then
+    echo_next "RESIZING droplet $droplet_name"
 
     echo_run $primary_name "docker node update --availability=drain ${droplet_name}"
     echo "Waiting 30 seconds for node to drain..."
@@ -566,6 +568,8 @@ resize_droplet() {
     sleep 20
 
     echo_run $primary_name "docker node update --availability=active ${droplet_name}"
+
+    echo_info "Droplet $droplet_name resized!"
 
   fi
 
@@ -725,6 +729,8 @@ resize_volume() {
     env="AFTER_RESIZE=1 NAME=${droplet_name}"
     echo_run $droplet_name "${env} /root/platform/swarm/node/gluster"
 
+    echo_info "Volume $volume_name expanded!"
+
   else
     echo_info "Volume $volume_name unchanged"
   fi
@@ -876,21 +882,22 @@ run() {
   defined $1 || return
 
   # Get the IP address of the droplet
-  local name=$1 ip
+  local name=$1 ip= key=
   ip="$(get_droplet_public_ip $name)"
 
   # Temporarily save the private key as a file
-  echo "$ROOT_PRIVATE_KEY" > /tmp/root_private_key.txt
-  chmod 400 /tmp/root_private_key.txt
+  key="/tmp/key-$(echo '('`date +"%s.%N"` ' * 1000000)/1' | bc).txt"
+  echo "$ROOT_PRIVATE_KEY" > $key
+  chmod 400 $key
 
   # SSH with the private and pass any commands
   ssh -o StrictHostKeyChecking=no \
       -o UserKnownHostsFile=/dev/null \
       -o LogLevel=ERROR \
-      -i /tmp/root_private_key.txt root@$ip "${@:2}"
+      -i $key root@$ip "${@:2}"
 
   # Remove the temporary private key
-  rm -f /tmp/root_private_key.txt
+  rm -f $key
 
 }
 

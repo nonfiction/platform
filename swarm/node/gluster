@@ -96,6 +96,7 @@ elif defined $JOIN && defined $NAME && defined $PRIMARY; then
           if undefined_brick $VOLUME_NAME $(get_brick $node); then
 
             # Add brick to volume
+            echo_next "Gluster add brick to $VOLUME_NAME"
             brick_count=$(count_bricks $VOLUME_NAME +1)
             brick_name=$(get_brick $node)             
             echo_run "gluster volume add-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force"
