@@ -680,16 +680,24 @@ create_volume() {
 
 # Delete this volume forever and ever
 remove_volume() {
-  defined $1 || return
 
-  local volume_name=$1 volume_id= 
+  defined $1 || return  
+  local volume_name=$1 droplet_name=$1 volume_id= droplet_id=
+
   volume_id="$(get_volume_id $volume_name)"
+  droplet_id="$(get_droplet_id $droplet_name)"
   
-  # Delete existing volume
-  if defined $volume_id; then
+  # Detach volume from droplet and delete
+  if defined $volume_id && defined $droplet_id; then
+
+    echo_next "Detaching volume ${volume_name} from droplet ${droplet_name}"
+    doctl compute volume-action detach $volume_id $droplet_id --wait
+
     echo_next "Deleting volume $volume_name"
     doctl compute volume delete $volume_id --force
+
   fi
+
 }
 
 
@@ -711,9 +719,7 @@ resize_volume() {
     volume_id="$(get_volume_id $volume_name)"
     droplet_id="$(get_droplet_id $droplet_name)"
 
-    # env="BEFORE=1 NAME=${droplet_name}"
-    # echo_run $droplet_name "${env} /root/platform/swarm/node/resize"
-
+    # Stop the brick before resizing 
     env="BEFORE_RESIZE=1 NAME=${droplet_name}"
     echo_run $droplet_name "${env} /root/platform/swarm/node/gluster"
 
@@ -729,10 +735,7 @@ resize_volume() {
     # Re-attach volume to droplet
     doctl compute volume-action attach "$volume_id" "$droplet_id" --wait
 
-    # Resize volume on node and start up gluster again
-    # env="AFTER=1 NAME=${droplet_name}"
-    # echo_run $droplet_name "${env} /root/platform/swarm/node/resize"
-
+    # Resize volume on node and start using the brick again
     env="AFTER_RESIZE=1 NAME=${droplet_name}"
     echo_run $droplet_name "${env} /root/platform/swarm/node/gluster"
 
@@ -888,7 +891,7 @@ run() {
   ip="$(get_droplet_public_ip $name)"
   echo "$ROOT_PRIVATE_KEY" > /tmp/root_private_key.txt
   chmod 400 /tmp/root_private_key.txt
-  ssh -o "StrictHostKeyChecking=no" -i /tmp/root_private_key.txt root@$ip "${@:2}"
+  ssh -o "StrictHostKeyChecking=no" -o "LogLevel=ERROR" -i /tmp/root_private_key.txt root@$ip "${@:2}"
   rm -f /tmp/root_private_key.txt
 }
 

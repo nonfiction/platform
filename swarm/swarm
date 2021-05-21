@@ -123,6 +123,7 @@ if defined $DEMOTION; then
     echo_next "...ready!"
   else
     echo_stop "Not ready for reassignment!"
+    exit
   fi
 
   echo "do reassignment"
@@ -139,25 +140,28 @@ for node in $REMOVALS; do
     echo_next "Removing ${node} from docker swarm..."
 
     # On primary, demote docker swarm manager to worker
-    echo_run $PRIMARY "LEAVE=1 NAME=${node} /root/platform/swarm/node/docker"
+    echo_run $PRIMARY "DEMOTE=1 NAME=${node} /root/platform/swarm/node/docker"
 
     # On replica, leave docker swarm
-    echo_run $node    "LEAVE=1              /root/platform/swarm/node/docker"
+    echo_run $node    "LEAVE=1 /root/platform/swarm/node/docker"
+
+    # On primary, remove docker swarm node
+    echo_run $PRIMARY "REMOVE=1 NAME=${node} /root/platform/swarm/node/docker"
 
     echo_next "Removing ${node} from gluster volume..."
 
     # On primary, remove brick and peer from gluster volume
-    echo_run $PRIMARY "LEAVE=1 NAME=${node} /root/platform/swarm/node/gluster"
+    echo_run $PRIMARY "REMOVE=1 NAME=${node} /root/platform/swarm/node/gluster"
 
     # Delete DNS records 
     remove_record "${node}"
     remove_record "*.${node}"
 
-    # Delete droplet
-    remove_droplet "${node}"
-
     # Delete volume
     remove_volume "${node}"
+
+    # Delete droplet
+    remove_droplet "${node}"
 
   fi
 done
@@ -218,28 +222,8 @@ if droplets_ready "$NODES"; then
   echo_next "...ready!"
 else
   echo_stop "Not ready for configuration! Newly created droplets require 5-10 minutes."
+  exit
 fi
-
-# echo_next "Checking nodes..."
-#
-# nodes_ready="yes"
-# for node in $NODES; do
-#   echo -n "$node "
-#   if droplet_ready $node; then 
-#     echo_color green "✓" 
-#   else
-#     echo_color red "✕" 
-#     nodes_ready=no
-#   fi
-# done
-#
-# if [ "${nodes_ready}" = "no" ]; then
-#   echo_stop "Not ready for configuration! Newly created droplets require 5-10 minutes."
-#   exit
-# else
-#   echo_next "...ready!"
-# fi
-
 
 # ---------------------------------------------------------
 # System configuration for each node

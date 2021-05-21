@@ -5,17 +5,24 @@ if [ -e /root/platform/swarm/lib/helpers.sh ]; then source /root/platform/swarm/
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 
 
-# LEAVE DOCKER SWARM (run on each node)
+# DEMOTE DOCKER SWARM (run on each node)
 # ----------------------------------------
-if defined $LEAVE && defined $NAME; then
+if defined $DEMOTE && defined $NAME; then
 
   # Run on primary node to demote manager (it's probably only a worker, but just in case)
   echo_run "docker node demote ${NAME}"
+  sleep 5
 
 elif defined $LEAVE; then
 
   # Run on replica node to leave the swarm
   echo_run "docker swarm leave"
+  sleep 5
+
+elif defined $REMOVE && defined $NAME; then
+
+  # Run on primary node to remove worker node
+  echo_run "docker node rm --force ${NAME}"
 
 
 # JOIN/INIT DOCKER SWARM (run on each node)
