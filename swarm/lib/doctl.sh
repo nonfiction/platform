@@ -249,7 +249,7 @@ droplets_ready() {
   defined $1 || return
   nodes=$1
 
-  echo_next "Checking nodes..."
+  echo_next "Checking nodes... [$nodes]"
 
   nodes_ready="yes"
   for node in $nodes; do
@@ -269,20 +269,6 @@ droplets_ready() {
   fi
 
 }
-
-# # Look up number of existing replicas in swarm, including additions, without removals
-# get_potential_replicas() {
-#   defined $1 || return
-#   local swarm=$1 removals=$2 additions=$3 keep= replicas=
-#   for node in $(echo "$(get_swarm_replicas $swarm) $additions" | args); do
-#     keep=yes
-#     for removal in $removals; do
-#       [ "$removal" = "$node" ] && keep=no 
-#     done
-#     [ "$keep" = "yes" ] && replicas+="$node " 
-#   done
-#   echo $replicas | args
-# }
 
 reset_changes() {
   rm -f /tmp/changes.txt
@@ -893,15 +879,15 @@ run() {
   local name=$1 ip
   ip="$(get_droplet_public_ip $name)"
 
-  # Remove any existing entries with this same hostname (in case the IP has changed)
-  ssh-keygen -f "~/.ssh/known_hosts" -R $ip >/dev/null 2>&1
-
   # Temporarily save the private key as a file
   echo "$ROOT_PRIVATE_KEY" > /tmp/root_private_key.txt
   chmod 400 /tmp/root_private_key.txt
 
   # SSH with the private and pass any commands
-  ssh -o "StrictHostKeyChecking=no" -o "LogLevel=ERROR" -i /tmp/root_private_key.txt root@$ip "${@:2}"
+  ssh -o StrictHostKeyChecking=no \
+      -o UserKnownHostsFile=/dev/null \
+      -o LogLevel=ERROR \
+      -i /tmp/root_private_key.txt root@$ip "${@:2}"
 
   # Remove the temporary private key
   rm -f /tmp/root_private_key.txt
