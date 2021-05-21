@@ -72,9 +72,10 @@ runcmd:
   - cat /dev/zero | ssh-keygen -t rsa -q -N ""
   
   # Install glusterfs
-  - add-apt-repository --yes ppa:gluster/glusterfs-9 - apt-get update &&
-    apt-get --yes install glusterfs-server - systemctl start glusterd &&
-    systemctl enable glusterd
+  - add-apt-repository --yes ppa:gluster/glusterfs-9
+  - apt-get update && apt-get --yes install glusterfs-server 
+  - systemctl start glusterd
+  - systemctl enable glusterd
   
   # Install docker
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
