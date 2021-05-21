@@ -118,6 +118,9 @@ elif defined $JOIN && defined $NAME && defined $PRIMARY; then
     # echo_run "umount ${VOLUME_MOUNT} && mount.glusterfs localhost:/${VOLUME_NAME} ${VOLUME_MOUNT}"
     echo_run "umount ${VOLUME_MOUNT}"
     echo_run "mount.glusterfs ${NAME}:/${VOLUME_NAME} ${VOLUME_MOUNT}"
+    echo_info "${NAME}:/${VOLUME_NAME} is now mounted to ${VOLUME_MOUNT}"
+  else
+    echo_info "${NAME}:/${VOLUME_NAME} is already mounted to ${VOLUME_MOUNT}"
   fi
 
   # Make sure this volume is mounted upon reboot
