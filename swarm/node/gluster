@@ -20,14 +20,17 @@ undefined $VOLUME_MOUNT && VOLUME_MOUNT="/data"
 if defined $BEFORE_RESIZE && defined $NAME; then
 
   # Before resizing with doctl, remove the brick from gluster
+  brick_name=$(get_brick $NAME)
   echo_run "service cron stop"
-  echo_run "gluster volume reset-brick ${VOLUME_NAME} $(get_brick $NAME) start"
+  echo_run "gluster volume reset-brick ${VOLUME_NAME} ${brick_name} start"
+  echo_info "Gluster brick ${brick_name} has been reset on ${VOLUME_NAME}"
 
 elif defined $AFTER_RESIZE && defined $NAME; then
 
   # After resizing with doctl, return the brick to gluster
   echo_run "resize2fs $(get_disk $NAME)"
-  echo_run "gluster volume reset-brick ${VOLUME_NAME} $(get_brick $NAME) $(get_brick $NAME) commit force"
+  echo_run "gluster volume reset-brick ${VOLUME_NAME} ${brick_name} ${brick_name} commit force"
+  echo_info "Gluster brick ${brick_name} has been replaced on ${VOLUME_NAME}"
   echo_run "service cron start"
 
 
@@ -36,13 +39,13 @@ elif defined $AFTER_RESIZE && defined $NAME; then
 elif defined $REMOVE && defined $NAME; then
 
   # yes | gluster volume remove-brick data-gfs replica 2 xyz02:/mnt/xyz02/data-gfs force
-  # gluster peer detach xyz02
   brick_count=$(count_bricks $VOLUME_NAME -1)
   brick_name=$(get_brick $NAME)             
-  # echo_run "gluster volume remove-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force"
   echo "gluster volume remove-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force"
   yes | gluster volume remove-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force
+  echo_info "Gluster brick ${brick_name} has been removed from ${VOLUME_NAME}"
   echo_run "gluster peer detach ${NAME}"
+  echo_info "Gluster peer ${NAME} has been detached"
 
 
 # JOIN GLUSTER CLUSTER (mostly run on primary node, last bit run on each replica)
@@ -87,6 +90,8 @@ elif defined $JOIN && defined $NAME && defined $PRIMARY; then
             echo_run "gluster volume start ${VOLUME_NAME}"
             sleep 3
 
+          else
+            echo_info "Gluster volume ${VOLUME_NAME} is already started"
           fi
 
         # Replica nodes
@@ -102,6 +107,8 @@ elif defined $JOIN && defined $NAME && defined $PRIMARY; then
             echo_run "gluster volume add-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force"
             sleep 3
 
+          else
+            echo_info "Gluster brick ${brick_name} is already added to ${VOLUME_NAME}"
           fi
 
         fi
