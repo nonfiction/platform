@@ -39,7 +39,7 @@ elif defined $LEAVE && defined $NAME; then
   # gluster peer detach xyz02
   brick_count=$(count_bricks $VOLUME_NAME -1)
   brick_name=$(get_brick $NAME)             
-  echo_run "yes | gluster volume remove-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force"
+  echo_run "gluster volume remove-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force"
   echo_run "gluster peer detach ${NAME}"
 
 

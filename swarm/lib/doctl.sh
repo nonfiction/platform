@@ -529,6 +529,7 @@ create_droplet() {
 
 }
 
+# Delete this droplet forever and ever
 remove_droplet() {
   defined $1 || return
 
@@ -541,6 +542,7 @@ remove_droplet() {
     doctl compute droplet delete $droplet_id --force
   fi
 }
+
 
 # ---------------------------------------------------------
 # Resize droplet
@@ -673,6 +675,21 @@ create_volume() {
     --fs-type="${FS_TYPE}" \
     --format="ID,Name,Size,Tags" \
     --tag=":swarm,:swarm_${swarm_name},:${role}_${swarm_name},:${volume_name}" 
+}
+
+
+# Delete this volume forever and ever
+remove_volume() {
+  defined $1 || return
+
+  local volume_name=$1 volume_id= 
+  volume_id="$(get_volume_id $volume_name)"
+  
+  # Delete existing volume
+  if defined $volume_id; then
+    echo_next "Deleting volume $volume_name"
+    doctl compute volume delete $volume_id --force
+  fi
 }
 
 

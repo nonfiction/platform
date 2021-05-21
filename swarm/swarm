@@ -80,14 +80,16 @@ echo_env REPLICAS
 # echo_env NODES
 
 # Display the changes to the swarm
-echo_next "Swarm Changes..."
-echo_line green
-if defined $PROMOTION; then
-  echo_env PROMOTION
-  echo_env DEMOTION
-else
-  echo_env REMOVALS
-  echo_env ADDITIONS
+if defined $PROMOTION || defined $REMOVALS || defined $ADDITIONS; then
+  echo_next "Swarm Changes..."
+  echo_line green
+  if defined $PROMOTION; then
+    echo_env PROMOTION
+    echo_env DEMOTION
+  elif defined $REMOVALS || defined $ADDITIONS; then
+    echo_env REMOVALS
+    echo_env ADDITIONS
+  fi
 fi
 
 # Display the env variables
@@ -151,8 +153,11 @@ for node in $REMOVALS; do
     remove_record "${node}"
     remove_record "*.${node}"
 
-    # Delete droplet!
+    # Delete droplet
     remove_droplet "${node}"
+
+    # Delete volume
+    remove_volume "${node}"
 
   fi
 done
