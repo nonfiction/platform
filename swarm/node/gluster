@@ -71,8 +71,8 @@ elif defined $JOIN && defined $NAME && defined $PRIMARY; then
       for node in $NODES; do
 
         # $BRICK_DIR will override this
-        brick_dir="$(get_brick_dir $node)"
-        mkdir -p $brick_dir
+        mkdir -p $(get_brick_dir $node)
+        brick_name=$(get_brick $node)
 
         # Primary node
         if [ "$node" = "$PRIMARY" ]; then
@@ -82,7 +82,7 @@ elif defined $JOIN && defined $NAME && defined $PRIMARY; then
 
             # Create volume 
             echo_next "Gluster create $VOLUME_NAME"
-            echo_run "gluster volume create $VOLUME_NAME ${node}:${brick_dir} force"
+            echo_run "gluster volume create $VOLUME_NAME ${brick_name} force"
             sleep 3
 
             # Start volume
@@ -97,13 +97,14 @@ elif defined $JOIN && defined $NAME && defined $PRIMARY; then
         # Replica nodes
         else
 
+          brick_count=$(count_bricks $VOLUME_NAME +1)
+          brick_name=$(get_brick $node)
+
           # Check if brick does not yet exist
-          if undefined_brick $VOLUME_NAME $(get_brick $node); then
+          if undefined_brick $VOLUME_NAME $brick_name; then
 
             # Add brick to volume
             echo_next "Gluster add brick to $VOLUME_NAME"
-            brick_count=$(count_bricks $VOLUME_NAME +1)
-            brick_name=$(get_brick $node)             
             echo_run "gluster volume add-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force"
             sleep 3
 
