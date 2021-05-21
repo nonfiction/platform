@@ -96,7 +96,7 @@ fi
 # - ubuntu-18-04-x64
 # - ubuntu-20-04-x64
 if undefined $DROPLET_IMAGE; then
-  DROPLET_IMAGE="ubuntu-18-04-x64"
+  DROPLET_IMAGE="ubuntu-20-04-x64"
 fi
 
 # DROPLET_SIZE from env, or default
