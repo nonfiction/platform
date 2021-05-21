@@ -885,14 +885,27 @@ remove_record() {
 # First arg is the node name, all other args are commands
 # run test01 touch ~/file.txt 
 run() {
+
   defined "$ROOT_PRIVATE_KEY" || return
   defined $1 || return
+
+  # Get the IP address of the droplet
   local name=$1 ip
   ip="$(get_droplet_public_ip $name)"
+
+  # Remove any existing entries with this same hostname (in case the IP has changed)
+  ssh-keygen -f "~/.ssh/known_hosts" -R $ip >/dev/null 2>&1
+
+  # Temporarily save the private key as a file
   echo "$ROOT_PRIVATE_KEY" > /tmp/root_private_key.txt
   chmod 400 /tmp/root_private_key.txt
+
+  # SSH with the private and pass any commands
   ssh -o "StrictHostKeyChecking=no" -o "LogLevel=ERROR" -i /tmp/root_private_key.txt root@$ip "${@:2}"
+
+  # Remove the temporary private key
   rm -f /tmp/root_private_key.txt
+
 }
 
 # Echo the command before running it. 
