@@ -628,7 +628,7 @@ echo_volume_info() {
       set_changes
       echo_volume_size $1 "${volume_size}GB" "${VOLUME_SIZE}GB" "(expand)"
     else
-      echo_volume_size $1 "${volume_size}GB" "${VOLUME_SIZE}GB" "(no change)"
+      echo_volume_size $1 "${volume_size}GB" "${volume_size}GB" "(no change)"
     fi
     
   else
@@ -955,6 +955,18 @@ echo_droplet_size() {
 # Print row for volume
 echo_volume_size() {
   printf "%2s %-19s %5s %-2s %-15s %-14s %2s\n" "|" " $1" "$2" "=>" "$3" "$4" "|"
+}
+
+# Header with node counter
+echo_node_counter() {
+  defined $1 || return
+  defined $2 || return
+  defined $3 || return
+  local count=$1 sum=$2 node=$3
+  echo
+  echo_line blue
+  echo_color blue "[${count}/${sum}] ${node}" 
+  echo_line blue
 }
 
 # Show price chart for droplet sizes

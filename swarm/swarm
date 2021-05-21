@@ -104,7 +104,7 @@ echo_env REGION
 echo_env ROOT_PASSWORD
 echo_env ROOT_PRIVATE_KEY 20
 echo_env ROOT_PUBLIC_KEY 20
-echo_env WEBHOOK
+echo_env WEBHOOK 24
 
 if ask "Continue?"; then  
   echo
@@ -170,8 +170,8 @@ done
 
 # First node processed has a primary role
 role="primary"
-
 reset_changes
+
 for node_name in $NODES; do
   
   echo_node_header  $node_name $role
@@ -208,12 +208,6 @@ else
   exit 1;
 fi
 
-# # Get actual replicas that now exist
-# REPLICAS=$(get_swarm_replicas $SWARM)
-#
-# # Combined with $PRIMARY is all nodes
-# NODES="$(echo "${PRIMARY} ${REPLICAS}" | args)"
-
 
 # ---------------------------------------------------------
 # Verify all nodes are ready
@@ -225,10 +219,14 @@ else
   exit
 fi
 
+# Count the nodes
+sum=$(echo $NODES | wc -w)
+
 # ---------------------------------------------------------
 # System configuration for each node
 # ---------------------------------------------------------
 echo_main "1. Node Config..."
+count=1
 
 # Build hosts file
 hosts="127.0.0.1 localhost"
@@ -237,16 +235,11 @@ for node in $NODES; do
   hosts="${hosts}\n${ip} ${node}"
 done
 
-count=1
-sum=$(echo $NODES | wc -w)
-
 # Loop all nodes in swarm
 for node in $NODES; do
   
   # Current node heading
-  echo_line blue
-  echo_color blue "[${count}/${sum}] ${node}" 
-  echo_line blue
+  echo_node_counter $count $sum $node
   ((count++))
 
   # Pull updates from git
@@ -271,9 +264,14 @@ done
 # Create Docker Swarm and join workers
 # ---------------------------------------------------------
 echo_main "2. Docker Config..."
+count=1
 
 # Loop all nodes in swarm
 for node in $NODES; do
+
+  # Current node heading
+  echo_node_counter $count $sum $node
+  ((count++))
 
   # Set join token to "primary" if not replica
   if [ "$node" = "$PRIMARY" ]; then
@@ -300,9 +298,14 @@ done
 # Create Gluster Volume
 # ---------------------------------------------------------
 echo_main "3. Gluster Config..."
+count=1
 
 # Loop all nodes in swarm
 for node in $NODES; do
+
+  # Current node heading
+  echo_node_counter $count $sum $node
+  ((count++))
 
   # Prepare environment variables for run command
   env="JOIN=1"
