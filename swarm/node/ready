@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Webhook fires when droplet is ready
-val="$(hostname)"
+val="Droplet $(hostname) is ready"
 url=$(cat /etc/webhook)
 
 if [ "$url" != "__WEBHOOK__" ]; then
