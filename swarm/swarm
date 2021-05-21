@@ -237,23 +237,32 @@ for node in $NODES; do
   hosts="${hosts}\n${ip} ${node}"
 done
 
+count=1
+sum=$(echo $NODES | wc -w)
+
 # Loop all nodes in swarm
 for node in $NODES; do
+  
+  # Current node heading
+  echo_line blue
+  echo_color blue "[${count}/${sum}] ${node}" 
+  echo_line blue
+  ((count++))
 
-    # Pull updates from git
-    run $node "/root/platform/swarm/node/update"
+  # Pull updates from git
+  run $node "/root/platform/swarm/node/update"
 
-    # Prepare environment variables for run command
-    env=""
-    env="${env} NAME=\"$node\""
-    env="${env} DOMAIN=\"$DOMAIN\""
-    env="${env} FS_TYPE=\"$FS_TYPE\""
-    env="${env} HOSTS_FILE=\"$hosts\""
-    env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
-    env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""
+  # Prepare environment variables for run command
+  env=""
+  env="${env} NAME=\"$node\""
+  env="${env} DOMAIN=\"$DOMAIN\""
+  env="${env} FS_TYPE=\"$FS_TYPE\""
+  env="${env} HOSTS_FILE=\"$hosts\""
+  env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
+  env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""
 
-    # Run script on node
-    run $node "${env} /root/platform/swarm/node/config"
+  # Run script on node
+  run $node "${env} /root/platform/swarm/node/config"
 
 done  
   
