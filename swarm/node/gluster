@@ -28,8 +28,12 @@ elif defined $AFTER_RESIZE && defined $NAME; then
   # DO_BLOCK_DEV, GFS_DATA_VOL, GFS_DATA_DEV
   volumes_env $NAME
 
+  echo_run "e2fsck -f -y ${DO_BLOCK_DEV}" # /dev/disk/by-id/scsi-0DO_Volume_abc04
+
   # This should run xfs_growfs if supporing xfs files system
   echo_run "resize2fs ${DO_BLOCK_DEV}" # /dev/disk/by-id/scsi-0DO_Volume_abc04
+  
+  echo_run "mount -o discard,defaults,noatime ${DO_BLOCK_DEV} ${DO_BLOCK_MNT}"
 
   # After resizing with doctl, return the brick to gluster
   echo_run "gluster volume reset-brick ${GFS_DATA_VOL} ${GFS_DATA_DEV} ${GFS_DATA_DEV} commit force"
