@@ -6,7 +6,13 @@ if [ -z "$HELPERS_LOADED" ]; then
   else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 fi
 
-volenv() {
+
+dev_dir() {
+  echo $1 | awk -F ':' '{print $2}'
+}
+
+volumes_env() {
+
   defined $1 || return  
 
   export DO_BLOCK_VOL="$1"
@@ -33,6 +39,84 @@ count_bricks() {
 }
 
 
+create_gluster_volume() {
+
+  defined $1 || return  
+  defined $2 || return  
+
+  local vol="$1" dev="$2"
+
+  # Check if volume does not yet exist
+  if undefined_gluster_volume $vol; then
+
+    # Create volume 
+    echo_next "Gluster create $vol"
+    echo_run "gluster volume create $vol $dev force"
+    sleep 3
+
+    # Start volume
+    echo_next "Gluster start $vol"
+    echo_run "gluster volume start $vol"
+    sleep 3
+
+  else
+    echo_info "Gluster volume $vol is already started"
+  fi
+
+}
+
+
+expand_gluster_volume() {
+
+  defined $1 || return  
+  defined $2 || return  
+
+  local vol="$1" dev="$2" brick_count=0
+  brick_count=$(count_bricks $vol +1)
+
+  # Check if brick does not yet exist
+  if undefined_brick $vol $dev; then
+
+    # Add brick to volume
+    echo_next "Gluster add brick to $vol"
+    echo_run "gluster volume add-brick $vol replica $brick_count $dev force"
+    sleep 3
+
+  else
+    echo_info "Gluster brick $dev is already added to $vol"
+  fi
+
+} 
+
+
+mount_gluster_volume() {
+
+  defined $1 || return  
+  defined $2 || return  
+  defined $3 || return  
+
+  local vol="$1" dev="$2" mnt="$3"
+
+  # Mount volume now
+  if unmounted_gluster_volume $vol; then
+    echo_next "Gluster mount $vol"
+    run "umount $vol"
+    echo_run "mount.glusterfs $dev $mnt"
+    echo_info "$dev is now mounted to $mnt"
+  else
+    echo_info "$dev is already mounted to $mnt"
+  fi
+
+  # Make sure this volume is mounted upon reboot
+  entry="localhost:/${vol} ${mnt} glusterfs defaults,_netdev,backupvolfile-server=localhost 0 0"
+  if undefined "$(cat /etc/fstab | grep "${entry}")"; then
+    echo_next "Appending /etc/fstab"
+    echo "${entry}" | tee --append /etc/fstab
+  fi
+
+}
+
+
 # Returns /mnt/node/volume_name unless BRICK_DIR env is set
 get_brick_dir() {
   local node="${1}"
@@ -50,7 +134,7 @@ get_brick() {
 }
 
 # Check if volume exists, pass volume name
-undefined_volume() {
+undefined_gluster_volume() {
   undefined $1 && return 0  
   undefined "$(gluster volume info $1 | grep Started)" && return 0
   return 1
@@ -65,7 +149,7 @@ undefined_brick() {
 }
 
 # Check if volume isn't mounted
-unmounted_volume() {
+unmounted_gluster_volume() {
   undefined $1 && return 0  
   local volume=$1
   undefined "$(df | grep localhost:/$volume)" && return 0

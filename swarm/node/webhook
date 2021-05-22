@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Bash helper functions
+if [ -e /root/platform/swarm/lib/helpers.sh ]; then source /root/platform/swarm/lib/helpers.sh;
+else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
+
+url=$(cat /etc/webhook)
+val="[$(hostname)] "
+
+if defined $ONLINE; then
+  val+="is now online, but still installing packages."
+elif
+  val+="is finally ready!"
+fi
+
+if [ "$url" != "__WEBHOOK__" ]; then
+  curl -X POST -H "Content-Type: application/json" -d "{\"text\":\"$val\",\"value1\":\"$val\"}" $url
+fi
+

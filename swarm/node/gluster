@@ -4,62 +4,79 @@
 if [ -e /root/platform/swarm/lib/helpers.sh ]; then source /root/platform/swarm/lib/helpers.sh;
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 
-# Gluster functions
-if [ -e /root/platform/swarm/lib/gluster.sh ]; then source /root/platform/swarm/lib/gluster.sh;
-else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/gluster.sh); fi
+# Volumes functions
+if [ -e /root/platform/swarm/lib/volumes.sh ]; then source /root/platform/swarm/lib/volumes.sh;
+else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/volumes.sh); fi
 
-
-# Defaults 
-undefined $VOLUME_NAME && VOLUME_NAME="data-gfs"
-undefined $VOLUME_MOUNT && VOLUME_MOUNT="/data"
-# BRICK_DIR optional
-
+# # Defaults 
+# undefined $VOLUME_NAME && VOLUME_NAME="data-gfs"
+# undefined $VOLUME_MOUNT && VOLUME_MOUNT="/data"
+# # BRICK_DIR optional
 
 # RESIZE GLUSTER CLUTER (run on primary node)
 # ---------------------------------------------
 if defined $BEFORE_RESIZE && defined $NAME; then
 
+  # GFS_DATA_VOL, GFS_DATA_DEV
+  volumes_env $NAME
+
   # Pause cron while replacing brick
   echo_run "service cron stop"
 
   # Before resizing with doctl, remove the brick from gluster
-  brick_name=$(get_brick $NAME)
-  echo_run "gluster volume reset-brick ${VOLUME_NAME} ${brick_name} start"
-  echo_info "Gluster brick ${brick_name} has been reset on ${VOLUME_NAME}"
+  echo_run "gluster volume reset-brick ${GFS_DATA_VOL} ${GFS_DATA_DEV} start"
+  echo_info "Gluster brick ${GFS_DATA_DEV} has been reset on ${GFS_DATA_VOL}"
+  # brick_name=$(get_brick $NAME)
+  # echo_run "gluster volume reset-brick ${VOLUME_NAME} ${brick_name} start"
+  # echo_info "Gluster brick ${brick_name} has been reset on ${VOLUME_NAME}"
 
 elif defined $AFTER_RESIZE && defined $NAME; then
 
+  # DO_BLOCK_DEV, GFS_DATA_VOL, GFS_DATA_DEV
+  volumes_env $NAME
+
   # This should run xfs_growfs if supporing xfs files system
-  echo_run "resize2fs $(get_disk $NAME)" # /dev/disk/by-id/scsi-0DO_Volume_abc04
+  echo_run "resize2fs ${DO_BLOCK_DEV}" # /dev/disk/by-id/scsi-0DO_Volume_abc04
+  # echo_run "resize2fs $(get_disk $NAME)" # /dev/disk/by-id/scsi-0DO_Volume_abc04
 
   # After resizing with doctl, return the brick to gluster
-  brick_name=$(get_brick $NAME)
-  echo_run "gluster volume reset-brick ${VOLUME_NAME} ${brick_name} ${brick_name} commit force"
-  echo_info "Gluster brick ${brick_name} has been replaced on ${VOLUME_NAME}"
+  echo_run "gluster volume reset-brick ${GFS_DATA_VOL} ${GFS_DATA_DEV} ${GFS_DATA_DEV} commit force"
+  echo_info "Gluster brick ${GFS_DATA_DEV} has been replaced on ${GFS_DATA_VOL}"
+  # brick_name=$(get_brick $NAME)
+  # echo_run "gluster volume reset-brick ${VOLUME_NAME} ${brick_name} ${brick_name} commit force"
+  # echo_info "Gluster brick ${brick_name} has been replaced on ${VOLUME_NAME}"
 
   # Restart cron
   echo_run "service cron start"
 
 
-# REMOVE FROM GLUSTER CLUTER (run on primary node)
+# REMOVE FROM GLUSTER POOL (run on primary node)
 # ---------------------------------------------
 elif defined $REMOVE && defined $NAME; then
 
-  brick_count=$(count_bricks $VOLUME_NAME -1) # number of bricks, one less than current
-  brick_name=$(get_brick $NAME) # app02:/mnt/app02/data-gfs
+  # GFS_DATA_VOL, GFS_DATA_DEV
+  volumes_env $NAME
+
+  brick_count=$(count_bricks $GFS_DATA_VOL -1) # number of bricks, one less than current
+  # brick_name=$(get_brick $NAME) # app02:/mnt/app02/data-gfs
+  # brick_count=$(count_bricks $VOLUME_NAME -1) # number of bricks, one less than current
+  # brick_name=$(get_brick $NAME) # app02:/mnt/app02/data-gfs
 
   # Remove brick from volume
-  echo "gluster volume remove-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force"
-  yes | gluster volume remove-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force
-  echo_info "Gluster brick ${brick_name} has been removed from ${VOLUME_NAME}"
+  echo "gluster volume remove-brick ${GFS_DATA_VOL} replica ${brick_count} ${GFS_DATA_DEV} force"
+  yes | gluster volume remove-brick ${GFS_DATA_VOL} replica ${brick_count} ${GFS_DATA_DEV} force
+  echo_info "Gluster brick ${GFS_DATA_DEV} has been removed from ${GFS_DATA_VOL}"
+  # echo "gluster volume remove-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force"
+  # yes | gluster volume remove-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force
+  # echo_info "Gluster brick ${brick_name} has been removed from ${VOLUME_NAME}"
 
-  # Remove peer from cluster
+  # Remove peer from pool
   echo "gluster peer detach ${NAME} force"
   yes | gluster peer detach ${NAME} force
   echo_info "Gluster peer ${NAME} has been detached"
 
 
-# JOIN GLUSTER CLUSTER (mostly run on primary node, last bit run on each replica)
+# JOIN GLUSTER POOL (mostly run on primary node, last bit run on each replica)
 # -------------------------------------------------------------------------------
 elif defined $JOIN && defined $NAME && defined $PRIMARY; then
 
@@ -81,47 +98,57 @@ elif defined $JOIN && defined $NAME && defined $PRIMARY; then
       echo_next "Gluster create volumes & bricks"
       for node in $NODES; do
 
+        volumes_env $node
+
+        # mkdir -p $(dev_dir $GFS_DATA_DEV)
+        # mkdir -p $(dev_dir $GFS_WORK_DEV)
         # $BRICK_DIR will override this
-        mkdir -p $(get_brick_dir $node)
-        brick_name=$(get_brick $node)
+        # mkdir -p $(get_brick_dir $node)
+        # brick_name=$(get_brick $node)
 
         # Primary node
         if [ "$node" = "$PRIMARY" ]; then
 
-          # Check if volume does not yet exist
-          if undefined_volume $VOLUME_NAME; then
-
-            # Create volume 
-            echo_next "Gluster create $VOLUME_NAME"
-            echo_run "gluster volume create $VOLUME_NAME ${brick_name} force"
-            sleep 3
-
-            # Start volume
-            echo_next "Gluster start $VOLUME_NAME"
-            echo_run "gluster volume start ${VOLUME_NAME}"
-            sleep 3
-
-          else
-            echo_info "Gluster volume ${VOLUME_NAME} is already started"
-          fi
+          create_gluster_volume $GFS_DATA_VOL $GFS_DATA_DEV
+          create_gluster_volume $GFS_WORK_VOL $GFS_WORK_DEV
+          
+          # # Check if volume does not yet exist
+          # if undefined_volume $VOLUME_NAME; then
+          #
+          #   # Create volume 
+          #   echo_next "Gluster create $VOLUME_NAME"
+          #   echo_run "gluster volume create $VOLUME_NAME ${brick_name} force"
+          #   sleep 3
+          #
+          #   # Start volume
+          #   echo_next "Gluster start $VOLUME_NAME"
+          #   echo_run "gluster volume start ${VOLUME_NAME}"
+          #   sleep 3
+          #
+          # else
+          #   echo_info "Gluster volume ${VOLUME_NAME} is already started"
+          # fi
 
         # Replica nodes
         else
 
-          brick_count=$(count_bricks $VOLUME_NAME +1)
-          brick_name=$(get_brick $node)
+          expand_gluster_volume $GFS_DATA_VOL $GFS_DATA_DEV
+          expand_gluster_volume $GFS_WORK_VOL $GFS_WORK_DEV
 
-          # Check if brick does not yet exist
-          if undefined_brick $VOLUME_NAME $brick_name; then
-
-            # Add brick to volume
-            echo_next "Gluster add brick to $VOLUME_NAME"
-            echo_run "gluster volume add-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force"
-            sleep 3
-
-          else
-            echo_info "Gluster brick ${brick_name} is already added to ${VOLUME_NAME}"
-          fi
+          # brick_count=$(count_bricks $VOLUME_NAME +1)
+          # brick_name=$(get_brick $node)
+          #
+          # # Check if brick does not yet exist
+          # if undefined_brick $VOLUME_NAME $brick_name; then
+          #
+          #   # Add brick to volume
+          #   echo_next "Gluster add brick to $VOLUME_NAME"
+          #   echo_run "gluster volume add-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force"
+          #   sleep 3
+          #
+          # else
+          #   echo_info "Gluster brick ${brick_name} is already added to ${VOLUME_NAME}"
+          # fi
 
         fi
       done
@@ -129,25 +156,29 @@ elif defined $JOIN && defined $NAME && defined $PRIMARY; then
     fi
   fi
 
-  
-  # Every node must mount the volume
-  if unmounted_volume $VOLUME_NAME; then
-    echo_next "Gluster mount $VOLUME_NAME"
-    mkdir -p $VOLUME_MOUNT
-    # echo_run "umount ${VOLUME_MOUNT} && mount.glusterfs localhost:/${VOLUME_NAME} ${VOLUME_MOUNT}"
-    echo_run "umount ${VOLUME_MOUNT}"
-    echo_run "mount.glusterfs ${NAME}:/${VOLUME_NAME} ${VOLUME_MOUNT}"
-    echo_info "${NAME}:/${VOLUME_NAME} is now mounted to ${VOLUME_MOUNT}"
-  else
-    echo_info "${NAME}:/${VOLUME_NAME} is already mounted to ${VOLUME_MOUNT}"
-  fi
 
-  # Make sure this volume is mounted upon reboot
-  file="/etc/fstab"
-  entry="localhost:/${VOLUME_NAME} ${VOLUME_MOUNT} glusterfs defaults,_netdev,backupvolfile-server=localhost 0 0"
-  if undefined "$(cat $file | grep "${entry}")"; then
-    echo_next "Appending $file"
-    echo "${entry}" | tee --append $file
-  fi
+  # Every node must mount the volumes
+  volumes_env $NAME
+  mount_gluster_volume $GFS_DATA_VOL $GFS_DATA_DEV $GFS_DATA_MNT
+  mount_gluster_volume $GFS_WORK_VOL $GFS_WORK_DEV $GFS_WORK_MNT
+
+  # if unmounted_volume $VOLUME_NAME; then
+  #   echo_next "Gluster mount $VOLUME_NAME"
+  #   mkdir -p $VOLUME_MOUNT
+  #   # echo_run "umount ${VOLUME_MOUNT} && mount.glusterfs localhost:/${VOLUME_NAME} ${VOLUME_MOUNT}"
+  #   echo_run "umount ${VOLUME_MOUNT}"
+  #   echo_run "mount.glusterfs ${NAME}:/${VOLUME_NAME} ${VOLUME_MOUNT}"
+  #   echo_info "${NAME}:/${VOLUME_NAME} is now mounted to ${VOLUME_MOUNT}"
+  # else
+  #   echo_info "${NAME}:/${VOLUME_NAME} is already mounted to ${VOLUME_MOUNT}"
+  # fi
+
+  # # Make sure this volume is mounted upon reboot
+  # file="/etc/fstab"
+  # entry="localhost:/${VOLUME_NAME} ${VOLUME_MOUNT} glusterfs defaults,_netdev,backupvolfile-server=localhost 0 0"
+  # if undefined "$(cat $file | grep "${entry}")"; then
+  #   echo_next "Appending $file"
+  #   echo "${entry}" | tee --append $file
+  # fi
 
 fi

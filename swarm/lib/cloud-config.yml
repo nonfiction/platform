@@ -63,6 +63,10 @@ users:
       - __ROOT_PUBLIC_KEY__
 
 runcmd:
+
+  # Webhook
+  - echo "__WEBHOOK__" > /etc/webhook
+  - ONLINE=1 /root/platform/swarm/node/webhook
   
   # Keep server up-to-date
   - apt-get --yes install unattended-upgrades
@@ -87,9 +91,8 @@ runcmd:
   - git clone https://github.com/nonfiction/platform.git /root/platform
   - ln -sf /root/platform/swarm/swarm /usr/local/bin/swarm
 
-  # It's done!
-  - echo "__WEBHOOK__" > /etc/webhook
-  - /root/platform/swarm/node/ready
+  # It's ready!
+  - READY=1 /root/platform/swarm/node/webhook
 
 # Reboot server after everything is installed
 power_state:
