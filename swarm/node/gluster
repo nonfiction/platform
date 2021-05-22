@@ -50,12 +50,19 @@ elif defined $REMOVE && defined $NAME; then
   # GFS_DATA_VOL, GFS_DATA_DEV
   volumes_env $NAME
 
-  brick_count=$(count_bricks $GFS_DATA_VOL -1) # number of bricks, one less than current
-
+  # /data
   # Remove brick from volume
+  brick_count=$(count_bricks $GFS_DATA_VOL -1) # number of bricks, one less than current
   echo "gluster volume remove-brick ${GFS_DATA_VOL} replica ${brick_count} ${GFS_DATA_DEV} force"
   yes | gluster volume remove-brick ${GFS_DATA_VOL} replica ${brick_count} ${GFS_DATA_DEV} force
   echo_info "Gluster brick ${GFS_DATA_DEV} has been removed from ${GFS_DATA_VOL}"
+
+  # /work
+  # Remove brick from volume
+  brick_count=$(count_bricks $GFS_WORK_VOL -1) # number of bricks, one less than current
+  echo "gluster volume remove-brick ${GFS_WORK_VOL} replica ${brick_count} ${GFS_WORK_DEV} force"
+  yes | gluster volume remove-brick ${GFS_WORK_VOL} replica ${brick_count} ${GFS_WORK_DEV} force
+  echo_info "Gluster brick ${GFS_WORK_DEV} has been removed from ${GFS_WORK_VOL}"
 
   # Remove peer from pool
   echo "gluster peer detach ${NAME} force"
