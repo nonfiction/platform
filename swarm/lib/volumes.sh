@@ -100,7 +100,7 @@ mount_gluster_volume() {
   # Mount volume now
   if unmounted_gluster_volume $vol; then
     echo_next "Gluster mount $vol"
-    umount $vol
+    umount $mnt
     echo_run "mount.glusterfs $dev $mnt"
     echo_info "$dev is now mounted to $mnt"
   else
