@@ -43,7 +43,7 @@ create_gluster_volume() {
   defined $1 || return  
   defined $2 || return  
 
-  local vol="$1" dev="$2"
+  local vol="$1" dev="$2" 
 
   # Check if volume does not yet exist
   if undefined_gluster_volume $vol; then
@@ -99,7 +99,7 @@ mount_gluster_volume() {
   if unmounted_gluster_volume $vol; then
     echo_next "Gluster mount $vol"
     umount $mnt
-    echo_run "mount.glusterfs $vol $mnt"
+    echo_run "mount.glusterfs localhost:/${vol} $mnt"
     echo_info "$vol is now mounted to $mnt"
   else
     echo_info "$vol is already mounted to $mnt"
