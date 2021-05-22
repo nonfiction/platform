@@ -92,18 +92,17 @@ mount_gluster_volume() {
 
   defined $1 || return  
   defined $2 || return  
-  defined $3 || return  
 
-  local vol="$1" dev="$2" mnt="$3"
+  local vol="$1" mnt="$2"
 
   # Mount volume now
   if unmounted_gluster_volume $vol; then
     echo_next "Gluster mount $vol"
     umount $mnt
-    echo_run "mount.glusterfs $dev $mnt"
-    echo_info "$dev is now mounted to $mnt"
+    echo_run "mount.glusterfs $vol $mnt"
+    echo_info "$vol is now mounted to $mnt"
   else
-    echo_info "$dev is already mounted to $mnt"
+    echo_info "$vol is already mounted to $mnt"
   fi
 
   # Make sure this volume is mounted upon reboot

@@ -62,33 +62,3 @@ if defined $DO_BLOCK_DEV && defined $DO_BLOCK_MNT && defined $FS_TYPE; then
   echo_run "mount -o discard,defaults,noatime ${DO_BLOCK_DEV} ${DO_BLOCK_MNT}"
 
 fi
-
-# # Add block storage to fstab
-# if defined $NAME && defined $FS_TYPE; then
-#
-#   file="/etc/fstab"
-#   entry="/dev/disk/by-id/scsi-0DO_Volume_${NAME} /mnt/${NAME} ${FS_TYPE} defaults,nofail,discard 0 0"
-#   if undefined "$(cat $file | grep "${entry}")"; then
-#     echo_next "Appending $file"
-#     echo "${entry}" | tee --append $file
-#   fi
-#
-# fi
-
-# Defaults 
-# undefined $VOLUME_NAME && VOLUME_NAME="data-gfs"
-# undefined $VOLUME_MOUNT && VOLUME_MOUNT="/data"
-#
-# # Mount and prepare block storage
-# if defined $NAME; then
-#
-#   # Mount it right now
-#   echo_next "Mount block storage"
-#   mkdir -p /mnt/$NAME
-#   echo_run "mount -o discard,defaults,noatime /dev/disk/by-id/scsi-0DO_Volume_${NAME} /mnt/${NAME}"
-#
-#   # Ensure gluster's brick directory exists on block storage volume
-#   echo_next "Prepare block storage"
-#   echo_run "mkdir -p /mnt/${NAME}/${VOLUME_NAME} ${VOLUME_MOUNT}"
-#
-# fi
