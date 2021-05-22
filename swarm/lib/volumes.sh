@@ -6,7 +6,6 @@ if [ -z "$HELPERS_LOADED" ]; then
   else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 fi
 
-
 dev_dir() {
   echo $1 | awk -F ':' '{print $2}'
 }
@@ -117,21 +116,21 @@ mount_gluster_volume() {
 }
 
 
-# Returns /mnt/node/volume_name unless BRICK_DIR env is set
-get_brick_dir() {
-  local node="${1}"
-  if defined $BRICK_DIR; then
-    echo $BRICK_DIR
-  else
-    echo "/mnt/${node}/${VOLUME_NAME}"
-  fi
-}
-
-# abc:/mnt/abc/data-gfs
-get_brick() {
-  defined $1 || return  
-  echo "${1}:$(get_brick_dir $1)"
-}
+# # Returns /mnt/node/volume_name unless BRICK_DIR env is set
+# get_brick_dir() {
+#   local node="${1}"
+#   if defined $BRICK_DIR; then
+#     echo $BRICK_DIR
+#   else
+#     echo "/mnt/${node}/${VOLUME_NAME}"
+#   fi
+# }
+#
+# # abc:/mnt/abc/data-gfs
+# get_brick() {
+#   defined $1 || return  
+#   echo "${1}:$(get_brick_dir $1)"
+# }
 
 # Check if volume exists, pass volume name
 undefined_gluster_volume() {
@@ -156,8 +155,8 @@ unmounted_gluster_volume() {
   return 1
 }
 
-# Get location of DO's mounted volume
-get_disk() {
-  defined $1 || return  
-  echo "/dev/disk/by-id/scsi-0DO_Volume_${1}"
-}
+# # Get location of DO's mounted volume
+# get_disk() {
+#   defined $1 || return  
+#   echo "/dev/disk/by-id/scsi-0DO_Volume_${1}"
+# }

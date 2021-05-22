@@ -9,7 +9,8 @@ val="[$(hostname)] "
 
 if defined $ONLINE; then
   val+="is now online, but still installing packages."
-elif
+
+elif defined $READY; then
   val+="is finally ready!"
 fi
 
