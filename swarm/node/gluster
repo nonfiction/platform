@@ -103,5 +103,6 @@ elif defined $JOIN && defined $NAME && defined $PRIMARY; then
   volumes_env $NAME
   mount_gluster_volume $GFS_DATA_VOL $GFS_DATA_MNT
   mount_gluster_volume $GFS_WORK_VOL $GFS_WORK_MNT
+  mkdir -p $GFS_WORK_MNT/.ssh
 
 fi
