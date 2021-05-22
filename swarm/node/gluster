@@ -19,19 +19,25 @@ undefined $VOLUME_MOUNT && VOLUME_MOUNT="/data"
 # ---------------------------------------------
 if defined $BEFORE_RESIZE && defined $NAME; then
 
+  # Pause cron while replacing brick
+  echo_run "service cron stop"
+
   # Before resizing with doctl, remove the brick from gluster
   brick_name=$(get_brick $NAME)
-  echo_run "service cron stop"
   echo_run "gluster volume reset-brick ${VOLUME_NAME} ${brick_name} start"
   echo_info "Gluster brick ${brick_name} has been reset on ${VOLUME_NAME}"
 
 elif defined $AFTER_RESIZE && defined $NAME; then
 
+  # This should run xfs_growfs if supporing xfs files system
+  echo_run "resize2fs $(get_disk $NAME)" # /dev/disk/by-id/scsi-0DO_Volume_abc04
+
   # After resizing with doctl, return the brick to gluster
   brick_name=$(get_brick $NAME)
-  echo_run "resize2fs $(get_disk $NAME)"
   echo_run "gluster volume reset-brick ${VOLUME_NAME} ${brick_name} ${brick_name} commit force"
   echo_info "Gluster brick ${brick_name} has been replaced on ${VOLUME_NAME}"
+
+  # Restart cron
   echo_run "service cron start"
 
 
@@ -39,13 +45,17 @@ elif defined $AFTER_RESIZE && defined $NAME; then
 # ---------------------------------------------
 elif defined $REMOVE && defined $NAME; then
 
-  # yes | gluster volume remove-brick data-gfs replica 2 xyz02:/mnt/xyz02/data-gfs force
-  brick_count=$(count_bricks $VOLUME_NAME -1)
-  brick_name=$(get_brick $NAME)             
+  brick_count=$(count_bricks $VOLUME_NAME -1) # number of bricks, one less than current
+  brick_name=$(get_brick $NAME) # app02:/mnt/app02/data-gfs
+
+  # Remove brick from volume
   echo "gluster volume remove-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force"
   yes | gluster volume remove-brick ${VOLUME_NAME} replica ${brick_count} ${brick_name} force
   echo_info "Gluster brick ${brick_name} has been removed from ${VOLUME_NAME}"
-  echo_run "gluster peer detach ${NAME}"
+
+  # Remove peer from cluster
+  echo "gluster peer detach ${NAME} force"
+  yes | gluster peer detach ${NAME} force
   echo_info "Gluster peer ${NAME} has been detached"
 
 
