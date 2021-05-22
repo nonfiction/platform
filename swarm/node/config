@@ -49,7 +49,7 @@ fi
 
 
 # Add block storage to fstab
-if defined $DO_BLOCK_DEV && $DO_BLOCK_MNT && defined $FS_TYPE; then
+if defined $DO_BLOCK_DEV && defined $DO_BLOCK_MNT && defined $FS_TYPE; then
 
   entry="${DO_BLOCK_DEV} ${DB_BLOCK_MNT} ${FS_TYPE} defaults,nofail,discard 0 0"
   if undefined "$(cat /etc/fstab | grep "${entry}")"; then
