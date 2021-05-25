@@ -231,7 +231,7 @@ get_swarm_primary() {
   defined $SWARM || return
   defined $DOMAIN || return
   local tag; tag=$(primary_tag)
-  local primary; primary=$(droplet_by_tag $tag | awk '{print $2}')
+  local primary; primary=$(droplet_by_tag $tag | awk '{print $2}' | host_from_fqdn)
   defined $primary && echo $primary || echo $SWARM
 }
 
@@ -243,7 +243,7 @@ get_swarm_replicas() {
   local current_replicas replicas keep
 
   # Start with current replicas
-  current_replicas="$(droplets_by_tag $(replica_tag) | awk '{print $2}' | args)"
+  current_replicas="$(droplets_by_tag $(replica_tag) | awk '{print $2}' | host_from_fqdn | args)"
 
   # Loop through all current replicas + additions
   for node in $(echo "$current_replicas $additions" | args); do
@@ -466,7 +466,7 @@ echo_droplet_info() {
     droplet_memory=$(get_droplet_memory_from_size $droplet_size)
     droplet_memory_env=$(get_droplet_memory_from_size $DROPLET_SIZE)    
     
-    if [ $droplet_cpu_env != $droplet_cpu ] || [ $droplet_memory_env != $droplet_memory ]; then
+    if [ "$droplet_cpu_env" != "$droplet_cpu" ] || [ "$droplet_memory_env" != "$droplet_memory" ]; then
       set_changes
       echo_droplet_size $droplet_name "${droplet_size}" "${DROPLET_SIZE}" "(update)"
     else

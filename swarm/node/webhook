@@ -5,7 +5,7 @@ if [ -e /root/platform/swarm/lib/helpers.sh ]; then source /root/platform/swarm/
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 
 url=$(cat /etc/webhook)
-val="[$(hostname)] "
+val="[$(hostname -f)] "
 
 if defined $ONLINE; then
   val+="is now online, but still installing packages."
