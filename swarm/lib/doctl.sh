@@ -192,7 +192,8 @@ get_droplet_private_ip() {
 # Get memory as integer (in GB)
 get_droplet_memory() {
   defined $1 || return
-  local mem; mem=$(droplet_by_tag :$1 | awk '{print $5}')
+  local tag; tag=$(node_tag $1)
+  local mem; mem=$(droplet_by_tag $tag | awk '{print $5}')
   [ "$mem" = "1024" ] && echo 1
   [ "$mem" = "2048" ] && echo 2
   [ "$mem" = "3072" ] && echo 3
