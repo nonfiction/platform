@@ -166,6 +166,10 @@ slugify() {
   echo "$(input $1)" | tr -cd '[:alnum:]-.' | tr '[:upper:]' '[:lower:]' | tr '.' '_' | xargs
 }
 
+hyphenify() {
+  echo "$(input $1)" | tr -cd '[:alnum:]_.' | tr '[:upper:]' '[:lower:]' | tr '.' '-' | xargs
+}
+
 args() {
   local args
   args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)

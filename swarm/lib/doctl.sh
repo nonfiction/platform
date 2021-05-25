@@ -1064,5 +1064,5 @@ droplet_name() {
 volume_name() {
   defined $DOMAIN || return 1
   defined $1 || return 1
-  echo $(droplet_name $1) | slugify
+  echo $(droplet_name $1) | hyphenify
 }

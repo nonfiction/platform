@@ -15,7 +15,7 @@ volumes_env() {
   defined $1 || return  
   local name; name=$1
   local domain; domain=$(cat /etc/domain)
-  local do_name; do_name=$(slugify "${name}.${domain}")
+  local do_name; do_name=$(hyphenify "${name}.${domain}")
 
   local volume; volume=$()
   export DO_BLOCK_VOL="${do_name}"
