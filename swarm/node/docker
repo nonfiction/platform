@@ -4,10 +4,35 @@
 if [ -e /root/platform/swarm/lib/helpers.sh ]; then source /root/platform/swarm/lib/helpers.sh;
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 
+# DRAIN DOCKER SWARM (run on manager)
+# ----------------------------------------
+if defined $DRAIN && defined $NAME; then
+
+  # Drain the node before reboot 
+  echo_run "docker node update --availability=drain ${NAME}"
+
+  if defined $WAIT_AFTER; then
+    echo "Waiting $WAIT_AFTER seconds for node to drain..."
+    sleep $WAIT_AFTER
+  fi
+
+
+# DRAIN DOCKER SWARM (run on manager)
+# ----------------------------------------
+elif defined $ACTIVE && defined $NAME; then
+
+  if defined $WAIT_BEFORE; then
+    echo "Waiting $WAIT_BEFORE seconds for node to boot..."
+    sleep $WAIT_BEFORE
+  fi
+
+  # Restore the node to active after reboot 
+  echo_run "docker node update --availability=active ${NAME}"
+
 
 # PROMOTE DOCKER SWARM (run on manager)
 # ----------------------------------------
-if defined $PROMOTE && defined $NAME; then
+elif defined $PROMOTE && defined $NAME; then
 
   # Run on primary node to promote a worker to manager
   echo_run "docker node promote ${NAME}"
