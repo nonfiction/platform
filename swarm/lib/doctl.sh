@@ -476,14 +476,14 @@ echo_droplet_info() {
     
     if [ "$droplet_cpu_env" != "$droplet_cpu" ] || [ "$droplet_memory_env" != "$droplet_memory" ]; then
       set_changes
-      echo_droplet_size $droplet_name "${droplet_size}" "${DROPLET_SIZE}" "(update)"
+      echo_droplet_size $node "${droplet_size}" "${DROPLET_SIZE}" "(update)"
     else
-      echo_droplet_size $droplet_name "${droplet_size}" "${DROPLET_SIZE}" "(no change)"
+      echo_droplet_size $node "${droplet_size}" "${DROPLET_SIZE}" "(no change)"
     fi
     
   else
     set_changes
-    echo_droplet_size $droplet_name "..." "${DROPLET_SIZE}" "(new)"
+    echo_droplet_size $node "..." "${DROPLET_SIZE}" "(new)"
   fi
   
 }
@@ -665,7 +665,7 @@ echo_volume_info() {
     
   else
     set_changes
-    echo_volume_size "${node}" "..." "${VOLUME_SIZE}GB" "(new)"
+    echo_volume_size $1 "..." "${VOLUME_SIZE}GB" "(new)"
   fi
   
 }

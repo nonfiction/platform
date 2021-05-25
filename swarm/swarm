@@ -29,33 +29,6 @@ DOMAIN=$(domain_from_fqdn $1);
 SWARMFILE=$(swarmfile_from_fqdn $1)
 
 
-# echo $SWARM
-# echo $DOMAIN
-# echo $SWARMFILE
-#
-# node="${SWARM}01"
-#
-# echo
-# echo "swarm_tag"
-# echo $(swarm_tag)
-#
-# echo
-# echo "node_tag"
-# echo $(node_tag $node)
-#
-# echo
-# echo "primary_tag"
-# echo $(primary_tag $node)
-#
-# echo
-# echo "replica_tag"
-# echo $(replica_tag $node)
-#
-# echo
-# echo "volume_tag"
-# echo $(volume_tag $node)
-
-
 if undefined $SWARM; then
   echo_stop "Missing swarm name!"
   echo "The first argument for this script should be the swarm's primary's FQDN. Example: swarm app.example.com"

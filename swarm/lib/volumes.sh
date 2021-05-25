@@ -12,21 +12,20 @@ dev_dir() {
 
 volumes_env() {
 
-  defined $1 || return  
   local name; name=$1
+  defined $name || name=$(hostname)
   local domain; domain=$(cat /etc/domain)
   local do_name; do_name=$(hyphenify "${name}.${domain}")
 
-  local volume; volume=$()
   export DO_BLOCK_VOL="${do_name}"
   export DO_BLOCK_DEV="/dev/disk/by-id/scsi-0DO_Volume_${do_name}"
   export DO_BLOCK_MNT="/mnt/${do_name}"
 
   export GFS_DATA_VOL="data-gfs"
-  export GFS_DATA_DEV="${name}:/mnt/${name}/data-gfs"
+  export GFS_DATA_DEV="${name}:/mnt/${do_name}/data-gfs"
   export GFS_DATA_MNT="/data"
 
-  export GFS_WORK_VOL="work-gfs"
+  export GFS_WORK_VOL="work-gfs":
   export GFS_WORK_DEV="${name}:/mnt/work/work-gfs"
   export GFS_WORK_MNT="/work"
 
