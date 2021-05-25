@@ -568,15 +568,16 @@ resize_droplet() {
   local droplet_memory; droplet_memory=$(get_droplet_memory_from_size $droplet_size)
   local droplet_memory_env; droplet_memory_env=$(get_droplet_memory_from_size $DROPLET_SIZE)    
     
-  echo "$droplet_cpu_env notequalto $droplet_cpu"
-  echo "$droplet_memory_env notequalto $droplet_memory"
-
   if [ $droplet_cpu_env != $droplet_cpu ] || [ $droplet_memory_env != $droplet_memory ]; then
     echo_next "RESIZING droplet $droplet_name"
 
     # Drain the node before reboot 
-    env="DRAIN=1 NAME=${node} WAIT_AFTER=20"
+    env="DRAIN=1 NAME=${node}"
     echo_run $PRIMARY "${env} /root/platform/swarm/node/docker"
+
+    # Wait...
+    echo "Waiting 20 seconds for node to drain..."
+    sleep 20
 
     # Turn off & resize
     echo_next "Turning OFF and RESIZING droplet $droplet_name"
@@ -586,8 +587,12 @@ resize_droplet() {
     echo_next "Turning ON droplet $droplet_name"
     echo_run "doctl compute droplet-action power-on $droplet_id --verbose --wait"
 
+    # Wait...
+    echo "Waiting 20 seconds for node to boot..."
+    sleep 20
+
     # Restore the node to active after reboot 
-    env="DRAIN=1 NAME=${node} WAIT_BEFORE=20"
+    env="DRAIN=1 NAME=${node}"
     echo_run $PRIMARY "${env} /root/platform/swarm/node/docker"
 
     echo_info "Droplet $droplet_name resized!"
