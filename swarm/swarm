@@ -153,11 +153,11 @@ if defined $DEMOTED; then
   fi
 
   # On primary, promote docker swarm manager to worker
-  echo_run $DEMOTED "PROMOTE=1 NAME=${PROMOTED} /root/platform/swarm/node/docker"
+  echo_run $DEMOTED "PROMOTE=1 NODE=${PROMOTED} /root/platform/swarm/node/docker"
   echo_info "Demoted $DEMOTED to worker in swarm"
 
   # On demoted, demote docker swarm manager to worker
-  echo_run $PROMOTED "DEMOTE=1 NAME=${DEMOTED} /root/platform/swarm/node/docker"
+  echo_run $PROMOTED "DEMOTE=1 NODE=${DEMOTED} /root/platform/swarm/node/docker"
   echo_info "Promoted $PROMOTED to manager in swarm"
 
   # Role tags for this swarm
@@ -193,18 +193,18 @@ for node in $REMOVALS; do
     echo_next "Removing ${node} from docker swarm..."
 
     # On primary, demote docker swarm manager to worker
-    echo_run $PRIMARY "DEMOTE=1 NAME=${node} /root/platform/swarm/node/docker"
+    echo_run $PRIMARY "DEMOTE=1 NODE=${node} /root/platform/swarm/node/docker"
 
     # On replica, leave docker swarm
     echo_run $node    "LEAVE=1 /root/platform/swarm/node/docker"
 
     # On primary, remove docker swarm node
-    echo_run $PRIMARY "REMOVE=1 NAME=${node} /root/platform/swarm/node/docker"
+    echo_run $PRIMARY "REMOVE=1 NODE=${node} /root/platform/swarm/node/docker"
 
     echo_next "Removing ${node} from gluster volume..."
 
     # On primary, remove brick and peer from gluster volume
-    echo_run $PRIMARY "REMOVE=1 NAME=${node} /root/platform/swarm/node/gluster"
+    echo_run $PRIMARY "REMOVE=1 NODE=${node} /root/platform/swarm/node/gluster"
 
     # Delete DNS records 
     remove_record "${node}"
@@ -300,7 +300,7 @@ for node in $NODES; do
 
   # Prepare environment variables for run command
   env=""
-  env="${env} NAME=\"$node\""
+  env="${env} NODE=\"$node\""
   env="${env} DOMAIN=\"$DOMAIN\""
   env="${env} FS_TYPE=\"$FS_TYPE\""
   env="${env} HOSTS_FILE=\"$hosts\""
@@ -337,7 +337,7 @@ for node in $NODES; do
   
   # Prepare environment variables for run command
   env="JOIN=1"
-  env="${env} NAME=\"$node\""
+  env="${env} NODE=\"$node\""
   env="${env} PRIVATE_IP=\"$(get_droplet_private_ip $node)\""
   env="${env} JOIN_TOKEN=\"$join_token\""
 
@@ -362,7 +362,7 @@ for node in $NODES; do
 
   # Prepare environment variables for run command
   env="JOIN=1"
-  env="${env} NAME=\"$node\""
+  env="${env} NODE=\"$node\""
   env="${env} NODES=\"$NODES\""
   env="${env} PRIMARY=\"$PRIMARY\""
 

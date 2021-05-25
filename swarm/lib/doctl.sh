@@ -572,7 +572,7 @@ resize_droplet() {
     echo_next "RESIZING droplet $droplet_name"
 
     # Drain the node before reboot 
-    env="DRAIN=1 NAME=${node}"
+    env="DRAIN=1 NODE=${node}"
     echo_run $PRIMARY "${env} /root/platform/swarm/node/docker"
 
     # Wait...
@@ -592,7 +592,7 @@ resize_droplet() {
     sleep 20
 
     # Restore the node to active after reboot 
-    env="DRAIN=1 NAME=${node}"
+    env="DRAIN=1 NODE=${node}"
     echo_run $PRIMARY "${env} /root/platform/swarm/node/docker"
 
     echo_info "Droplet $droplet_name resized!"
@@ -746,7 +746,7 @@ resize_volume() {
     local droplet_id; droplet_id="$(get_droplet_id $1)"
 
     # Stop the brick before resizing 
-    env="BEFORE_RESIZE=1 NAME=${node}"
+    env="BEFORE_RESIZE=1 NODE=${node}"
     echo_run $node "${env} /root/platform/swarm/node/gluster"
 
     # Detach volume from droplet
@@ -762,7 +762,7 @@ resize_volume() {
     doctl compute volume-action attach "$volume_id" "$droplet_id" --wait
 
     # Resize volume on node and start using the brick again
-    env="AFTER_RESIZE=1 NAME=${node}"
+    env="AFTER_RESIZE=1 NODE=${node}"
     echo_run $node "${env} /root/platform/swarm/node/gluster"
 
     echo_info "Volume $volume_name expanded!"

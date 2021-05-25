@@ -9,8 +9,8 @@ if [ -e /root/platform/swarm/lib/volumes.sh ]; then source /root/platform/swarm/
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/volumes.sh); fi
 
 # Ensure all these volumes directories exist
-if defined $NAME; then
-  volumes_env $NAME
+if defined $NODE; then
+  volumes_env $NODE
   mkdir -p $GFS_DATA_MNT $(dev_dir $GFS_DATA_DEV) 
   mkdir -p $GFS_WORK_MNT $(dev_dir $GFS_WORK_DEV)
   mkdir -p $DO_BLOCK_MNT
@@ -35,9 +35,9 @@ if defined $ROOT_PUBLIC_KEY; then
 fi
 
 # Update /etc/hosts file
-if defined $HOSTS_FILE && defined $NAME && defined $DOMAIN; then
-  echo_next "Setting /etc/hosts on $NAME"
-  hosts_self="127.0.1.1 ${NAME}.${DOMAIN} $NAME"
+if defined $HOSTS_FILE && defined $NODE && defined $DOMAIN; then
+  echo_next "Setting /etc/hosts on $NODE"
+  hosts_self="127.0.1.1 ${NODE}.${DOMAIN} $NODE"
   echo -e "${hosts_self}\n${HOSTS_FILE}" | tee /etc/hosts
 fi
                                                                               

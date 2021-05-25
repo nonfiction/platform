@@ -6,35 +6,35 @@ else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm
 
 # DRAIN DOCKER SWARM (run on manager)
 # ----------------------------------------
-if defined $DRAIN && defined $NAME; then
+if defined $DRAIN && defined $NODE; then
 
   # Drain the node before reboot 
-  echo_run "docker node update --availability=drain ${NAME}"
+  echo_run "docker node update --availability=drain ${NODE}"
 
 
 # DRAIN DOCKER SWARM (run on manager)
 # ----------------------------------------
-elif defined $ACTIVE && defined $NAME; then
+elif defined $ACTIVE && defined $NODE; then
 
   # Restore the node to active after reboot 
-  echo_run "docker node update --availability=active ${NAME}"
+  echo_run "docker node update --availability=active ${NODE}"
 
 
 # PROMOTE DOCKER SWARM (run on manager)
 # ----------------------------------------
-elif defined $PROMOTE && defined $NAME; then
+elif defined $PROMOTE && defined $NODE; then
 
   # Run on primary node to promote a worker to manager
-  echo_run "docker node promote ${NAME}"
+  echo_run "docker node promote ${NODE}"
   sleep 1
 
 
 # DEMOTE DOCKER SWARM (run on manager)
 # ----------------------------------------
-elif defined $DEMOTE && defined $NAME; then
+elif defined $DEMOTE && defined $NODE; then
 
   # Run on primary node to demote manager (it's probably only a worker, but just in case)
-  echo_run "docker node demote ${NAME}"
+  echo_run "docker node demote ${NODE}"
   sleep 5
 
 
@@ -49,25 +49,25 @@ elif defined $LEAVE; then
 
 # DEMOTE DOCKER SWARM (run on manager)
 # ----------------------------------------
-elif defined $REMOVE && defined $NAME; then
+elif defined $REMOVE && defined $NODE; then
 
   # Run on primary node to remove worker node
-  echo_run "docker node rm --force ${NAME}"
+  echo_run "docker node rm --force ${NODE}"
 
 
 # JOIN/INIT DOCKER SWARM (run on each node)
 # ----------------------------------------
-elif defined $JOIN && defined $NAME && defined $JOIN_TOKEN && defined $PRIVATE_IP; then
+elif defined $JOIN && defined $NODE && defined $JOIN_TOKEN && defined $PRIVATE_IP; then
 
   # Primary node - create swarm
   if [ "$JOIN_TOKEN" = "primary" ]; then
 
     if [ "$(docker info --format '{{.Swarm.LocalNodeState}}')" != "active" ]; then
-      echo_next "Initializing swarm mode [${NAME}]"
+      echo_next "Initializing swarm mode [${NODE}]"
       echo "docker swarm init --advertise-addr $PRIVATE_IP"
       docker swarm init --advertise-addr $PRIVATE_IP
     else
-      echo_info "Swarm mode is already active for primary [${NAME}]"
+      echo_info "Swarm mode is already active for primary [${NODE}]"
     fi
 
     echo_next "Writing token to /etc/docker-join-token"
@@ -77,11 +77,11 @@ elif defined $JOIN && defined $NAME && defined $JOIN_TOKEN && defined $PRIVATE_I
   else
 
     if [ "$(docker info --format '{{.Swarm.LocalNodeState}}')" != "active" ]; then
-      echo_next "Joining swarm as worker [${NAME}]"
+      echo_next "Joining swarm as worker [${NODE}]"
       echo "docker swarm join --token $JOIN_TOKEN"
       docker swarm join --token $JOIN_TOKEN
     else
-      echo_info "Swarm mode is already active for replica [${NAME}]"
+      echo_info "Swarm mode is already active for replica [${NODE}]"
     fi
 
   fi
