@@ -25,7 +25,7 @@ volumes_env() {
   export GFS_DATA_DEV="${name}:/mnt/${do_name}/data-gfs"
   export GFS_DATA_MNT="/data"
 
-  export GFS_WORK_VOL="work-gfs":
+  export GFS_WORK_VOL="work-gfs"
   export GFS_WORK_DEV="${name}:/mnt/work/work-gfs"
   export GFS_WORK_MNT="/work"
 
