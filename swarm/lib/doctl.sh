@@ -1060,7 +1060,7 @@ primary_tag() {
 
 replica_tag() {
   defined $DOMAIN || return 1
-  defined $1 || return 1
+  defined $SWARM || return 1
   local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
   echo "replica:${slug}"  
 }
