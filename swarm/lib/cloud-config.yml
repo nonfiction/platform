@@ -74,9 +74,9 @@ users:
 
 runcmd:
 
-  # # Webhook
-  # - echo "__WEBHOOK__" > /etc/webhook
-  # - ONLINE=1 /root/platform/swarm/node/webhook
+  # Webhook
+  - echo "__WEBHOOK__" > /etc/webhook
+  - SAY="is now online, but still installing packages." /bin/bash -c "$(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/node/webhook)"
   
   # Keep server up-to-date
   - apt-get --yes install unattended-upgrades
@@ -102,8 +102,7 @@ runcmd:
   - ln -sf /root/platform/swarm/swarm /usr/local/bin/swarm
 
   # It's ready!
-  - echo "__WEBHOOK__" > /etc/webhook
-  - READY=1 /root/platform/swarm/node/webhook
+  - SAY="is ready!" /root/platform/swarm/node/webhook
 
 # Reboot server after everything is installed
 power_state:

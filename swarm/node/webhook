@@ -7,14 +7,11 @@ else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm
 url=$(cat /etc/webhook)
 val="[$(hostname -f)] "
 
-if defined $ONLINE; then
-  val+="is now online, but still installing packages."
+if defined $SAY; then
+  val+="$SAY"
 
-elif defined $READY; then
-  val+="is finally ready!"
+  if [ "$url" != "__WEBHOOK__" ]; then
+    curl -X POST -H "Content-Type: application/json" -d "{\"text\":\"$val\",\"value1\":\"$val\"}" $url
+  fi
+
 fi
-
-if [ "$url" != "__WEBHOOK__" ]; then
-  curl -X POST -H "Content-Type: application/json" -d "{\"text\":\"$val\",\"value1\":\"$val\"}" $url
-fi
-
