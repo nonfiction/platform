@@ -129,6 +129,12 @@ WEBHOOK="$(env_or_file WEBHOOK /run/secrets/webhook)"
 # Droplet functions
 # ---------------------------------------------------------
 
+droplet_name() {
+  defined $DOMAIN || return 1
+  defined $1 || return 1
+  echo "${1}.${DOMAIN}"  
+}
+
 droplets_by_tag() {
   defined $1 || return  
   doctl compute droplet list --no-header --format "ID,Name,PublicIPv4,PrivateIPv4,Memory,VCPUs,Status,Tags" --tag-name="$1"
@@ -451,21 +457,22 @@ next_replica_name() {
 # Show droplet info
 # ---------------------------------------------------------
 echo_droplet_info() {
+
   defined $1 || return
-  
-  local droplet_name=$1 droplet_size droplet_cpu droplet_cpu_env droplet_memory droplet_memory_env
+  local node=$1
   
   echo_header "DROPLET: ${DROPLET_IMAGE} / ${REGION}"
   
-  if has_droplet $droplet_name; then
+  if has_droplet $1; then
+
+    local droplet_name; droplet_name=$(droplet_name $1) 
+    local droplet_size; droplet_size=$(get_droplet_size $1)
+
+    local droplet_cpu; droplet_cpu=$(get_droplet_cpu_from_size $droplet_size)
+    local droplet_cpu_env; droplet_cpu_env=$(get_droplet_cpu_from_size $DROPLET_SIZE)
     
-    droplet_size=$(get_droplet_size $droplet_name)
-    
-    droplet_cpu=$(get_droplet_cpu_from_size $droplet_size)
-    droplet_cpu_env=$(get_droplet_cpu_from_size $DROPLET_SIZE)
-    
-    droplet_memory=$(get_droplet_memory_from_size $droplet_size)
-    droplet_memory_env=$(get_droplet_memory_from_size $DROPLET_SIZE)    
+    local droplet_memory; droplet_memory=$(get_droplet_memory_from_size $droplet_size)
+    local droplet_memory_env; droplet_memory_env=$(get_droplet_memory_from_size $DROPLET_SIZE)    
     
     if [ "$droplet_cpu_env" != "$droplet_cpu" ] || [ "$droplet_memory_env" != "$droplet_memory" ]; then
       set_changes
@@ -496,29 +503,29 @@ create_droplet() {
   defined $ROOT_PASSWORD || return
   defined $ROOT_PUBLIC_KEY || return
   
-  local node_name=$1
+  local node=$1
   local role=$2
+  local volume_id; volume_id="$(get_volume_id $1)"
   # undefined $2 && role="primary"
   # [ $role != "primary" ] && role="replica"
   
   # Download cloud-config.yml and fill out variables
   local config=/tmp/cloud-config.yml
   curl -sL https://github.com/nonfiction/platform/raw/master/swarm/lib/cloud-config.yml > $config
-  sed -i "s/__NAME__/${node_name}/" $config
+  sed -i "s/__NAME__/${node}/" $config
   sed -i "s/__SWARM__/${SWARM}/" $config
   sed -i "s/__DOMAIN__/${DOMAIN}/" $config
   sed -i "s|__ROOT_PUBLIC_KEY__|${ROOT_PUBLIC_KEY}|" $config
   sed -i "s|__WEBHOOK__|${WEBHOOK}|" $config
   
-  # --tag-names=":swarm,:swarm_${swarm_name},:${role}_${swarm_name},:${node_name}" \
-  echo_next "Creating droplet $(droplet_name ${node_name})"
-  doctl compute droplet create "$(droplet_name ${node_name})" \
+  echo_next "Creating droplet $(droplet_name ${node})"
+  doctl compute droplet create "$(droplet_name ${node})" \
     --region="${REGION}" \
     --size="${DROPLET_SIZE}" \
     --image="${DROPLET_IMAGE}" \
-    --tag-names="swarm,$(swarm_tag),$(role_tag $role),$(node_tag $node_name)" \
+    --tag-names="swarm,$(swarm_tag),$(role_tag $role),$(node_tag $node)" \
     --user-data-file="$config" \
-    --volumes="$(get_volume_id $node_name)" \
+    --volumes="$volume_id" \
     --enable-private-networking \
     --enable-monitoring \
     --enable-backups \
@@ -534,9 +541,10 @@ create_droplet() {
 # Delete this droplet forever and ever
 remove_droplet() {
   defined $1 || return
+  local node=$1
 
-  local droplet_name=$1 droplet_id=
-  droplet_id=$(get_droplet_id $droplet_name)
+  local droplet_name; droplet_name=$(droplet_name $1) 
+  local droplet_id; droplet_id="$(get_droplet_id $1)"
   
   # Delete existing droplet
   if defined $droplet_id; then
@@ -553,23 +561,23 @@ remove_droplet() {
 resize_droplet() { 
   defined $1 || return
   defined $2 || return
-  
-  local droplet_name=$1 primary_name=$2 droplet_id=
-  local droplet_id droplet_size droplet_cpu droplet_cpu_env droplet_memory droplet_memory_env
-  
-  droplet_id=$(get_droplet_id $droplet_name)
-  droplet_size=$(get_droplet_size $droplet_name)
+
+  local node=$1 primary=$2
+
+  local droplet_name; droplet_name=$(droplet_name $1) 
+  local droplet_id; droplet_id=$(get_droplet_id $1)
+  local droplet_size; droplet_size=$(get_droplet_size $1)
     
-  droplet_cpu=$(get_droplet_cpu_from_size $droplet_size)
-  droplet_cpu_env=$(get_droplet_cpu_from_size $DROPLET_SIZE)
+  local droplet_cpu; droplet_cpu=$(get_droplet_cpu_from_size $droplet_size)
+  local droplet_cpu_env; droplet_cpu_env=$(get_droplet_cpu_from_size $DROPLET_SIZE)
     
-  droplet_memory=$(get_droplet_memory_from_size $droplet_size)
-  droplet_memory_env=$(get_droplet_memory_from_size $DROPLET_SIZE)    
+  local droplet_memory; droplet_memory=$(get_droplet_memory_from_size $droplet_size)
+  local droplet_memory_env; droplet_memory_env=$(get_droplet_memory_from_size $DROPLET_SIZE)    
     
   if [ $droplet_cpu_env != $droplet_cpu ] || [ $droplet_memory_env != $droplet_memory ]; then
     echo_next "RESIZING droplet $droplet_name"
 
-    echo_run $primary_name "docker node update --availability=drain ${droplet_name}"
+    echo_run $primary "docker node update --availability=drain ${node}"
     echo "Waiting 30 seconds for node to drain..."
     sleep 30
 
@@ -582,7 +590,7 @@ resize_droplet() {
     echo "Waiting 20 seconds for node to boot..."
     sleep 20
 
-    echo_run $primary_name "docker node update --availability=active ${droplet_name}"
+    echo_run $primary "docker node update --availability=active ${node}"
 
     echo_info "Droplet $droplet_name resized!"
 
@@ -598,12 +606,12 @@ resize_droplet() {
 create_or_resize_droplet() {
   defined $1 || return
   
-  local node_name=$1 role=$2
+  local node=$1 role=$2
   
-  if has_droplet $node_name; then
-    resize_droplet $node_name
+  if has_droplet $node; then
+    resize_droplet $node
   else
-    create_droplet $node_name $role
+    create_droplet $node $role
   fi
   
 }
@@ -614,17 +622,26 @@ create_or_resize_droplet() {
 # Volume functions
 # ---------------------------------------------------------
 
+volume_name() {
+  defined $DOMAIN || return 1
+  defined $1 || return 1
+  echo $(droplet_name $1) | hyphenify
+}
+
+get_volume_id() {
+  local vol; vol=$(volume_name "$1")
+  doctl compute volume list --format "ID,Name,Size,Tags" | grep " $vol " | awk '{print $1}'
+}
+
+get_volume_size() {  
+  local vol; vol=$(volume_name "$1")
+  doctl compute volume list --format "ID,Name,Size,Tags" | grep " $vol " | awk '{print $3}'
+}
+
 has_volume() {
   defined $(get_volume_id "$1")
 }
 
-get_volume_id() {
-  doctl compute volume list --format "ID,Name,Size,Tags" | grep " $1 " | awk '{print $1}'
-}
-
-get_volume_size() {  
-  doctl compute volume list --format "ID,Name,Size,Tags" | grep " $1 " | awk '{print $3}'
-}
 
 # ---------------------------------------------------------
 # Show Volume Info
@@ -661,7 +678,8 @@ echo_volume_info() {
 create_volume() {  
 
   defined $1 || return
-  local volume_name=$1
+  local volume_name; volume_name=$(volume_name $1) 
+  local volume_tag; volume_tag=$(volume_tag $1) 
 
   defined $SWARM || return
   defined $DOMAIN || return
@@ -670,13 +688,13 @@ create_volume() {
   defined $FS_TYPE || return  
   
   # --tag=":swarm,:swarm_${swarm_name},:${role}_${swarm_name},:${volume_name}" 
-  echo_next "Creating volume $(volume_name $volume_name)"
-  doctl compute volume create "$(volume_name $volume_name)" \
+  echo_next "Creating volume $volume_name"
+  doctl compute volume create "${volume_name}" \
     --region="${REGION}" \
     --size="${VOLUME_SIZE}GiB" \
     --fs-type="${FS_TYPE}" \
     --format="ID,Name,Size,Tags" \
-    --tag="swarm,$(swarm_tag),$(volume_tag $volume_name)"
+    --tag="swarm,$(swarm_tag),${volume_tag}"
 }
 
 
@@ -684,10 +702,12 @@ create_volume() {
 remove_volume() {
 
   defined $1 || return  
-  local volume_name=$1 droplet_name=$1 volume_id= droplet_id=
 
-  volume_id="$(get_volume_id $volume_name)"
-  droplet_id="$(get_droplet_id $droplet_name)"
+  local volume_name; volume_name=$(volume_name $1) 
+  local volume_id; volume_id="$(get_volume_id $1)"
+
+  local droplet_name; droplet_name=$(droplet_name $1)
+  local droplet_id; droplet_id="$(get_droplet_id $1)"
   
   # Detach volume from droplet and delete
   if defined $volume_id && defined $droplet_id; then
@@ -710,16 +730,18 @@ remove_volume() {
 resize_volume() { 
 
   defined $1 || return  
-  local volume_name=$1 droplet_name=$1 volume_id= droplet_id=
+
+  local volume_name; volume_name=$(volume_name $1) 
+  local droplet_name; droplet_name=$(droplet_name $1)
   
   defined $REGION || return
   defined $VOLUME_SIZE || return
 
-  if [ "$VOLUME_SIZE" -gt "$(get_volume_size $volume_name)" ]; then 
+  if [ "$VOLUME_SIZE" -gt "$(get_volume_size $1)" ]; then 
     echo_next "EXPANDING volume $volume_name"
 
-    volume_id="$(get_volume_id $volume_name)"
-    droplet_id="$(get_droplet_id $droplet_name)"
+    local volume_id; volume_id="$(get_volume_id $1)"
+    local droplet_id; droplet_id="$(get_droplet_id $1)"
 
     # Stop the brick before resizing 
     env="BEFORE_RESIZE=1 NAME=${droplet_name}"
@@ -802,15 +824,15 @@ echo_record_info() {
   
   defined $1 || return
   defined $DOMAIN || return  
-  
-  local droplet_name=$1 droplet_ip
-  droplet_ip="$(get_droplet_public_ip $1)"
+
+  local node=$1
+  local droplet_id; droplet_ip="$(get_droplet_public_ip $1)"
   defined $droplet_ip || droplet_ip="?"
 
   echo_header "DNS RECORDS: ${DOMAIN}"
   
   # Display public record and wildcard record
-  for record_name in $droplet_name *.$droplet_name; do
+  for record_name in $node *.$node; do
 
     record_data=$(get_record_data $record_name)
     if defined "$record_data" && [ "$record_data" = "$droplet_ip" ]; then
@@ -829,7 +851,7 @@ echo_record_info() {
 
 
 # ---------------------------------------------------------
-# Creaate/Update DNS record
+# Create/Update DNS record
 # --------------------------------------------------------- 
 
 create_or_update_record() {
@@ -893,12 +915,13 @@ run() {
   defined "$ROOT_PRIVATE_KEY" || return
   defined $1 || return
 
+  local node=$1
+
   # Get the IP address of the droplet
-  local name=$1 ip= key=
-  ip="$(get_droplet_public_ip $name)"
+  local ip; ip="$(get_droplet_public_ip $1)"
 
   # Temporarily save the private key as a file
-  key="/tmp/key-$(echo '('`date +"%s.%N"` ' * 1000000)/1' | bc).txt"
+  local key; key="/tmp/key-$(echo '('`date +"%s.%N"` ' * 1000000)/1' | bc).txt"
   echo "$ROOT_PRIVATE_KEY" > $key
   chmod 400 $key
 
@@ -1056,14 +1079,3 @@ volume_tag() {
   echo "volume:${slug}"  
 }
 
-droplet_name() {
-  defined $DOMAIN || return 1
-  defined $1 || return 1
-  echo "${1}.${DOMAIN}"  
-}
-
-volume_name() {
-  defined $DOMAIN || return 1
-  defined $1 || return 1
-  echo $(droplet_name $1) | hyphenify
-}
