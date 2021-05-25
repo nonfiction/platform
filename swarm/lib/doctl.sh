@@ -506,7 +506,7 @@ create_droplet() {
   # Download cloud-config.yml and fill out variables
   local config=/tmp/cloud-config.yml
   curl -sL https://github.com/nonfiction/platform/raw/master/swarm/lib/cloud-config.yml > $config
-  sed -i "s/__NAME__/${node}/" $config
+  sed -i "s/__NODE__/${node}/" $config
   sed -i "s/__SWARM__/${SWARM}/" $config
   sed -i "s/__DOMAIN__/${DOMAIN}/" $config
   sed -i "s|__ROOT_PUBLIC_KEY__|${ROOT_PUBLIC_KEY}|" $config

@@ -163,8 +163,6 @@ if defined $DEMOTED; then
   # Role tags for this swarm
   primary_tag=$(primary_tag)
   replica_tag=$(replica_tag)
-  # primary_tag=":primary_${SWARM}"
-  # replica_tag=":replica_${SWARM}"
 
   # Change the demoted node from primary to replica
   droplet_untag $DEMOTED $primary_tag

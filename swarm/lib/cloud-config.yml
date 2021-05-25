@@ -1,6 +1,6 @@
 #cloud-config
-hostname: __NAME__
-fqdn: __NAME__.__DOMAIN__
+hostname: __NODE__
+fqdn: __NODE__.__DOMAIN__
 
 package_update: true
 package_upgrade: true
@@ -22,6 +22,11 @@ packages:
   - sshpass
 
 write_files:
+
+  # Make note of the node's name
+  - path: /etc/node
+    content: | 
+       __NODE__
 
   # Make note of the domain this node belongs to
   - path: /etc/domain
