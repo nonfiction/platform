@@ -328,18 +328,15 @@ add_reserved() {
 get_swarm_promotion() {
   defined $SWARM || return
   defined $DOMAIN || return
+  defined $PRIMARY || return
   defined $1 || return
-
-  # Get primary node in swarm
-  local primary; primary=$(get_swarm_primary)
-  defined $primary || return
 
   # Get node to promote
   local promotion; promotion=$(parse_args ^ ${@} | after_first | first)
 
   # Only return if droplet exists and isn't already primary
   if has_droplet $promotion; then
-    if [ "${promotion}" != "${primary}" ]; then
+    if [ "${promotion}" != "${PRIMARY}" ]; then
       echo $promotion | xargs
     fi
   fi
@@ -370,11 +367,8 @@ parse_args() {
 get_swarm_removals() {
   defined $SWARM || return
   defined $DOMAIN || return
+  defined $PRIMARY || return
   defined $1 || return
-
-  # Get primary node in swarm
-  local primary; primary=$(get_swarm_primary)
-  defined $primary || return
 
   # Get nodes to remove
   local numbered_removals=0; numbered_removals=$(parse_args - ${@} | first)
@@ -385,7 +379,7 @@ get_swarm_removals() {
 
   # Add all the named removals, so long as it's not primary
   for next in $named_removals; do
-    if [ "${next}" != "${primary}" ]; then
+    if [ "${next}" != "${PRIMARY}" ]; then
       has_droplet $next && removals="${removals} ${next}"
     fi
   done
@@ -560,9 +554,9 @@ remove_droplet() {
 
 resize_droplet() { 
   defined $1 || return
-  defined $2 || return
+  defined $PRIMARY || return
 
-  local node=$1 primary=$2
+  local node=$1
 
   local droplet_name; droplet_name=$(droplet_name $1) 
   local droplet_id; droplet_id=$(get_droplet_id $1)
@@ -574,12 +568,15 @@ resize_droplet() {
   local droplet_memory; droplet_memory=$(get_droplet_memory_from_size $droplet_size)
   local droplet_memory_env; droplet_memory_env=$(get_droplet_memory_from_size $DROPLET_SIZE)    
     
+  echo "$droplet_cpu_env notequalto $droplet_cpu"
+  echo "$droplet_memory_env notequalto $droplet_memory"
+
   if [ $droplet_cpu_env != $droplet_cpu ] || [ $droplet_memory_env != $droplet_memory ]; then
     echo_next "RESIZING droplet $droplet_name"
 
     # Drain the node before reboot 
     env="DRAIN=1 NAME=${node} WAIT_AFTER=20"
-    echo_run $primary "${env} /root/platform/swarm/node/docker"
+    echo_run $PRIMARY "${env} /root/platform/swarm/node/docker"
 
     # Turn off & resize
     echo_next "Turning OFF and RESIZING droplet $droplet_name"
@@ -591,7 +588,7 @@ resize_droplet() {
 
     # Restore the node to active after reboot 
     env="DRAIN=1 NAME=${node} WAIT_BEFORE=20"
-    echo_run $primary "${env} /root/platform/swarm/node/docker"
+    echo_run $PRIMARY "${env} /root/platform/swarm/node/docker"
 
     echo_info "Droplet $droplet_name resized!"
   fi
