@@ -146,7 +146,8 @@ has_droplet() {
 
 droplet_active() {
   defined $1 || return 1
-  [ "$(droplet_by_tag :$1 | awk '{print $7}')" = "active" ] && return 0
+  local tag; tag=$(node_tag $1)
+  [ "$(droplet_by_tag $tag | awk '{print $7}')" = "active" ] && return 0
   return 1
 }
 
@@ -159,39 +160,39 @@ droplet_ready() {
 droplet_tag() {
   defined $1 || return
   defined $2 || return 
-  local id tag=$2
-  id=$(get_droplet_id $1)
+  local id tag=$2; id=$(get_droplet_id $1)
   defined $id && doctl compute droplet tag $id --tag-name="${tag}"
 }
 
 droplet_untag() {
   defined $1 || return
   defined $2 || return 
-  local id tag=$2
-  id=$(get_droplet_id $1)
+  local id tag=$2; id=$(get_droplet_id $1)
   defined $id && doctl compute droplet untag $id --tag-name="${tag}"
 }
 
 get_droplet_id() {
   defined $1 || return
-  droplet_by_tag :$1 | awk '{print $1}'
+  local tag; tag=$(node_tag $1)
+  droplet_by_tag $tag | awk '{print $1}'
 }
 
 get_droplet_public_ip() {
   defined $1 || return
-  droplet_by_tag :$1 | awk '{print $3}'
+  local tag; tag=$(node_tag $1)
+  droplet_by_tag $tag | awk '{print $3}'
 }
 
 get_droplet_private_ip() {
   defined $1 || return
-  droplet_by_tag :$1 | awk '{print $4}'
+  local tag; tag=$(node_tag $1)
+  droplet_by_tag $tag | awk '{print $4}'
 }
 
 # Get memory as integer (in GB)
 get_droplet_memory() {
   defined $1 || return
-  local mem
-  mem=$(droplet_by_tag :$1 | awk '{print $5}')
+  local mem; mem=$(droplet_by_tag :$1 | awk '{print $5}')
   [ "$mem" = "1024" ] && echo 1
   [ "$mem" = "2048" ] && echo 2
   [ "$mem" = "3072" ] && echo 3
@@ -207,7 +208,8 @@ get_droplet_memory_from_size() {
 # Get droplet cpu
 get_droplet_cpu() {
   defined $1 || return  
-  droplet_by_tag :$1 | awk '{print $6}'
+  local tag; tag=$(node_tag $1)
+  droplet_by_tag $tag | awk '{print $6}'
 }
 
 # Get cpu from size slug
@@ -220,27 +222,28 @@ get_droplet_cpu_from_size() {
 # $15/mo: s-2vcpu-2gb 
 get_droplet_size() {
   defined $1 || return
-  local mem cpu
-  mem=$(get_droplet_memory $1)
-  cpu=$(get_droplet_cpu $1)
+  local mem; mem=$(get_droplet_memory $1)
+  local cpu; cpu=$(get_droplet_cpu $1)
   echo "s-${cpu}vcpu-${mem}gb"
 }
 
 get_swarm_primary() {
-  defined $1 || return
-  local primary
-  primary=$(droplet_by_tag :primary_${1} | awk '{print $2}')
-  defined $primary && echo $primary || echo $1
+  defined $SWARM || return
+  defined $DOMAIN || return
+  local tag; tag=$(primary_tag)
+  local primary; primary=$(droplet_by_tag $tag | awk '{print $2}')
+  defined $primary && echo $primary || echo $SWARM
 }
 
 # Look up number of existing replicas in swarm (optionally including additions, without removals)
 get_swarm_replicas() {
-
-  defined $1 || return
-  local swarm=$1 additions=$2 removals=$3 keep= current_replicas= replicas=
+  defined $SWARM || return
+  defined $DOMAIN || return
+  local additions=$1 removals=$2
+  local current_replicas replicas keep
 
   # Start with current replicas
-  current_replicas="$(droplets_by_tag :replica_${1} | awk '{print $2}' | args)"
+  current_replicas="$(droplets_by_tag $(replica_tag) | awk '{print $2}' | args)"
 
   # Loop through all current replicas + additions
   for node in $(echo "$current_replicas $additions" | args); do
@@ -316,17 +319,16 @@ add_reserved() {
 }
 
 get_swarm_promotion() {
+  defined $SWARM || return
+  defined $DOMAIN || return
   defined $1 || return
-  defined $2 || return
-
-  local swarm_name=$1 primary= promotion=
 
   # Get primary node in swarm
-  primary=$(get_swarm_primary $swarm_name)
+  local primary; primary=$(get_swarm_primary)
   defined $primary || return
 
   # Get node to promote
-  promotion=$(parse_args ^ ${@:2} | after_first | first)
+  local promotion; promotion=$(parse_args ^ ${@} | after_first | first)
 
   # Only return if droplet exists and isn't already primary
   if has_droplet $promotion; then
@@ -359,19 +361,17 @@ parse_args() {
 }
 
 get_swarm_removals() {
+  defined $SWARM || return
+  defined $DOMAIN || return
   defined $1 || return
-  defined $2 || return
-
-  local swarm_name=$1 primary=
-  local named_removals="" numbered_removals=0
 
   # Get primary node in swarm
-  primary=$(get_swarm_primary $swarm_name)
+  local primary; primary=$(get_swarm_primary)
   defined $primary || return
 
   # Get nodes to remove
-  numbered_removals=$(parse_args - ${@:2} | first)
-  named_removals=$(parse_args - ${@:2} | after_first)
+  local numbered_removals=0; numbered_removals=$(parse_args - ${@} | first)
+  local named_removals; named_removals=$(parse_args - ${@} | after_first)
 
   # Build removals with node names available
   local i next removals
@@ -384,7 +384,7 @@ get_swarm_removals() {
   done
 
   # Get existing replicas
-  replicas="$(get_swarm_replicas $swarm_name | rargs)"
+  replicas="$(get_swarm_replicas | rargs)"
 
   # Add to the list of nodes to remove
   for i in $(seq $numbered_removals); do
@@ -398,15 +398,13 @@ get_swarm_removals() {
 }
 
 get_swarm_additions() {
+  defined $SWARM || return
+  defined $DOMAIN || return
   defined $1 || return
-  defined $2 || return
-
-  local swarm_name=$1
-  local named_additions="" numbered_additions=0
 
   # Get nodes to add
-  numbered_additions=$(parse_args + ${@:2} | first)
-  named_additions=$(parse_args + ${@:2} | after_first)
+  local numbered_additions=0; numbered_additions=$(parse_args + ${@} | first)
+  local named_additions; named_additions=$(parse_args + ${@} | after_first)
 
   # Build additions with node names available
   local i next additions
@@ -421,7 +419,7 @@ get_swarm_additions() {
 
   # Generate names for nodes that were added via number (ie: +3)
   for i in $(seq $numbered_additions); do
-    next=$(next_replica_name $swarm_name)
+    next=$(next_replica_name)
     additions="${additions} ${next}"
   done
   
@@ -432,11 +430,12 @@ get_swarm_additions() {
 
 # Find the next available droplet name in a swarm
 next_replica_name() {
-  local swarm_name=$1 replica_name pad i
+  defined $SWARM || return
+  local replica_name pad i
 
   for i in $(seq 99); do
     pad="" && [ $i -lt 10 ] && pad="0"
-    replica_name="${swarm_name}${pad}${i}"
+    replica_name="${SWARM}${pad}${i}"
     if ! has_reserved $replica_name; then
       add_reserved $replica_name
       has_droplet $replica_name || break
@@ -488,6 +487,7 @@ echo_droplet_info() {
 create_droplet() {
 
   defined $1 || return
+  defined $SWARM || return
   defined $DOMAIN || return
   defined $REGION || return
   defined $DROPLET_SIZE || return
@@ -496,28 +496,26 @@ create_droplet() {
   defined $ROOT_PUBLIC_KEY || return
   
   local node_name=$1
-
-  local swarm_name=$2
-  undefined $2 && swarm_name="$node_name"
-  
-  local role=$3
-  undefined $3 && role="primary"
-  [ $role != "primary" ] && role="replica"
+  local role=$2
+  # undefined $2 && role="primary"
+  # [ $role != "primary" ] && role="replica"
   
   # Download cloud-config.yml and fill out variables
   local config=/tmp/cloud-config.yml
   curl -sL https://github.com/nonfiction/platform/raw/master/swarm/lib/cloud-config.yml > $config
   sed -i "s/__NAME__/${node_name}/" $config
+  sed -i "s/__SWARM__/${SWARM}/" $config
   sed -i "s/__DOMAIN__/${DOMAIN}/" $config
   sed -i "s|__ROOT_PUBLIC_KEY__|${ROOT_PUBLIC_KEY}|" $config
   sed -i "s|__WEBHOOK__|${WEBHOOK}|" $config
   
-  echo_next "Creating droplet $node_name"
-  doctl compute droplet create $node_name \
+  # --tag-names=":swarm,:swarm_${swarm_name},:${role}_${swarm_name},:${node_name}" \
+  echo_next "Creating droplet $(droplet_name ${node_name})"
+  doctl compute droplet create "$(droplet_name ${node_name})" \
     --region="${REGION}" \
     --size="${DROPLET_SIZE}" \
     --image="${DROPLET_IMAGE}" \
-    --tag-names=":swarm,:swarm_${swarm_name},:${role}_${swarm_name},:${node_name}" \
+    --tag-names="swarm,$(swarm_tag),$(role_tag $role),$(node_tag $node_name)" \
     --user-data-file="$config" \
     --volumes="$(get_volume_id $node_name)" \
     --enable-private-networking \
@@ -599,12 +597,12 @@ resize_droplet() {
 create_or_resize_droplet() {
   defined $1 || return
   
-  local node_name=$1 swarm_name=$2 role=$3
+  local node_name=$1 role=$2
   
   if has_droplet $node_name; then
-    resize_droplet $node_name $swarm_name
+    resize_droplet $node_name
   else
-    create_droplet $node_name $swarm_name $role
+    create_droplet $node_name $role
   fi
   
 }
@@ -661,26 +659,23 @@ echo_volume_info() {
 
 create_volume() {  
 
-  defined $1 || return  
+  defined $1 || return
   local volume_name=$1
-  
-  local swarm_name=$2
-  undefined $2 && swarm_name="$volume_name"
-  
-  local role=$3
-  undefined $3 && role="primary"
-  
+
+  defined $SWARM || return
+  defined $DOMAIN || return
   defined $REGION || return
   defined $VOLUME_SIZE || return
   defined $FS_TYPE || return  
   
-  echo_next "Creating volume $volume_name"
-  doctl compute volume create $volume_name \
+  # --tag=":swarm,:swarm_${swarm_name},:${role}_${swarm_name},:${volume_name}" 
+  echo_next "Creating volume $(volume_name $volume_name)"
+  doctl compute volume create "$(volume_name $volume_name)" \
     --region="${REGION}" \
     --size="${VOLUME_SIZE}GiB" \
     --fs-type="${FS_TYPE}" \
     --format="ID,Name,Size,Tags" \
-    --tag=":swarm,:swarm_${swarm_name},:${role}_${swarm_name},:${volume_name}" 
+    --tag="swarm,$(swarm_tag),$(volume_tag $volume_name)"
 }
 
 
@@ -761,7 +756,7 @@ create_or_resize_volume() {
   if has_volume $1; then    
     resize_volume $1
   else
-    create_volume $1 $2 $3
+    create_volume $1 $2
   fi
 }
 
@@ -991,4 +986,83 @@ echo_droplet_prices() {
   doctl compute size list --format="$f" | head -1 && \
   doctl compute size list --format="$f" | grep --color=never -e "s-[0-9]vcpu-[0-9]gb "
   echo_env_example "DROPLET_SIZE" "s-2vcpu-2gb"
+}
+
+host_from_slug() {
+  echo "$(input $1)" | tr '_' ' ' | awk '{print $1}'
+}
+
+domain_from_slug() {
+  echo "$(input $1)" | tr '_' ' ' | awk '{$1=""}1' | xargs | tr ' ' '.'
+}
+
+host_from_fqdn() {
+  echo "$(input $1)" | tr '.' ' ' | awk '{print $1}'
+}
+
+domain_from_fqdn() {
+  echo "$(input $1)" | tr '.' ' ' | awk '{$1=""}1' | xargs | tr ' ' '.'
+}
+
+swarmfile_from_fqdn() {
+  defined $1 || return 1
+  local slug; slug=$(slugify "$1")
+  echo "${slug}.swarm"  
+}
+
+swarm_tag() {
+  defined $DOMAIN || return 1
+  defined $SWARM || return 1
+  local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
+  echo "swarm:${slug}"  
+}
+
+role_tag() {
+  defined $DOMAIN || return 1
+  defined $SWARM || return 1
+  local role=$1
+  undefined $1 && role="primary"
+  [ $role != "primary" ] && role="replica"
+  local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
+  echo "${role}:${slug}"  
+}
+
+primary_tag() {
+  defined $DOMAIN || return 1
+  defined $SWARM || return 1
+  local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
+  echo "primary:${slug}"  
+}
+
+replica_tag() {
+  defined $DOMAIN || return 1
+  defined $1 || return 1
+  local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
+  echo "replica:${slug}"  
+}
+
+node_tag() {
+  defined $DOMAIN || return 1
+  defined $1 || return 1
+  local slug; slug=$(slugify "${1}.${DOMAIN}")
+  echo "node:${slug}"  
+}
+
+volume_tag() {
+  defined $DOMAIN || return 1
+  defined $1 || return 1
+  local slug; slug=$(slugify "${1}.${DOMAIN}")
+  echo "volume:${slug}"  
+}
+
+droplet_name() {
+  defined $DOMAIN || return 1
+  defined $1 || return 1
+  echo "${1}.${DOMAIN}"  
+}
+
+volume_name() {
+  defined $DOMAIN || return 1
+  defined $1 || return 1
+  echo $droplet_name | slugify
 }

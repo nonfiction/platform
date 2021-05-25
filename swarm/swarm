@@ -24,21 +24,64 @@ fi
 
 
 # First parameter is name of swarm and primary node
-SWARM=$(echo $1 | awk '{print tolower($0)}');
+SWARM=$(host_from_fqdn $1);
+DOMAIN=$(domain_from_fqdn $1);
+SWARMFILE=$(swarmfile_from_fqdn $1)
+
+
+# echo $SWARM
+# echo $DOMAIN
+# echo $SWARMFILE
+#
+# node="${SWARM}01"
+#
+# echo
+# echo "swarm_tag"
+# echo $(swarm_tag)
+#
+# echo
+# echo "node_tag"
+# echo $(node_tag $node)
+#
+# echo
+# echo "primary_tag"
+# echo $(primary_tag $node)
+#
+# echo
+# echo "replica_tag"
+# echo $(replica_tag $node)
+#
+# echo
+# echo "volume_tag"
+# echo $(volume_tag $node)
+
+
 if undefined $SWARM; then
   echo_stop "Missing swarm name!"
-  echo "The first argument for this script should be the swarm's name. Example: swarm app"
+  echo "The first argument for this script should be the swarm's primary's FQDN. Example: swarm app.example.com"
   exit 1
 fi
 
+if undefined $DOMAIN; then
+  echo_stop "Missing domain name!"
+  echo "The first argument for this script should contain swarm's domain name. Example: swarm app.example.com"
+  exit 1
+fi
+
+if has $SWARMFILE; then
+  source $SWARMFILE
+else
+  echo "Missing $SWARMFILE"
+fi
+
 # Primary usually matches swarm name (but it doesn't have to)
-PRIMARY=$(get_swarm_primary $SWARM)
+PRIMARY=$(get_swarm_primary)
 # Second paramter is changes to replicas (additions, removals, promotion)
 CHANGES=${@:2}
 
 
 # Swap a replica and primary node
-PROMOTED=$(get_swarm_promotion $SWARM $CHANGES)
+PROMOTED=$(get_swarm_promotion $CHANGES)
 if defined $PROMOTED; then
   DEMOTED=$PRIMARY
 
@@ -46,16 +89,16 @@ if defined $PROMOTED; then
   PRIMARY=$PROMOTED
 
   # Add old primary to replicas, remove new primary from replicas
-  REPLICAS=$(get_swarm_replicas $SWARM $DEMOTED $PROMOTED)
+  REPLICAS=$(get_swarm_replicas $DEMOTED $PROMOTED)
 
 
 # Add or remove replicas
 else
-  REMOVALS=$(get_swarm_removals $SWARM $CHANGES)
-  ADDITIONS=$(get_swarm_additions $SWARM $CHANGES)
+  REMOVALS=$(get_swarm_removals $CHANGES)
+  ADDITIONS=$(get_swarm_additions $CHANGES)
 
   # Look up number of existing replicas in swarm, including additions, without removals
-  REPLICAS=$(get_swarm_replicas $SWARM "$ADDITIONS" "$REMOVALS")
+  REPLICAS=$(get_swarm_replicas "$ADDITIONS" "$REMOVALS")
 
   # If primary doesn't exist yet, count that as an addition
   if ! has_droplet $PRIMARY; then
@@ -145,8 +188,10 @@ if defined $DEMOTED; then
   echo_info "Promoted $PROMOTED to manager in swarm"
 
   # Role tags for this swarm
-  primary_tag=":primary_${SWARM}"
-  replica_tag=":replica_${SWARM}"
+  primary_tag=$(primary_tag)
+  replica_tag=$(replica_tag)
+  # primary_tag=":primary_${SWARM}"
+  # replica_tag=":replica_${SWARM}"
 
   # Change the demoted node from primary to replica
   droplet_untag $DEMOTED $primary_tag
@@ -220,10 +265,10 @@ for node_name in $NODES; do
     if ask "Process droplet?"; then
       
       # First create/resize the volume that will be attached
-      create_or_resize_volume $node_name $SWARM $role
+      create_or_resize_volume $node_name $role
       
       # Then create/resize the droplet itself
-      create_or_resize_droplet $node_name $SWARM $role
+      create_or_resize_droplet $node_name $role
       
       # Last, ensure the DNS records are pointing to this droplet
       public_ip="$(get_droplet_public_ip $node_name)"

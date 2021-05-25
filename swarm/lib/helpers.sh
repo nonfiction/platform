@@ -155,6 +155,17 @@ append() {
   fi
 }
 
+# Echos /dev/stdin or first argument if provided
+input() {
+  defined "$1" && echo "$1" && return 0
+  test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1
+}
+
+# Strip a string to only lowercase alphanumeric with hypen + underscore
+slugify() {
+  echo "$(input $1)" | tr -cd '[:alnum:]-.' | tr '[:upper:]' '[:lower:]' | tr '.' '_' | xargs
+}
+
 args() {
   local args
   args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)

@@ -22,6 +22,16 @@ packages:
   - sshpass
 
 write_files:
+
+  # Make note of the domain this node belongs to
+  - path: /etc/domain
+    content: | 
+       __DOMAIN__
+
+  # Make note of the swarm this node belongs to
+  - path: /etc/swarm
+    content: | 
+       __SWARM__
   
   # Optimize SSH for docker
   - path: /etc/ssh/sshd_config
