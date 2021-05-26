@@ -6,6 +6,8 @@ if [ -z "$HELPERS_LOADED" ]; then
   else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
 fi
 
+# Load swarmfile
+defined $SWARMFILE && has $SWARMFILE && source $SWARMFILE
 
 # ---------------------------------------------------------
 # Ensure doctl is installed and authenticated
@@ -50,6 +52,43 @@ if error "doctl compute droplet list"; then
     echo_stop "Supplied DO_AUTH_TOKEN is invalid!"
     exit 1
   fi
+  
+fi
+
+
+# See if this droplet's name is available as a new primary
+droplet_reserved() {
+  defined $1 || return 1
+  local r; r=$(doctl compute droplet list --no-header --format "ID,Name,Tags" | grep -v primary: | grep " $1 " | xargs)
+  defined $r && return 0
+  return 1
+}
+
+# See if a swarm exists (looking up by tag name)
+swarm_exists() {
+  defined $1 || return 1
+  local tag; tag="swarm:$(slugify $1)"
+  local s; s=$(doctl compute droplet list --no-header --format "Tags" | grep $tag | head -n1 )
+  defined $s && return 0
+  return 1
+}
+
+# No swarmfile? Here we go...
+if hasnt $SWARMFILE; then
+
+  # Make sure the name is available for use as a primary node
+  if droplet_reserved $SWARMFILE; then
+    echo_stop "The droplet named $SWARMFILE isn't available as a primary node."
+    exit 1
+  fi
+
+  # Make sure this swarm doesn't already exist without a swarmfile
+  if swarm_exists $SWARMFILE; then
+    echo_stop "This swarm already exists, but you're missing the SWARMFILE: $SWARMFILE"
+    exit 1
+  fi
+
+  # No swarmfile and new swarm? Generate the swarmfile...
   
 fi
 
@@ -238,7 +277,7 @@ get_swarm_primary() {
   defined $SWARM || return
   defined $DOMAIN || return
   local tag; tag=$(primary_tag)
-  local primary; primary=$(droplet_by_tag $tag | awk '{print $2}' | host_from_fqdn)
+  local primary; primary=$(droplet_by_tag $tag | awk '{print $2}' | node_from_fqdn)
   defined $primary && echo $primary || echo $SWARM
 }
 
@@ -250,7 +289,7 @@ get_swarm_replicas() {
   local current_replicas replicas keep
 
   # Start with current replicas
-  current_replicas="$(droplets_by_tag $(replica_tag) | awk '{print $2}' | host_from_fqdn | args)"
+  current_replicas="$(droplets_by_tag $(replica_tag) | awk '{print $2}' | node_from_fqdn | args)"
 
   # Loop through all current replicas + additions
   for node in $(echo "$current_replicas $additions" | args); do
@@ -1012,22 +1051,6 @@ echo_droplet_prices() {
   doctl compute size list --format="$f" | head -1 && \
   doctl compute size list --format="$f" | grep --color=never -e "s-[0-9]vcpu-[0-9]gb "
   echo_env_example "DROPLET_SIZE" "s-2vcpu-2gb"
-}
-
-host_from_slug() {
-  echo "$(input $1)" | tr '_' ' ' | awk '{print $1}'
-}
-
-domain_from_slug() {
-  echo "$(input $1)" | tr '_' ' ' | awk '{$1=""}1' | xargs | tr ' ' '.'
-}
-
-host_from_fqdn() {
-  echo "$(input $1)" | tr '.' ' ' | awk '{print $1}'
-}
-
-domain_from_fqdn() {
-  echo "$(input $1)" | tr '.' ' ' | awk '{$1=""}1' | xargs | tr ' ' '.'
 }
 
 swarmfile_from_fqdn() {

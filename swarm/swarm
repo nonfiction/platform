@@ -1,11 +1,16 @@
 #!/bin/bash
 
-# Load up .env
-[ -e .env ] && export $(cat .env)
+# # Load up .env
+# [ -e .env ] && export $(cat .env)
 
 # Bash helper functions
 if [ -e /root/platform/swarm/lib/helpers.sh ]; then source /root/platform/swarm/lib/helpers.sh;
 else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
+
+# First parameter is name of swarm and primary node
+SWARM=$(node_from_fqdn $1);
+DOMAIN=$(domain_from_fqdn $1);
+SWARMFILE=$1
 
 # Digital Ocean API functions
 if [ -e /root/platform/swarm/lib/doctl.sh ]; then source /root/platform/swarm/lib/doctl.sh;
@@ -23,10 +28,6 @@ fi
 
 
 
-# First parameter is name of swarm and primary node
-SWARM=$(host_from_fqdn $1);
-DOMAIN=$(domain_from_fqdn $1);
-SWARMFILE=$(swarmfile_from_fqdn $1)
 
 
 if undefined $SWARM; then
@@ -41,11 +42,12 @@ if undefined $DOMAIN; then
   exit 1
 fi
 
-if has $SWARMFILE; then
-  source $SWARMFILE
-else
-  echo "Missing $SWARMFILE"
-fi
+# if has $SWARMFILE; then
+#   source $SWARMFILE
+# else
+#   echo "Missing $SWARMFILE"
+#   generate_swarmfile 
+# fi
 
 # Primary usually matches swarm name (but it doesn't have to)
 PRIMARY=$(get_swarm_primary)

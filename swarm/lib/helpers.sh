@@ -170,6 +170,22 @@ hyphenify() {
   echo "$(input $1)" | tr -cd '[:alnum:]_.' | tr '[:upper:]' '[:lower:]' | tr '.' '-' | xargs
 }
 
+node_from_fqdn() {
+  echo "$(input $1)" | tr '.' ' ' | awk '{print $1}'
+}
+
+domain_from_fqdn() {
+  echo "$(input $1)" | tr '.' ' ' | awk '{$1=""}1' | xargs | tr ' ' '.'
+}
+
+node_from_slug() {
+  echo "$(input $1)" | tr '_' ' ' | awk '{print $1}'
+}
+
+domain_from_slug() {
+  echo "$(input $1)" | tr '_' ' ' | awk '{$1=""}1' | xargs | tr ' ' '.'
+}
+
 args() {
   local args
   args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)

@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# Usage examples
+# -----------------------
+#
+# # Run node configuration on this swarm:
+# swarm __SWARM__.__DOMAIN__ 
+#
+# # Add two replicas:
+# swarm __SWARM__.__DOMAIN__ +2
+#
+# # Remove specific replica:
+# swarm __SWARM__.__DOMAIN__ -__SWARM__02
+#
+# # Promote replica to primary:
+# swarm __SWARM__.__DOMAIN__ ^__SWARM__01
+
+
+
+# Workspace configuration
+# -----------------------
+
+# Identifies git commits on this workspace
+export GIT_USER_NAME="__GIT_USER_NAME__"
+export GIT_USER_EMAIL=__GIT_USER_EMAIL__
+
+# Github account
+# https://github.com/settings/tokens
+export GITHUB_USER=__GITHUB_USER__
+export GITHUB_TOKEN=__GITHUB_TOKEN__
+
+# Login password for VS Code/code-server
+export CODE_PASSWORD=__CODE_PASSWORD__
+
+# sudo password for "work" user in workspace
+export SUDO_PASSWORD=__SUDO_PASSWORD__
+
+
+
+# Droplet configuration
+# -----------------------
+
+# Droplet image cannot be changed after creating swarm
+export DROPLET_IMAGE=ubuntu-20-04-x64
+export REGION=tor1
+export FS_TYPE=ext4
+
+# Droplet's volume size can only be scaled up
+export VOLUME_SIZE=10
+
+# Droplet's CPU & memory can be scaled up or down
+export DROPLET_SIZE=s-1vcpu-1gb
+
+# Slug         Disk  USD/Month
+# -----------  ----  ---------
+# s-1vcpu-1gb    25       5.00
+# s-1vcpu-2gb    50      10.00
+# s-1vcpu-3gb    60      15.00
+# s-2vcpu-2gb    60      15.00
+# s-2vcpu-4gb    80      20.00
+# s-3vcpu-1gb    60      15.00
+# s-4vcpu-8gb   160      40.00
+
+
+
+# Swarm configuration
+# -----------------------
+
+# SWARM and DOMAIN determined from filename
+
+# Used by doctl for swarm management & traefik for certificate renewals
+export DO_AUTH_TOKEN=__DO_AUTH_TOKEN__
+
+# This is called by the swarm manager to signal when nodes are ready
+# https://api.slack.com/messaging/webhooks
+export WEBHOOK=__WEBHOOK__
+
+# Password-protected pages like traefik dashboard
+export BASICAUTH_USER=nonfiction
+export BASICAUTH_PASSWORD=__BASICAUTH_PASSWORD__
+
+# External database cluster credentials
+# https://cloud.digitalocean.com/databases
+export DB_USER=doadmin
+export DB_PASSWORD=__DB_PASSWORD__
+export DB_HOST=__DB_HOST__
+export DB_PORT=25060
+
+# All nodes in the swarm are have this root password
+# - Generated when swarm is initialized -
+export ROOT_PASSWORD=__ROOT_PASSWORD__
+
+# All nodes in the swarm are accesible via this private key
+# - Generated when swarm is initialized -
+export ROOT_SSH_KEY="-----BEGIN RSA PRIVATE KEY-----
+__ROOT_SSH_KEY__
+-----END RSA PRIVATE KEY-----"
