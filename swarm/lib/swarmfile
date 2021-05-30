@@ -4,16 +4,16 @@
 # -----------------------
 #
 # # Run node configuration on this swarm:
-# swarm __SWARM__.__DOMAIN__ 
+# swarm update __NODE__.__DOMAIN__ 
 #
 # # Add two replicas:
-# swarm __SWARM__.__DOMAIN__ +2
+# swarm replicas __NODE__.__DOMAIN__ +2
 #
 # # Remove specific replica:
-# swarm __SWARM__.__DOMAIN__ -__SWARM__02
+# swarm replicas __NODE__.__DOMAIN__ -__NODE__02
 #
 # # Promote replica to primary:
-# swarm __SWARM__.__DOMAIN__ ^__SWARM__01
+# swarm primary __NODE__.__DOMAIN__ __NODE__01
 
 
 
@@ -40,27 +40,9 @@ export SUDO_PASSWORD=__SUDO_PASSWORD__
 # Droplet configuration
 # -----------------------
 
-# Droplet image cannot be changed after creating swarm
 export DROPLET_IMAGE=ubuntu-20-04-x64
 export REGION=tor1
 export FS_TYPE=ext4
-
-# Droplet's volume size can only be scaled up
-export VOLUME_SIZE=10
-
-# Droplet's CPU & memory can be scaled up or down
-export DROPLET_SIZE=s-1vcpu-1gb
-
-# Slug         Disk  USD/Month
-# -----------  ----  ---------
-# s-1vcpu-1gb    25       5.00
-# s-1vcpu-2gb    50      10.00
-# s-1vcpu-3gb    60      15.00
-# s-2vcpu-2gb    60      15.00
-# s-2vcpu-4gb    80      20.00
-# s-3vcpu-1gb    60      15.00
-# s-4vcpu-8gb   160      40.00
-
 
 
 # Swarm configuration
@@ -92,6 +74,3 @@ export ROOT_PASSWORD=__ROOT_PASSWORD__
 
 # All nodes in the swarm are accesible via this private key
 # - Generated when swarm is initialized -
-export ROOT_SSH_KEY="-----BEGIN RSA PRIVATE KEY-----
-__ROOT_SSH_KEY__
------END RSA PRIVATE KEY-----"

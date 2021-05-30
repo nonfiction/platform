@@ -3,9 +3,106 @@
 # # Load up .env
 # [ -e .env ] && export $(cat .env)
 
+# Source once locally if available OR via curl if not 
+include() {
+  [ -z "$1" ] && return 1
+  [[ "$INCLUDED" =~ "[$1]" ]] && return 0
+  if [ -e /root/platform/swarm/$1 ]; then source /root/platform/swarm/$1;
+  else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/$1); fi
+  export INCLUDED="${INCLUDED}[$1]"
+}
+
 # Bash helper functions
-if [ -e /root/platform/swarm/lib/helpers.sh ]; then source /root/platform/swarm/lib/helpers.sh;
-else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
+include "lib/helpers.sh"
+
+defined $EDITOR || EDITOR=nano
+defined $XDG_CONFIG_HOME || XDG_CONFIG_HOME=$HOME/.config
+defined $XDG_DATA_HOME || XDG_DATA_HOME=$HOME/.local/share
+
+COMMAND=$1
+SWARM=$2
+ARGS=${@:3}
+
+mkdir -p "${XDG_DATA_HOME}/swarms"
+SWARMFILE="${XDG_DATA_HOME}/swarms/${SWARM}"
+NODE=$(node_from_fqdn $SWARM);
+DOMAIN=$(domain_from_fqdn $SWARM);
+
+# # Bash helper functions
+# if [ -e /root/platform/swarm/lib/helpers.sh ]; then source /root/platform/swarm/lib/helpers.sh;
+# else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
+
+# swarm create SWARMFILE
+# swarm delete SWARMFILE
+# swarm edit SWARMFILE
+# swarm primary SWARMFILE abc02
+# swarm replicas SWARMFILE +2
+# swarm size SWARMFILE
+# swarm update SWARMFILE
+# swarm volume SWARMFILE 20
+                    
+
+case $COMMAND in
+
+  create | c | edit | e)
+    include "command/create.sh"
+    ;;
+
+  delete | d | rm)
+    echo "delete"
+    ;;
+
+  # edit | e)
+  #   include "command/edit.sh"
+  #   ;;
+
+  list | l | ls)
+    echo -n "list"
+    ;;
+
+  primary | p)
+    include "command/primary.sh"
+    ;;
+
+  replicas | r)
+    include "command/replicas.sh"
+    ;;
+
+  size | s)
+    include "command/size.sh"
+    ;;
+
+  update | u)
+    include "command/update.sh"
+    ;;
+
+  volume | v)
+    include "command/volume.sh"
+    ;;
+
+  help | h | *)
+
+    echo
+    echo "Usage:  swarm COMMAND SWARM [ARGS]"
+    echo
+    echo "Management Commands:"
+    echo "  create"
+    echo "  delete"
+    echo "  edit"
+    echo "  list"
+    echo "  primary"
+    echo "  replicas"
+    echo "  size"
+    echo "  update"
+    echo "  volume"
+    echo "  help"
+    echo
+    ;;
+esac
+
+echo
+exit
+
 
 # First parameter is name of swarm and primary node
 SWARM=$(node_from_fqdn $1);

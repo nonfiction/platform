@@ -126,6 +126,13 @@ ask() {
   if [ ! $? -ne 0 ]; then return 0; else return 1; fi
 }
 
+ask_input() { 
+  echo
+  echo "$(echo_color black/on_yellow " ? ") $(echo_color yellow " $1 ")"
+  read $1
+  echo
+}
+
 # Print command before running
 echo_run() {
   defined $1 || return  
@@ -141,6 +148,20 @@ env_or_file() {
     defined "$2" && has "$2" && variable="$(cat $2)"
     if undefined "$variable"; then
       defined "$3" && has "$3" && variable="$(cat $3)"
+    fi
+  fi
+  echo "$variable"
+}
+
+env_file_ask() {
+  local variable="${!1}"
+  if undefined "$variable"; then
+    defined "$2" && has "$2" && variable="$(cat $2)"
+    if undefined "$variable"; then
+      defined "$3" && has "$3" && variable="$(cat $3)"
+      if undefined "$variable"; then
+        read variable
+      fi
     fi
   fi
   echo "$variable"
@@ -171,18 +192,22 @@ hyphenify() {
 }
 
 node_from_fqdn() {
+  defined $1 || return 1
   echo "$(input $1)" | tr '.' ' ' | awk '{print $1}'
 }
 
 domain_from_fqdn() {
+  defined $1 || return 1
   echo "$(input $1)" | tr '.' ' ' | awk '{$1=""}1' | xargs | tr ' ' '.'
 }
 
 node_from_slug() {
+  defined $1 || return 1
   echo "$(input $1)" | tr '_' ' ' | awk '{print $1}'
 }
 
 domain_from_slug() {
+  defined $1 || return 1
   echo "$(input $1)" | tr '_' ' ' | awk '{$1=""}1' | xargs | tr ' ' '.'
 }
 
@@ -214,6 +239,20 @@ add() {
   x=10
   echo $((x + $1))
 }
+
+generate_password() {
+  local length=25;
+  defined $1 && length=$1 
+  tr -cd '[:alnum:]' < /dev/urandom | fold -w$length | head -n 1
+}
+
+generate_key() {
+  local key; key="/tmp/key-$(echo '('`date +"%s.%N"` ' * 1000000)/1' | bc)"
+  ssh-keygen -b 4096 -t rsa -f $key -q -N ""
+  cat $key
+  rm "${key}" "${key}.pub"
+}
+
 
 
 # Mark this as loaded

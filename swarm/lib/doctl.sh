@@ -1,59 +1,59 @@
 #!/bin/bash
 
 # Bash helper functions
-if [ -z "$HELPERS_LOADED" ]; then 
-  if [ -e /root/platform/swarm/lib/helpers.sh ]; then source /root/platform/swarm/lib/helpers.sh;
-  else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
-fi
-
-# Load swarmfile
-defined $SWARMFILE && has $SWARMFILE && source $SWARMFILE
+include "lib/helpers.sh"
 
 # ---------------------------------------------------------
 # Ensure doctl is installed and authenticated
 # ---------------------------------------------------------
+verify_doctl() {
 
-# Install doctl (if it isn't already)
-if hasnt doctl; then
-  
-  echo_next "Installing doctl..."
-  
-  # https://github.com/digitalocean/doctl/releases
-  version="1.61.0"
-  curl -sL https://github.com/digitalocean/doctl/releases/download/v${version}/doctl-${version}-linux-amd64.tar.gz | tar -xzv
-  mv doctl .doctl
-  if error "mv ./.doctl /usr/local/bin/doctl"; then
-    rm -f ./.doctl
-    echo_stop "Missing permissions to move doctl to /usr/local/bin"
-    echo "chown that directory so your user can write to it."
-    exit 1
+  # Install doctl (if it isn't already)
+  if hasnt doctl; then
+    
+    echo_next "Installing doctl..."
+    
+    # https://github.com/digitalocean/doctl/releases
+    version="1.61.0"
+    curl -sL https://github.com/digitalocean/doctl/releases/download/v${version}/doctl-${version}-linux-amd64.tar.gz | tar -xzv
+    mv doctl .doctl
+    if error "mv ./.doctl /usr/local/bin/doctl"; then
+      rm -f ./.doctl
+      echo_stop "Missing permissions to move doctl to /usr/local/bin"
+      echo "chown that directory so your user can write to it."
+      exit 1
+    fi
+
   fi
 
-fi
+  local authorized
+  if has $XDG_CONFIG_HOME/doctl/config.yaml; then
+    authorized=$(grep access-token: $XDG_CONFIG_HOME/doctl/config.yaml)
+  fi
 
-# Check if doctl is already authorized to list droplets
-if error "doctl compute droplet list"; then
-  
-  echo_info "doctl unauthorized, checking for token..."
-  
-  #  https://cloud.digitalocean.com/account/api/tokens
-  DO_AUTH_TOKEN=$(env_or_file DO_AUTH_TOKEN /run/secrets/do_token)
-  if undefined "$DO_AUTH_TOKEN"; then
-    echo_stop "Missing DO_AUTH_TOKEN!"
-    echo "Create a Personal Access Token on Digital Ocean and set it to an environment variable named:"
-    echo_env_example "DO_AUTH_TOKEN" "..."
-    exit 1
-  fi     
+  if undefined $authorized; then
+    echo_info "doctl unauthorized, checking for token..."
+    
+    #  https://cloud.digitalocean.com/account/api/tokens
+    DO_AUTH_TOKEN=$(env_or_file DO_AUTH_TOKEN /run/secrets/do_auth_token)
+    if undefined "$DO_AUTH_TOKEN"; then
+      echo_stop "Missing DO_AUTH_TOKEN!"
+      echo "https://cloud.digitalocean.com/account/api/tokens"
+      echo "Create a Personal Access Token on Digital Ocean and set it to an environment variable named:"
+      echo_env_example "DO_AUTH_TOKEN" "..."
+      exit 1
+    fi     
 
-  echo_next "Authorizing doctl..."
-  doctl auth init -t $DO_AUTH_TOKEN
+    echo_next "Authorizing doctl..."
+    doctl auth init -t $DO_AUTH_TOKEN
 
-  if error "doctl compute droplet list"; then
-    echo_stop "Supplied DO_AUTH_TOKEN is invalid!"
-    exit 1
+    if error "doctl compute droplet list"; then
+      echo_stop "Supplied DO_AUTH_TOKEN is invalid!"
+      exit 1
+    fi
   fi
   
-fi
+}
 
 
 # See if this droplet's name is available as a new primary
@@ -73,24 +73,30 @@ swarm_exists() {
   return 1
 }
 
-# No swarmfile? Here we go...
-if hasnt $SWARMFILE; then
-
-  # Make sure the name is available for use as a primary node
-  if droplet_reserved $SWARMFILE; then
-    echo_stop "The droplet named $SWARMFILE isn't available as a primary node."
-    exit 1
-  fi
-
-  # Make sure this swarm doesn't already exist without a swarmfile
-  if swarm_exists $SWARMFILE; then
-    echo_stop "This swarm already exists, but you're missing the SWARMFILE: $SWARMFILE"
-    exit 1
-  fi
-
-  # No swarmfile and new swarm? Generate the swarmfile...
-  
-fi
+# # No swarmfile? Here we go...
+# if hasnt $SWARMFILE; then
+#
+#   # Make sure the name is available for use as a primary node
+#   if droplet_reserved $SWARMFILE; then
+#     echo_stop "The droplet named $SWARMFILE isn't available as a primary node."
+#     exit 1
+#   fi
+#
+#   # Make sure this swarm doesn't already exist without a swarmfile
+#   if swarm_exists $SWARMFILE; then
+#     echo_stop "This swarm already exists, but you're missing the SWARMFILE: $SWARMFILE"
+#     exit 1
+#   fi
+#
+#   # No swarmfile and new swarm? Generate the swarmfile...
+#   curl -sL https://github.com/nonfiction/platform/raw/master/swarm/lib/swarmfile > $SWARMFILE
+#   sed -i "s/__SWARM__/${SWARM}/g" $SWARMFILE
+#   sed -i "s/__DOMAIN__/${DOMAIN}/g" $SWARMFILE
+#
+#   echo_info "Swarmfile finished! Save this file in a safe place and re-run the swarm command when ready."
+#   exit 0
+#
+# fi
 
 
 # ---------------------------------------------------------
@@ -99,37 +105,42 @@ fi
 
 # DOMAIN from env or secret
 DOMAIN=$(env_or_file DOMAIN /run/secrets/domain)
-if undefined $DOMAIN; then
-  echo_stop "Missing DOMAIN!"
-  echo "Create a domain name named by Digital Ocean and set it to an environment variable named:"
-  echo_env_example "DOMAIN" "example.com"
-  exit 1
-fi
+# if undefined $DOMAIN; then
+#   echo_stop "Missing DOMAIN!"
+#   echo "Create a domain name named by Digital Ocean and set it to an environment variable named:"
+#   echo_env_example "DOMAIN" "example.com"
+#   # exit 1
+# fi
 
 # ROOT_PRIVATE_KEY from env or secret
 ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY ./root_private_key /run/secrets/root_private_key)"
-if undefined $ROOT_PRIVATE_KEY; then
-  echo_stop "Missing ROOT_PRIVATE_KEY!"
-  echo "Generate an SSH key and set it to an environment variable named:"
-  echo_env_example "ROOT_PRIVATE_KEY" "-----BEGIN RSA PRIVATE KEY----- ..."
-  echo "OR save a file in your current directory named: root_private_key"
-  exit 1
-fi
+# if undefined $ROOT_PRIVATE_KEY; then
+#   echo_stop "Missing ROOT_PRIVATE_KEY!"
+#   echo "Generate an SSH key and set it to an environment variable named:"
+#   echo_env_example "ROOT_PRIVATE_KEY" "-----BEGIN RSA PRIVATE KEY----- ..."
+#   echo "OR save a file in your current directory named: root_private_key"
+#   # exit 1
+#
+# else
 
-# ROOT_PUBLIC_KEY from ROOT_PRIVATE_KEY
-echo "$ROOT_PRIVATE_KEY" > root_private_key.tmp
-chmod 400 root_private_key.tmp
-ROOT_PUBLIC_KEY="$(ssh-keygen -y -f root_private_key.tmp) root"
-rm -f root_private_key.tmp
+if defined $ROOT_PRIVATE_KEY; then
+
+  # ROOT_PUBLIC_KEY from ROOT_PRIVATE_KEY
+  echo "$ROOT_PRIVATE_KEY" > root_private_key.tmp
+  chmod 400 root_private_key.tmp
+  ROOT_PUBLIC_KEY="$(ssh-keygen -y -f root_private_key.tmp) root"
+  rm -f root_private_key.tmp
+
+fi
 
 # ROOT_PASSWORD from env or secret
 ROOT_PASSWORD=$(env_or_file ROOT_PASSWORD /run/secrets/root_password)
-if undefined $ROOT_PASSWORD; then
-  echo_stop "Missing ROOT_PASSWORD!"
-  echo "Create a root password and set it to an environment variable named:"
-  echo_env_example "ROOT_PASSWORD" "secret"
-  exit 1
-fi
+# if undefined $ROOT_PASSWORD; then
+#   echo_stop "Missing ROOT_PASSWORD!"
+#   echo "Create a root password and set it to an environment variable named:"
+#   echo_env_example "ROOT_PASSWORD" "secret"
+#   # exit 1
+# fi
 
 # DROPLET_IMAGE from env, or default
 # - ubuntu-18-04-x64
@@ -274,11 +285,12 @@ get_droplet_size() {
 }
 
 get_swarm_primary() {
+  defined $NODE || return
   defined $SWARM || return
   defined $DOMAIN || return
   local tag; tag=$(primary_tag)
   local primary; primary=$(droplet_by_tag $tag | awk '{print $2}' | node_from_fqdn)
-  defined $primary && echo $primary || echo $SWARM
+  defined $primary && echo $primary || echo $NODE
 }
 
 # Look up number of existing replicas in swarm (optionally including additions, without removals)
@@ -470,12 +482,12 @@ get_swarm_additions() {
 
 # Find the next available droplet name in a swarm
 next_replica_name() {
-  defined $SWARM || return
+  defined $NODE || return
   local replica_name pad i
 
   for i in $(seq 99); do
     pad="" && [ $i -lt 10 ] && pad="0"
-    replica_name="${SWARM}${pad}${i}"
+    replica_name="${NODE}${pad}${i}"
     if ! has_reserved $replica_name; then
       add_reserved $replica_name
       has_droplet $replica_name || break
@@ -977,6 +989,7 @@ run() {
 
 }
 
+
 # Echo the command before running it. 
 # If 2 parameters, first one is remote, second is command to run on remote
 # If 1 parameter, the command is run locally
@@ -1061,32 +1074,40 @@ swarmfile_from_fqdn() {
 
 swarm_tag() {
   defined $DOMAIN || return 1
-  defined $SWARM || return 1
-  local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
+  # defined $SWARM || return 1
+  defined $NODE || return 1
+  # local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
+  local slug; slug=$(slugify "${NODE}.${DOMAIN}")
   echo "swarm:${slug}"  
 }
 
 role_tag() {
   defined $DOMAIN || return 1
-  defined $SWARM || return 1
+  # defined $SWARM || return 1
+  defined $NODE || return 1
   local role=$1
   undefined $1 && role="primary"
   [ $role != "primary" ] && role="replica"
-  local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
+  # local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
+  local slug; slug=$(slugify "${NODE}.${DOMAIN}")
   echo "${role}:${slug}"  
 }
 
 primary_tag() {
   defined $DOMAIN || return 1
-  defined $SWARM || return 1
-  local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
+  defined $NODE || return 1
+  # defined $SWARM || return 1
+  # local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
+  local slug; slug=$(slugify "${NODE}.${DOMAIN}")
   echo "primary:${slug}"  
 }
 
 replica_tag() {
   defined $DOMAIN || return 1
-  defined $SWARM || return 1
-  local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
+  defined $NODE || return 1
+  # defined $SWARM || return 1
+  local slug; slug=$(slugify "${NODE}.${DOMAIN}")
+  # local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
   echo "replica:${slug}"  
 }
 
@@ -1103,4 +1124,3 @@ volume_tag() {
   local slug; slug=$(slugify "${1}.${DOMAIN}")
   echo "volume:${slug}"  
 }
-
