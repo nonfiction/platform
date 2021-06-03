@@ -15,6 +15,9 @@ defined $PRIMARY || PRIMARY=$(get_swarm_primary)
 defined $REPLICAS || REPLICAS=$(get_swarm_replicas)
 defined $NODES || NODES="$(echo "${PRIMARY} ${REPLICAS}" | xargs)"
 
+# Environment Variables
+include "command/env.sh"
+
 # Ensure new droplets have a volume size no smaller than primary's volume 
 # This is because a replicated volume will only be as largest as it's smallest node
 if has_droplet $PRIMARY; then
@@ -59,7 +62,7 @@ fi
 # ---------------------------------------------------------
 # Environment Variables
 # ---------------------------------------------------------
-include "command/env.sh"
+# include "command/env.sh"
 # source $SWARMFILE
 #
 # # ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY ./root_private_key /run/secrets/root_private_key)"

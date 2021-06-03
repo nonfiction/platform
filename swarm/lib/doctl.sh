@@ -492,7 +492,7 @@ next_replica_name() {
 
   for i in $(seq 99); do
     pad="" && [ $i -lt 10 ] && pad="0"
-    replica_name="${SWARM}${pad}${i}"
+    replica_name="${NODE}${pad}${i}"
     if ! has_reserved $replica_name; then
       add_reserved $replica_name
       has_droplet $replica_name || break
