@@ -31,7 +31,7 @@ if has $SWARMFILE; then
   else
     include "command/edit.sh"
     include "command/process.sh"
-    exit 0
+    include "command/update.sh"
   fi
 
 # Swarmfile doesn't exist
@@ -87,7 +87,7 @@ else
 
     echo -n "WEBHOOK: " 
     WEBHOOK=$(env_file_ask WEBHOOK /run/secrets/webhook)
-    sed -i "s/__WEBHOOK__/${WEBHOOK}/g" $SWARMFILE
+    sed -i "s|__WEBHOOK__|${WEBHOOK}|g" $SWARMFILE
     echo "$WEBHOOK"
 
     echo -n "DB_HOST: " 
@@ -110,7 +110,6 @@ else
     truncate -s-1 $SWARMFILE
     echo -n "\"" >> $SWARMFILE
     echo "" >> $SWARMFILE
-    exit
 
     # Edit the swarmfile
     include "command/edit.sh"

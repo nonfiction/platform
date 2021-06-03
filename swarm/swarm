@@ -49,15 +49,15 @@ case $COMMAND in
     ;;
 
   delete | d | rm)
-    echo "delete"
+    include "command/delete.sh"
     ;;
 
-  # edit | e)
-  #   include "command/edit.sh"
-  #   ;;
+  edit | e)
+    include "command/edit.sh"
+    ;;
 
   list | l | ls)
-    echo -n "list"
+    include "command/list.sh"
     ;;
 
   primary | p)

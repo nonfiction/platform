@@ -235,6 +235,10 @@ after_first() {
   echo "$args" | awk '{$1=""}1' | xargs
 }
 
+lines() {
+  echo "$(input $1)" | tr ' ' "\n"
+}
+
 add() {
   x=10
   echo $((x + $1))

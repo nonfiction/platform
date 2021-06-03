@@ -59,22 +59,24 @@ fi
 # ---------------------------------------------------------
 # Environment Variables
 # ---------------------------------------------------------
-source $SWARMFILE
-
-ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY ./root_private_key /run/secrets/root_private_key)"
-if defined $ROOT_PRIVATE_KEY; then
-  echo "$ROOT_PRIVATE_KEY" > root_private_key.tmp
-  chmod 400 root_private_key.tmp
-  ROOT_PUBLIC_KEY="$(ssh-keygen -y -f root_private_key.tmp) root"
-  rm -f root_private_key.tmp
-fi
-ROOT_PASSWORD=$(env_or_file ROOT_PASSWORD /run/secrets/root_password)
-undefined $DROPLET_IMAGE && DROPLET_IMAGE="ubuntu-20-04-x64"
-undefined $DROPLET_SIZE && DROPLET_SIZE="s-1vcpu-1gb"
-undefined $VOLUME_SIZE && VOLUME_SIZE="10"
-undefined $REGION && REGION="tor1"
-undefined $FS_TYPE && FS_TYPE="ext4"
-WEBHOOK="$(env_or_file WEBHOOK /run/secrets/webhook)"
+include "command/env.sh"
+# source $SWARMFILE
+#
+# # ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY ./root_private_key /run/secrets/root_private_key)"
+# ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY /run/secrets/root_private_key)"
+# if defined $ROOT_PRIVATE_KEY; then
+#   echo "$ROOT_PRIVATE_KEY" > root_private_key.tmp
+#   chmod 400 root_private_key.tmp
+#   ROOT_PUBLIC_KEY="$(ssh-keygen -y -f root_private_key.tmp) root"
+#   rm -f root_private_key.tmp
+# fi
+# ROOT_PASSWORD=$(env_or_file ROOT_PASSWORD /run/secrets/root_password)
+# undefined $DROPLET_IMAGE && DROPLET_IMAGE="ubuntu-20-04-x64"
+# undefined $DROPLET_SIZE && DROPLET_SIZE="s-1vcpu-1gb"
+# undefined $VOLUME_SIZE && VOLUME_SIZE="10"
+# undefined $REGION && REGION="tor1"
+# undefined $FS_TYPE && FS_TYPE="ext4"
+# WEBHOOK="$(env_or_file WEBHOOK /run/secrets/webhook)"
 
 
 

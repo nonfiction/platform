@@ -102,9 +102,10 @@ swarm_exists() {
 # ---------------------------------------------------------
 # Environment Variables
 # ---------------------------------------------------------
+set_env() {
 
 # DOMAIN from env or secret
-DOMAIN=$(env_or_file DOMAIN /run/secrets/domain)
+export DOMAIN=$(env_or_file DOMAIN /run/secrets/domain)
 # if undefined $DOMAIN; then
 #   echo_stop "Missing DOMAIN!"
 #   echo "Create a domain name named by Digital Ocean and set it to an environment variable named:"
@@ -113,7 +114,8 @@ DOMAIN=$(env_or_file DOMAIN /run/secrets/domain)
 # fi
 
 # ROOT_PRIVATE_KEY from env or secret
-ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY ./root_private_key /run/secrets/root_private_key)"
+# ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY ./root_private_key /run/secrets/root_private_key)"
+export ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY /run/secrets/root_private_key)"
 # if undefined $ROOT_PRIVATE_KEY; then
 #   echo_stop "Missing ROOT_PRIVATE_KEY!"
 #   echo "Generate an SSH key and set it to an environment variable named:"
@@ -123,18 +125,19 @@ ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY ./root_private_key /run/secrets
 #
 # else
 
+
 if defined $ROOT_PRIVATE_KEY; then
 
   # ROOT_PUBLIC_KEY from ROOT_PRIVATE_KEY
   echo "$ROOT_PRIVATE_KEY" > root_private_key.tmp
   chmod 400 root_private_key.tmp
-  ROOT_PUBLIC_KEY="$(ssh-keygen -y -f root_private_key.tmp) root"
+  export ROOT_PUBLIC_KEY="$(ssh-keygen -y -f root_private_key.tmp) root"
   rm -f root_private_key.tmp
 
 fi
 
 # ROOT_PASSWORD from env or secret
-ROOT_PASSWORD=$(env_or_file ROOT_PASSWORD /run/secrets/root_password)
+export ROOT_PASSWORD=$(env_or_file ROOT_PASSWORD /run/secrets/root_password)
 # if undefined $ROOT_PASSWORD; then
 #   echo_stop "Missing ROOT_PASSWORD!"
 #   echo "Create a root password and set it to an environment variable named:"
@@ -146,33 +149,35 @@ ROOT_PASSWORD=$(env_or_file ROOT_PASSWORD /run/secrets/root_password)
 # - ubuntu-18-04-x64
 # - ubuntu-20-04-x64
 if undefined $DROPLET_IMAGE; then
-  DROPLET_IMAGE="ubuntu-20-04-x64"
+  export DROPLET_IMAGE="ubuntu-20-04-x64"
 fi
 
 # DROPLET_SIZE from env, or default
 # $5/mo: s-1vcpu-1gb
 # $15/mo: s-2vcpu-2gb 
 if undefined $DROPLET_SIZE; then
-  DROPLET_SIZE="s-1vcpu-1gb"
+  export DROPLET_SIZE="s-1vcpu-1gb"
 fi
 
 # VOLUME_SIZE from env, or default
 if undefined $VOLUME_SIZE; then
-  VOLUME_SIZE="10"
+  export VOLUME_SIZE="10"
 fi
 
 # REGION from env, or default
 if undefined $REGION; then
-  REGION="tor1"
+  export REGION="tor1"
 fi
 
 # FS_TYPE from env, or default
 if undefined $FS_TYPE; then
-  FS_TYPE="ext4"
+  export FS_TYPE="ext4"
 fi
 
 # WEBHOOK from env or secret
-WEBHOOK="$(env_or_file WEBHOOK /run/secrets/webhook)"
+export WEBHOOK="$(env_or_file WEBHOOK /run/secrets/webhook)"
+
+}
 
 
 # ---------------------------------------------------------
@@ -487,7 +492,7 @@ next_replica_name() {
 
   for i in $(seq 99); do
     pad="" && [ $i -lt 10 ] && pad="0"
-    replica_name="${NODE}${pad}${i}"
+    replica_name="${SWARM}${pad}${i}"
     if ! has_reserved $replica_name; then
       add_reserved $replica_name
       has_droplet $replica_name || break

@@ -20,6 +20,11 @@ if hasnt $SWARMFILE; then
   exit 1
 fi
 
+# ---------------------------------------------------------
+# Environment Variables
+# ---------------------------------------------------------
+include "command/env.sh"
+# source $SWARMFILE
 
 defined $PRIMARY || PRIMARY=$(get_swarm_primary)
 defined $REPLICAS || REPLICAS=$(get_swarm_replicas)
@@ -69,6 +74,9 @@ for node in $NODES; do
 
   # Pull updates from git
   run $node "/root/platform/swarm/node/update"
+
+  # echo_env ROOT_PRIVATE_KEY
+  # echo_env ROOT_PUBLIC_KEY
 
   # Prepare environment variables for run command
   env=""
