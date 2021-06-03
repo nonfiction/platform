@@ -88,7 +88,7 @@ for node in $NODES; do
   env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""
 
   # Run script on node
-  run $node "${env} /root/platform/swarm/node/config"
+  run $node "${env} /root/platform/swarm/node/node"
 
 done  
   
