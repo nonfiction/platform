@@ -136,7 +136,17 @@ else
     # Edit the swarmfile
     include "command/edit.sh"
 
-    # Environment Variables
+    # Re-read env variables from new swarmfile
+    unset ROOT_PRIVATE_KEY
+    unset ROOT_PUBLIC_KEY
+    unset ROOT_PASSWORD
+    unset DROPLET_IMAGE
+    unset DROPLET_SIZE
+    unset VOLUME_SIZE
+    unset REGION
+    unset FS_TYPE
+    unset WEBHOOK
+    unset DO_AUTH_TOKEN
     include "lib/env.sh"
 
     # Create primary
