@@ -22,7 +22,7 @@ fi
 PRIMARY=$(get_swarm_primary)
 
 # Environment Variables
-include "command/env.sh"
+include "command/_env.sh"
 
 if undefined $ARGS; then
   if droplet_ready $PRIMARY; then
@@ -47,6 +47,6 @@ else
   echo "$(echo_env DEMOTED)"
 
 
-  include "command/process.sh"
+  include "command/_process.sh"
   include "command/update.sh"
 fi

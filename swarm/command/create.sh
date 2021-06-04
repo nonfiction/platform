@@ -8,7 +8,7 @@ include "lib/doctl.sh"
 verify_doctl
 
 # Environment Variables
-include "command/env.sh"
+include "command/_env.sh"
 
 if undefined $SWARM; then
   echo
@@ -33,7 +33,7 @@ if has $SWARMFILE; then
 
   else
     include "command/edit.sh"
-    include "command/process.sh"
+    include "command/_process.sh"
     include "command/update.sh"
   fi
 
@@ -118,7 +118,7 @@ else
     include "command/edit.sh"
 
     # Create primary
-    include "command/process.sh"
+    include "command/_process.sh"
 
   fi
 

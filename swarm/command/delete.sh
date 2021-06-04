@@ -30,17 +30,23 @@ if undefined $DOMAIN; then
 fi
 
 
-# if $DEFINED
-#   REPLICAS=$(get_swarm_replicas)
-#   echo $REPLICAS
-#   echo "replicas"
+# PRIMARY=$(get_swarm_primary)
+REPLICAS=$(get_swarm_replicas)
+
+if defined $REPLICAS; then
+  echo_stop "This swarm cannot be deleted until all replicas are first removed."
+  echo_env REPLICAS
+  exit 1
+fi
+
 
 # Deletions
 if has_droplet $NODE; then
 
   if ask "Really DELETE droplet [${SWARM}]?"; then
 
-    echo_next "Deleting..."
+    echo_next "Deleting in 5 seconds..."
+    sleep 5
 
     # Delete DNS records 
     echo remove_record "${NODE}"

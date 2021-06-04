@@ -16,7 +16,7 @@ defined $REPLICAS || REPLICAS=$(get_swarm_replicas)
 defined $NODES || NODES="$(echo "${PRIMARY} ${REPLICAS}" | xargs)"
 
 # Environment Variables
-include "command/env.sh"
+include "command/_env.sh"
 
 # Ensure new droplets have a volume size no smaller than primary's volume 
 # This is because a replicated volume will only be as largest as it's smallest node

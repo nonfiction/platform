@@ -23,7 +23,7 @@ PRIMARY=$(get_swarm_primary)
 REPLICAS=$(get_swarm_replicas)
 
 # Environment Variables
-include "command/env.sh"
+include "command/_env.sh"
 
 # VOLUME_SIZE=$3
 # DROPLET_SIZE=$3
@@ -53,7 +53,7 @@ else
   echo "$(echo_env VOLUME_SIZE)"
   echo "$(echo_env DROPLET_SIZE)"
 
-  include "command/process.sh"
+  include "command/_process.sh"
   include "command/update.sh"
 fi
 
