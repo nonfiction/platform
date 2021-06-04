@@ -23,7 +23,7 @@ fi
 # ---------------------------------------------------------
 # Environment Variables
 # ---------------------------------------------------------
-include "command/_env.sh"
+include "lib/env.sh"
 # source $SWARMFILE
 
 defined $PRIMARY || PRIMARY=$(get_swarm_primary)
@@ -76,6 +76,7 @@ for node in $NODES; do
   env="${env} DOMAIN=\"$DOMAIN\""
   env="${env} FS_TYPE=\"$FS_TYPE\""
   env="${env} HOSTS_FILE=\"$hosts\""
+  env="${env} WEBHOOK=\"$WEBHOOK\""
   env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
   env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""
 

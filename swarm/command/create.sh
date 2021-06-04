@@ -8,7 +8,7 @@ include "lib/doctl.sh"
 verify_doctl
 
 # Environment Variables
-include "command/_env.sh"
+include "lib/env.sh"
 
 if undefined $SWARM; then
   echo
@@ -33,7 +33,7 @@ if has $SWARMFILE; then
 
   else
     include "command/edit.sh"
-    include "command/_process.sh"
+    include "lib/process.sh"
     include "command/update.sh"
   fi
 
@@ -53,72 +53,77 @@ else
   else
 
     # Download the template
-    # curl -sL https://github.com/nonfiction/platform/raw/master/swarm/lib/swarmfile > $SWARMFILE
-    cp /root/platform/swarm/lib/swarmfile $SWARMFILE
+    rm -rf /tmp/swarmfile
+    curl -sL https://github.com/nonfiction/platform/raw/master/swarm/template/swarmfile > /tmp/swarmfile
 
     # Fill in the blanks
-    sed -i "s/__NODE__/${NODE}/g" $SWARMFILE
-    sed -i "s/__DOMAIN__/${DOMAIN}/g" $SWARMFILE
+    sed -i "s/__NODE__/${NODE}/g" /tmp/swarmfile
+    sed -i "s/__DOMAIN__/${DOMAIN}/g" /tmp/swarmfile
 
-    echo -n "GIT_USER_NAME: " 
-    GIT_USER_NAME=$(env_file_ask GIT_USER_NAME /run/secrets/git_user_name)
-    sed -i "s/__GIT_USER_NAME__/${GIT_USER_NAME}/g" $SWARMFILE
-    echo "$GIT_USER_NAME"
+    echo_next "Creating SWARMFILE: ${SWARMFILE}"
 
-    echo -n "GIT_USER_EMAIL: " 
-    GIT_USER_EMAIL=$(env_file_ask GIT_USER_EMAIL /run/secrets/git_user_email)
-    sed -i "s/__GIT_USER_EMAIL__/${GIT_USER_EMAIL}/g" $SWARMFILE
-    echo "$GIT_USER_EMAIL"
+    ask_input GIT_USER_NAME
+    GIT_USER_NAME=$(ask_env_file_default GIT_USER_NAME /run/secrets/git_user_name)
+    sed -i "s/__GIT_USER_NAME__/${GIT_USER_NAME}/g" /tmp/swarmfile
+    echo_env GIT_USER_NAME
 
-    echo -n "GITHUB_USER: " 
-    GITHUB_USER=$(env_file_ask GITHUB_USER /run/secrets/github_user)
-    sed -i "s/__GITHUB_USER__/${GITHUB_USER}/g" $SWARMFILE
-    echo "$GITHUB_USER"
+    ask_input GIT_USER_EMAIL
+    GIT_USER_EMAIL=$(ask_env_file_default GIT_USER_EMAIL /run/secrets/git_user_email)
+    sed -i "s/__GIT_USER_EMAIL__/${GIT_USER_EMAIL}/g" /tmp/swarmfile
+    echo_env GIT_USER_EMAIL
 
-    echo -n "GITHUB_TOKEN: " 
+    ask_input GITHUB_USER
+    GITHUB_USER=$(ask_env_file_default GITHUB_USER /run/secrets/github_user)
+    sed -i "s/__GITHUB_USER__/${GITHUB_USER}/g" /tmp/swarmfile
+    echo_env GITHUB_USER
+
+    ask_input GITHUB_TOKEN
     GITHUB_TOKEN=$(env_file_ask GITHUB_TOKEN /run/secrets/github_token)
-    sed -i "s/__GITHUB_TOKEN__/${GITHUB_TOKEN}/g" $SWARMFILE
-    echo "$GITHUB_TOKEN"
+    sed -i "s/__GITHUB_TOKEN__/${GITHUB_TOKEN}/g" /tmp/swarmfile
+    echo_env GITHUB_TOKEN
 
-    sed -i "s/__CODE_PASSWORD__/$(generate_password)/g" $SWARMFILE
-    sed -i "s/__SUDO_PASSWORD__/$(generate_password)/g" $SWARMFILE
+    sed -i "s/__CODE_PASSWORD__/$(generate_password)/g" /tmp/swarmfile 
+    sed -i "s/__SUDO_PASSWORD__/$(generate_password)/g" /tmp/swarmfile 
 
-    echo -n "DO_AUTH_TOKEN: " 
+    ask_input DO_AUTH_TOKEN
     DO_AUTH_TOKEN=$(env_file_ask DO_AUTH_TOKEN /run/secrets/do_auth_token)
-    sed -i "s/__DO_AUTH_TOKEN__/${DO_AUTH_TOKEN}/g" $SWARMFILE
-    echo "$DO_AUTH_TOKEN"
+    sed -i "s/__DO_AUTH_TOKEN__/${DO_AUTH_TOKEN}/g" /tmp/swarmfile
+    echo_env DO_AUTH_TOKEN
 
-    echo -n "WEBHOOK: " 
+    ask_input WEBHOOK
     WEBHOOK=$(env_file_ask WEBHOOK /run/secrets/webhook)
-    sed -i "s|__WEBHOOK__|${WEBHOOK}|g" $SWARMFILE
-    echo "$WEBHOOK"
+    sed -i "s|__WEBHOOK__|${WEBHOOK}|g" /tmp/swarmfile
+    echo_env WEBHOOK
 
-    echo -n "DB_HOST: " 
+    ask_input DB_HOST
     DB_HOST=$(env_file_ask DB_HOST /run/secrets/db_host)
-    sed -i "s/__DB_HOST__/${DB_HOST}/g" $SWARMFILE
-    echo "$DB_HOST"
+    sed -i "s|__DB_HOST__|${DB_HOST}|g" /tmp/swarmfile
+    echo_env DB_HOST
 
-    echo -n "DB_PASSWORD: " 
+    ask_input DB_PASSWORD
     DB_PASSWORD=$(env_file_ask DB_PASSWORD /run/secrets/db_password)
-    sed -i "s/__DB_PASSWORD__/${DB_PASSWORD}/g" $SWARMFILE
-    echo "$DB_PASSWORD"
+    sed -i "s/__DB_PASSWORD__/${DB_PASSWORD}/g" /tmp/swarmfile
+    echo_env DB_PASSWORD
 
-    sed -i "s/__BASICAUTH_PASSWORD__/$(generate_password)/g" $SWARMFILE
-    sed -i "s/__ROOT_PASSWORD__/$(generate_password)/g" $SWARMFILE
+    sed -i "s/__BASICAUTH_PASSWORD__/$(generate_password)/g" /tmp/swarmfile
+    sed -i "s/__ROOT_PASSWORD__/$(generate_password)/g" /tmp/swarmfile
 
     # Generate SSH key at end of file
-    echo "export ROOT_PRIVATE_KEY=\"" >> $SWARMFILE
-    truncate -s-1 $SWARMFILE
-    generate_key >> $SWARMFILE
-    truncate -s-1 $SWARMFILE
-    echo -n "\"" >> $SWARMFILE
-    echo "" >> $SWARMFILE
+    echo "export ROOT_PRIVATE_KEY=\"" >> /tmp/swarmfile
+    truncate -s-1 /tmp/swarmfile
+    generate_key >> /tmp/swarmfile
+    truncate -s-1 /tmp/swarmfile 
+    echo -n "\"" >> /tmp/swarmfile 
+    echo "" >> /tmp/swarmfile 
+
+    # Save from tmp to where it belongs
+    mv /tmp/swarmfile $SWARMFILE
 
     # Edit the swarmfile
     include "command/edit.sh"
 
     # Create primary
-    include "command/_process.sh"
+    include "lib/process.sh"
 
   fi
 

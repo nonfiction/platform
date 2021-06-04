@@ -1,8 +1,17 @@
 #!/bin/bash
 
+# Source once locally if available OR via curl if not 
+include() {
+  [ -z "$1" ] && return 1
+  [[ "$INCLUDED" =~ "[$1]" ]] && return 0
+  if [ -e /root/platform/swarm/$1 ]; then source /root/platform/swarm/$1;
+  else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/$1); fi
+  export INCLUDED="${INCLUDED}[$1]"
+}
+
 # Bash helper functions
-if [ -e /root/platform/swarm/lib/helpers.sh ]; then source /root/platform/swarm/lib/helpers.sh;
-else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
+include "lib/helpers.sh"
+
 
 # DRAIN DOCKER SWARM (run on manager)
 # ----------------------------------------

@@ -16,7 +16,7 @@ defined $REPLICAS || REPLICAS=$(get_swarm_replicas)
 defined $NODES || NODES="$(echo "${PRIMARY} ${REPLICAS}" | xargs)"
 
 # Environment Variables
-include "command/_env.sh"
+include "lib/env.sh"
 
 # Ensure new droplets have a volume size no smaller than primary's volume 
 # This is because a replicated volume will only be as largest as it's smallest node
@@ -36,27 +36,19 @@ fi
 # echo " $(echo_color black/on_blue "[${SWARM}]") $(echo_color blue "SWARM MANAGER")"
 # echo_line blue
 #
-# # Count the number of nodes in this swarm
-# count=$((1 + $(echo $REPLICAS | wc -w)))
-# [ "$count" = "1" ] && count="Single"
-# echo_next "${count}-node swarm..."
-# echo_line green
-# echo_env PRIMARY
-# echo_env REPLICAS
-# # echo_env NODES
-#
-# # Display the changes to the swarm
-# if defined $PROMOTED || defined $REMOVALS || defined $ADDITIONS; then
-#   echo_next "Swarm Changes..."
-#   echo_line green
-#   if defined $PROMOTED; then
-#     echo_env PROMOTED
-#     echo_env DEMOTED
-#   elif defined $REMOVALS || defined $ADDITIONS; then
-#     echo_env REMOVALS
-#     echo_env ADDITIONS
-#   fi
-# fi
+# Count the number of nodes in this swarm
+count=$((1 + $(echo $REPLICAS | wc -w)))
+[ "$count" = "1" ] && count="" || count="[x${count}]"
+echo_next "${SWARM} ${count}"
+echo_line green
+echo_env PRIMARY
+defined $REPLICAS  && echo_env REPLICAS
+defined $PROMOTED  && echo_env PROMOTED
+defined $DEMOTED   && echo_env DEMOTED
+defined $REMOVALS  && echo_env REMOVALS
+defined $ADDITIONS && echo_env ADDITIONS
+echo_env VOLUME_SIZE
+echo_env DROPLET_SIZE
 
 
 # ---------------------------------------------------------
@@ -83,19 +75,37 @@ fi
 
 
 
-# # Display the env variables
-# echo_next "Swarm Config..."
-# echo_line green
-# echo_env DOMAIN
-# echo_env DROPLET_IMAGE
-# echo_env DROPLET_SIZE
-# echo_env VOLUME_SIZE
-# echo_env FS_TYPE
-# echo_env REGION
-# echo_env ROOT_PASSWORD
-# echo_env ROOT_PRIVATE_KEY 20
-# echo_env ROOT_PUBLIC_KEY 20
-# echo_env WEBHOOK 24
+echo_next "Workspace Config"
+echo_line green
+echo_env GIT_USER_NAME
+echo_env GIT_USER_EMAIL
+echo_env GITHUB_USER
+echo_env GITHUB_TOKEN
+echo_env CODE_PASSWORD
+echo_env SUDO_PASSWORD
+echo_env DB_USER
+echo_env DB_PASSWORD
+echo_env DB_HOST
+echo_env DB_PORT
+
+echo_next "Swarm Config"
+echo_line green
+echo_env DO_AUTH_TOKEN 21
+echo_env ROOT_PASSWORD
+echo_env BASICAUTH_USER
+echo_env BASICAUTH_PASSWORD
+echo_env WEBHOOK 24
+
+echo_next "Immutable Config"
+echo_line green
+echo_env DROPLET_IMAGE
+echo_env REGION
+echo_env FS_TYPE
+echo_env ROOT_PRIVATE_KEY 20
+echo_env ROOT_PUBLIC_KEY 20
+
+# Stop here if inspect only
+defined $INSPECT_ONLY && echo && exit
 
 if ask "Continue?"; then  
   echo

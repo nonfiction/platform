@@ -22,7 +22,7 @@ fi
 PRIMARY=$(get_swarm_primary)
 
 # Environment Variables
-include "command/_env.sh"
+include "lib/env.sh"
 
 if undefined $ARGS; then
   if droplet_ready $PRIMARY; then
@@ -31,8 +31,8 @@ if undefined $ARGS; then
     echo "$(echo_color black/on_red " ✖︎ ") ${PRIMARY}.${DOMAIN}"
   fi
   exit
-
 else
+
   PROMOTED=$(node_from_fqdn $ARGS)
 
   DEMOTED=$PRIMARY
@@ -40,13 +40,25 @@ else
   # Reassign PRIMARY for display
   PRIMARY=$PROMOTED
 
+  if [ "$DEMOTED" = "$PROMOTED" ]; then
+    echo_stop "$PROMOTED is already primary."
+    exit 1
+  fi
+
+  # Ensure all primary and replacement are ready
+  for node in $PRIMARY $ARGS; do
+    if droplet_ready $node; then
+      echo "$(echo_color black/on_green " ✔︎ ") ${node}.${DOMAIN}"
+    else
+      echo "$(echo_color black/on_red " ✖︎ ") ${node}.${DOMAIN}"
+      echo_stop "$node is not available."
+      exit 1
+    fi
+  done
+
   # Add old primary to replicas, remove new primary from replicas
   REPLICAS=$(get_swarm_replicas $DEMOTED $PROMOTED)
 
-  echo "$(echo_env PROMOTED)"
-  echo "$(echo_env DEMOTED)"
-
-
-  include "command/_process.sh"
+  include "lib/process.sh"
   include "command/update.sh"
 fi

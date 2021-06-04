@@ -128,9 +128,7 @@ ask() {
 
 ask_input() { 
   echo
-  echo "$(echo_color black/on_yellow " ? ") $(echo_color yellow " $1 ")"
-  read $1
-  echo
+  echo -n "$(echo_color black/on_yellow " ? ") $(echo_color yellow " ${1}: ")"
 }
 
 # Print command before running
@@ -153,6 +151,18 @@ env_or_file() {
   echo "$variable"
 }
 
+# Check for environment variable, fall back on file, or use default
+env_file_default() {
+  local variable="${!1}"
+  if undefined "$variable"; then
+    defined "$2" && has "$2" && variable="$(cat $2)"
+    if undefined "$variable"; then
+      defined "$3" && variable="$3"
+    fi
+  fi
+  echo "$variable"
+}
+
 env_file_ask() {
   local variable="${!1}"
   if undefined "$variable"; then
@@ -163,6 +173,22 @@ env_file_ask() {
         read variable
       fi
     fi
+  fi
+  echo "$variable"
+}
+
+ask_env_file_default() {
+  local variable="${!1}"
+  if undefined "$variable"; then
+    defined "$2" && has "$2" && variable="$(cat $2)"
+    if undefined "$variable"; then
+      defined "$3" && variable="$3"
+    fi
+  fi
+  if defined "${variable}"; then
+    read -e -i "${variable}" variable
+  else
+    read variable
   fi
   echo "$variable"
 }

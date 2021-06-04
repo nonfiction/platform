@@ -40,6 +40,10 @@ case $COMMAND in
     include "command/edit.sh"
     ;;
 
+  inspect | i)
+    include "command/inspect.sh"
+    ;;
+
   list | l | ls)
     include "command/list.sh"
     ;;
@@ -69,6 +73,7 @@ case $COMMAND in
     echo "  create"
     echo "  delete"
     echo "  edit"
+    echo "  inspect"
     echo "  list"
     echo "  primary"
     echo "  replicas"

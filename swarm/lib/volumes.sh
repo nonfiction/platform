@@ -1,10 +1,8 @@
 #!/bin/bash
 
 # Bash helper functions
-if [ -z "$HELPERS_LOADED" ]; then 
-  if [ -e /root/platform/swarm/lib/helpers.sh ]; then source /root/platform/swarm/lib/helpers.sh;
-  else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/lib/helpers.sh); fi
-fi
+include "lib/helpers.sh"
+
 
 dev_dir() {
   echo $1 | awk -F ':' '{print $2}'

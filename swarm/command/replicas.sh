@@ -32,7 +32,7 @@ ADDITIONS=$(get_swarm_additions $ARGS)
 REPLICAS=$(get_swarm_replicas "$ADDITIONS" "$REMOVALS")
 
 # Environment Variables
-include "command/_env.sh"
+include "lib/env.sh"
 
 echo
 for replica in $REPLICAS; do
@@ -59,7 +59,7 @@ done
 
 if defined $ARGS; then
 
-  include "command/_process.sh"
+  include "lib/process.sh"
   include "command/update.sh"
 
 fi

@@ -16,7 +16,6 @@
 # swarm primary __NODE__.__DOMAIN__ __NODE__01
 
 
-
 # Workspace configuration
 # -----------------------
 
@@ -35,32 +34,6 @@ export CODE_PASSWORD=__CODE_PASSWORD__
 # sudo password for "work" user in workspace
 export SUDO_PASSWORD=__SUDO_PASSWORD__
 
-
-
-# Droplet configuration
-# -----------------------
-
-export DROPLET_IMAGE=ubuntu-20-04-x64
-export REGION=tor1
-export FS_TYPE=ext4
-
-
-# Swarm configuration
-# -----------------------
-
-# SWARM and DOMAIN determined from filename
-
-# Used by doctl for swarm management & traefik for certificate renewals
-export DO_AUTH_TOKEN=__DO_AUTH_TOKEN__
-
-# This is called by the swarm manager to signal when nodes are ready
-# https://api.slack.com/messaging/webhooks
-export WEBHOOK=__WEBHOOK__
-
-# Password-protected pages like traefik dashboard
-export BASICAUTH_USER=nonfiction
-export BASICAUTH_PASSWORD=__BASICAUTH_PASSWORD__
-
 # External database cluster credentials
 # https://cloud.digitalocean.com/databases
 export DB_USER=doadmin
@@ -68,9 +41,32 @@ export DB_PASSWORD=__DB_PASSWORD__
 export DB_HOST=__DB_HOST__
 export DB_PORT=25060
 
+
+# Swarm configuration
+# -----------------------
+
+# Used by doctl for swarm management & traefik for certificate renewals
+export DO_AUTH_TOKEN=__DO_AUTH_TOKEN__
+
 # All nodes in the swarm are have this root password
-# - Generated when swarm is initialized -
 export ROOT_PASSWORD=__ROOT_PASSWORD__
+
+# Password-protected pages like traefik dashboard
+export BASICAUTH_USER=nonfiction
+export BASICAUTH_PASSWORD=__BASICAUTH_PASSWORD__
+
+# This is called by the swarm manager to signal when nodes are ready
+# https://api.slack.com/messaging/webhooks
+export WEBHOOK=__WEBHOOK__
+
+
+# Immutable configuration
+# These settings cannot be modified after the swarm has been created
+# -----------------------
+
+export DROPLET_IMAGE=ubuntu-20-04-x64
+export REGION=tor1
+export FS_TYPE=ext4
 
 # All nodes in the swarm are accesible via this private key
 # - Generated when swarm is initialized -

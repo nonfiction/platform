@@ -35,7 +35,7 @@ verify_doctl() {
     echo_info "doctl unauthorized, checking for token..."
     
     #  https://cloud.digitalocean.com/account/api/tokens
-    DO_AUTH_TOKEN=$(env_or_file DO_AUTH_TOKEN /run/secrets/do_auth_token)
+    DO_AUTH_TOKEN=$(env_file_default DO_AUTH_TOKEN /run/secrets/do_auth_token)
     if undefined "$DO_AUTH_TOKEN"; then
       echo_stop "Missing DO_AUTH_TOKEN!"
       echo "https://cloud.digitalocean.com/account/api/tokens"
@@ -99,85 +99,85 @@ swarm_exists() {
 # fi
 
 
-# ---------------------------------------------------------
-# Environment Variables
-# ---------------------------------------------------------
-set_env() {
-
-# DOMAIN from env or secret
-export DOMAIN=$(env_or_file DOMAIN /run/secrets/domain)
-# if undefined $DOMAIN; then
-#   echo_stop "Missing DOMAIN!"
-#   echo "Create a domain name named by Digital Ocean and set it to an environment variable named:"
-#   echo_env_example "DOMAIN" "example.com"
-#   # exit 1
-# fi
-
-# ROOT_PRIVATE_KEY from env or secret
-# ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY ./root_private_key /run/secrets/root_private_key)"
-export ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY /run/secrets/root_private_key)"
-# if undefined $ROOT_PRIVATE_KEY; then
-#   echo_stop "Missing ROOT_PRIVATE_KEY!"
-#   echo "Generate an SSH key and set it to an environment variable named:"
-#   echo_env_example "ROOT_PRIVATE_KEY" "-----BEGIN RSA PRIVATE KEY----- ..."
-#   echo "OR save a file in your current directory named: root_private_key"
-#   # exit 1
+# # ---------------------------------------------------------
+# # Environment Variables
+# # ---------------------------------------------------------
+# set_env() {
 #
-# else
-
-
-if defined $ROOT_PRIVATE_KEY; then
-
-  # ROOT_PUBLIC_KEY from ROOT_PRIVATE_KEY
-  echo "$ROOT_PRIVATE_KEY" > root_private_key.tmp
-  chmod 400 root_private_key.tmp
-  export ROOT_PUBLIC_KEY="$(ssh-keygen -y -f root_private_key.tmp) root"
-  rm -f root_private_key.tmp
-
-fi
-
-# ROOT_PASSWORD from env or secret
-export ROOT_PASSWORD=$(env_or_file ROOT_PASSWORD /run/secrets/root_password)
-# if undefined $ROOT_PASSWORD; then
-#   echo_stop "Missing ROOT_PASSWORD!"
-#   echo "Create a root password and set it to an environment variable named:"
-#   echo_env_example "ROOT_PASSWORD" "secret"
-#   # exit 1
+# # DOMAIN from env or secret
+# export DOMAIN=$(env_or_file DOMAIN /run/secrets/domain)
+# # if undefined $DOMAIN; then
+# #   echo_stop "Missing DOMAIN!"
+# #   echo "Create a domain name named by Digital Ocean and set it to an environment variable named:"
+# #   echo_env_example "DOMAIN" "example.com"
+# #   # exit 1
+# # fi
+#
+# # ROOT_PRIVATE_KEY from env or secret
+# # ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY ./root_private_key /run/secrets/root_private_key)"
+# export ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY /run/secrets/root_private_key)"
+# # if undefined $ROOT_PRIVATE_KEY; then
+# #   echo_stop "Missing ROOT_PRIVATE_KEY!"
+# #   echo "Generate an SSH key and set it to an environment variable named:"
+# #   echo_env_example "ROOT_PRIVATE_KEY" "-----BEGIN RSA PRIVATE KEY----- ..."
+# #   echo "OR save a file in your current directory named: root_private_key"
+# #   # exit 1
+# #
+# # else
+#
+#
+# if defined $ROOT_PRIVATE_KEY; then
+#
+#   # ROOT_PUBLIC_KEY from ROOT_PRIVATE_KEY
+#   echo "$ROOT_PRIVATE_KEY" > root_private_key.tmp
+#   chmod 400 root_private_key.tmp
+#   export ROOT_PUBLIC_KEY="$(ssh-keygen -y -f root_private_key.tmp) root"
+#   rm -f root_private_key.tmp
+#
 # fi
-
-# DROPLET_IMAGE from env, or default
-# - ubuntu-18-04-x64
-# - ubuntu-20-04-x64
-if undefined $DROPLET_IMAGE; then
-  export DROPLET_IMAGE="ubuntu-20-04-x64"
-fi
-
-# DROPLET_SIZE from env, or default
-# $5/mo: s-1vcpu-1gb
-# $15/mo: s-2vcpu-2gb 
-if undefined $DROPLET_SIZE; then
-  export DROPLET_SIZE="s-1vcpu-1gb"
-fi
-
-# VOLUME_SIZE from env, or default
-if undefined $VOLUME_SIZE; then
-  export VOLUME_SIZE="10"
-fi
-
-# REGION from env, or default
-if undefined $REGION; then
-  export REGION="tor1"
-fi
-
-# FS_TYPE from env, or default
-if undefined $FS_TYPE; then
-  export FS_TYPE="ext4"
-fi
-
-# WEBHOOK from env or secret
-export WEBHOOK="$(env_or_file WEBHOOK /run/secrets/webhook)"
-
-}
+#
+# # ROOT_PASSWORD from env or secret
+# export ROOT_PASSWORD=$(env_or_file ROOT_PASSWORD /run/secrets/root_password)
+# # if undefined $ROOT_PASSWORD; then
+# #   echo_stop "Missing ROOT_PASSWORD!"
+# #   echo "Create a root password and set it to an environment variable named:"
+# #   echo_env_example "ROOT_PASSWORD" "secret"
+# #   # exit 1
+# # fi
+#
+# # DROPLET_IMAGE from env, or default
+# # - ubuntu-18-04-x64
+# # - ubuntu-20-04-x64
+# if undefined $DROPLET_IMAGE; then
+#   export DROPLET_IMAGE="ubuntu-20-04-x64"
+# fi
+#
+# # DROPLET_SIZE from env, or default
+# # $5/mo: s-1vcpu-1gb
+# # $15/mo: s-2vcpu-2gb 
+# if undefined $DROPLET_SIZE; then
+#   export DROPLET_SIZE="s-1vcpu-1gb"
+# fi
+#
+# # VOLUME_SIZE from env, or default
+# if undefined $VOLUME_SIZE; then
+#   export VOLUME_SIZE="10"
+# fi
+#
+# # REGION from env, or default
+# if undefined $REGION; then
+#   export REGION="tor1"
+# fi
+#
+# # FS_TYPE from env, or default
+# if undefined $FS_TYPE; then
+#   export FS_TYPE="ext4"
+# fi
+#
+# # WEBHOOK from env or secret
+# export WEBHOOK="$(env_or_file WEBHOOK /run/secrets/webhook)"
+#
+# }
 
 
 # ---------------------------------------------------------
@@ -562,7 +562,7 @@ create_droplet() {
   
   # Download cloud-config.yml and fill out variables
   local config=/tmp/cloud-config.yml
-  curl -sL https://github.com/nonfiction/platform/raw/master/swarm/lib/cloud-config.yml > $config
+  curl -sL https://github.com/nonfiction/platform/raw/master/swarm/template/cloud-config.yml > $config
   sed -i "s/__NODE__/${node}/" $config
   sed -i "s/__SWARM__/${SWARM}/" $config
   sed -i "s/__DOMAIN__/${DOMAIN}/" $config
