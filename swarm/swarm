@@ -56,6 +56,10 @@ case $COMMAND in
     include "command/replicas.sh"
     ;;
 
+  ssh)
+    include "command/ssh.sh"
+    ;;
+
   size | s)
     include "command/size.sh"
     ;;
