@@ -22,8 +22,15 @@ fi
 PROMOTED=$3
 PRIMARY=$(get_swarm_primary)
 
+# Environment Variables
+include "command/env.sh"
+
 if undefined $PROMOTED; then
-  echo $PRIMARY
+  if droplet_ready $PRIMARY; then
+    echo "$(echo_color black/on_green " ✔︎ ") ${PRIMARY}.${DOMAIN}"
+  else
+    echo "$(echo_color black/on_red " ✖︎ ") ${PRIMARY}.${DOMAIN}"
+  fi
   exit
 
 else

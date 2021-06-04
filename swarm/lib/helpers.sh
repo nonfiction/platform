@@ -192,22 +192,18 @@ hyphenify() {
 }
 
 node_from_fqdn() {
-  defined $1 || return 1
   echo "$(input $1)" | tr '.' ' ' | awk '{print $1}'
 }
 
 domain_from_fqdn() {
-  defined $1 || return 1
   echo "$(input $1)" | tr '.' ' ' | awk '{$1=""}1' | xargs | tr ' ' '.'
 }
 
 node_from_slug() {
-  defined $1 || return 1
   echo "$(input $1)" | tr '_' ' ' | awk '{print $1}'
 }
 
 domain_from_slug() {
-  defined $1 || return 1
   echo "$(input $1)" | tr '_' ' ' | awk '{$1=""}1' | xargs | tr ' ' '.'
 }
 

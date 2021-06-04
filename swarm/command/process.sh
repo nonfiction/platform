@@ -31,32 +31,32 @@ fi
 
 
 
-# Display the main header
-echo_line blue
-echo " $(echo_color black/on_blue "[${SWARM}]") $(echo_color blue "SWARM MANAGER")"
-echo_line blue
-
-# Count the number of nodes in this swarm
-count=$((1 + $(echo $REPLICAS | wc -w)))
-[ "$count" = "1" ] && count="Single"
-echo_next "${count}-node swarm..."
-echo_line green
-echo_env PRIMARY
-echo_env REPLICAS
-# echo_env NODES
-
-# Display the changes to the swarm
-if defined $PROMOTED || defined $REMOVALS || defined $ADDITIONS; then
-  echo_next "Swarm Changes..."
-  echo_line green
-  if defined $PROMOTED; then
-    echo_env PROMOTED
-    echo_env DEMOTED
-  elif defined $REMOVALS || defined $ADDITIONS; then
-    echo_env REMOVALS
-    echo_env ADDITIONS
-  fi
-fi
+# # Display the main header
+# echo_line blue
+# echo " $(echo_color black/on_blue "[${SWARM}]") $(echo_color blue "SWARM MANAGER")"
+# echo_line blue
+#
+# # Count the number of nodes in this swarm
+# count=$((1 + $(echo $REPLICAS | wc -w)))
+# [ "$count" = "1" ] && count="Single"
+# echo_next "${count}-node swarm..."
+# echo_line green
+# echo_env PRIMARY
+# echo_env REPLICAS
+# # echo_env NODES
+#
+# # Display the changes to the swarm
+# if defined $PROMOTED || defined $REMOVALS || defined $ADDITIONS; then
+#   echo_next "Swarm Changes..."
+#   echo_line green
+#   if defined $PROMOTED; then
+#     echo_env PROMOTED
+#     echo_env DEMOTED
+#   elif defined $REMOVALS || defined $ADDITIONS; then
+#     echo_env REMOVALS
+#     echo_env ADDITIONS
+#   fi
+# fi
 
 
 # ---------------------------------------------------------
@@ -83,19 +83,19 @@ fi
 
 
 
-# Display the env variables
-echo_next "Swarm Config..."
-echo_line green
-echo_env DOMAIN
-echo_env DROPLET_IMAGE
-echo_env DROPLET_SIZE
-echo_env VOLUME_SIZE
-echo_env FS_TYPE
-echo_env REGION
-echo_env ROOT_PASSWORD
-echo_env ROOT_PRIVATE_KEY 20
-echo_env ROOT_PUBLIC_KEY 20
-echo_env WEBHOOK 24
+# # Display the env variables
+# echo_next "Swarm Config..."
+# echo_line green
+# echo_env DOMAIN
+# echo_env DROPLET_IMAGE
+# echo_env DROPLET_SIZE
+# echo_env VOLUME_SIZE
+# echo_env FS_TYPE
+# echo_env REGION
+# echo_env ROOT_PASSWORD
+# echo_env ROOT_PRIVATE_KEY 20
+# echo_env ROOT_PUBLIC_KEY 20
+# echo_env WEBHOOK 24
 
 if ask "Continue?"; then  
   echo

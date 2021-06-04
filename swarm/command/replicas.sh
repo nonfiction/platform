@@ -24,8 +24,42 @@ PRIMARY=$(get_swarm_primary)
 REMOVALS=$(get_swarm_removals $ARGS)
 ADDITIONS=$(get_swarm_additions $ARGS)
 
+# echo_env PRIMARY
+# echo_env REMOVALS
+# echo_env ADDITIONS
+
 # Look up number of existing replicas in swarm, including additions, without removals
 REPLICAS=$(get_swarm_replicas "$ADDITIONS" "$REMOVALS")
 
-include "command/process.sh"
-include "command/update.sh"
+# Environment Variables
+include "command/env.sh"
+
+echo
+for replica in $REPLICAS; do
+  is_addition=
+  for addition in $ADDITIONS; do
+    if [ "$addition" = "$replica" ]; then
+      is_addition=1
+      echo "$(echo_color black/on_yellow " + ") ${replica}.${DOMAIN}"
+    fi
+  done
+  if undefined $is_addition; then
+    if droplet_ready $replica; then
+      echo "$(echo_color black/on_green " ✔︎ ") ${replica}.${DOMAIN}"
+    else
+      echo "$(echo_color black/on_red " ✖︎ ") ${replica}.${DOMAIN}"
+    fi
+  fi
+done
+
+for removal in $REMOVALS; do
+  echo "$(echo_color black/on_yellow " - ") ${removal}.${DOMAIN}"
+done
+
+
+if defined $ARGS; then
+
+  include "command/process.sh"
+  include "command/update.sh"
+
+fi

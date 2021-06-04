@@ -31,12 +31,12 @@ defined $REPLICAS || REPLICAS=$(get_swarm_replicas)
 defined $NODES || NODES="$(echo "${PRIMARY} ${REPLICAS}" | xargs)"
 
 
-if ask "Run docker & gluster configuration on each node?"; then  
-  echo
-else
-  echo_stop "Cancelled."  
-  exit 1;
-fi
+# if ask "Run docker & gluster configuration on each node?"; then  
+#   echo
+# else
+#   echo_stop "Cancelled."  
+#   exit 1;
+# fi
 
 
 # ---------------------------------------------------------
