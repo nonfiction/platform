@@ -48,14 +48,14 @@ if has_droplet $NODE; then
     sleep 5
 
     # Delete DNS records 
-    echo remove_record "${NODE}"
-    echo remove_record "*.${NODE}"
+    remove_record "${NODE}"
+    remove_record "*.${NODE}"
 
     # Delete volume
-    echo remove_volume "${NODE}"
+    remove_volume "${NODE}"
 
     # Delete droplet
-    echo remove_droplet "${NODE}"
+    remove_droplet "${NODE}"
 
     rm $SWARMFILE
     echo_info "DELETED: ${SWARMFILE}"
