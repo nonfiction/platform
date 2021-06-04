@@ -122,6 +122,9 @@ else
     # Edit the swarmfile
     include "command/edit.sh"
 
+    # Environment Variables
+    include "lib/env.sh"
+
     # Create primary
     include "lib/process.sh"
 
