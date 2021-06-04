@@ -1,6 +1,4 @@
-#!/bin/bash
-
-# Bash helper functions
+#!/bin/bash # Bash helper functions
 include "lib/helpers.sh"
 
 # Digital Ocean API

@@ -131,11 +131,18 @@ ask_input() {
   echo -n "$(echo_color black/on_yellow " ? ") $(echo_color yellow " ${1}: ")"
 }
 
-# Print command before running
+# Echo the command before running it. 
+# If 2 parameters, first one is remote, second is command to run on remote
+# If 1 parameter, the command is run locally
 echo_run() {
-  defined $1 || return  
-  echo "${1}"
-  $1
+  defined $1 || return
+  if defined $2; then
+    echo "[${1}] ${2}"
+    run "${1}" "${2}"
+  else
+    echo "$1"
+    $1
+  fi
 }
 
 
