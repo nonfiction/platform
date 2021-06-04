@@ -55,6 +55,7 @@ done
 
 if defined $ARGS; then
 
+  undefined $REPLICAS && REPLICAS="-"
   include "lib/process.sh"
   include "command/update.sh"
 

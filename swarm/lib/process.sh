@@ -13,6 +13,7 @@ defined $DOMAIN
 
 defined $PRIMARY || PRIMARY=$(get_swarm_primary)
 defined $REPLICAS || REPLICAS=$(get_swarm_replicas)
+[ "$REPLICAS" = "-" ] && REPLICAS=""
 defined $NODES || NODES="$(echo "${PRIMARY} ${REPLICAS}" | xargs)"
 
 # Environment Variables
@@ -30,12 +31,6 @@ else
 fi
 
 
-
-# # Display the main header
-# echo_line blue
-# echo " $(echo_color black/on_blue "[${SWARM}]") $(echo_color blue "SWARM MANAGER")"
-# echo_line blue
-#
 # Count the number of nodes in this swarm
 count=$((1 + $(echo $REPLICAS | wc -w)))
 [ "$count" = "1" ] && count="" || count="[x${count}]"
@@ -49,31 +44,6 @@ defined $REMOVALS  && echo_env REMOVALS
 defined $ADDITIONS && echo_env ADDITIONS
 echo_env VOLUME_SIZE
 echo_env DROPLET_SIZE
-
-
-# ---------------------------------------------------------
-# Environment Variables
-# ---------------------------------------------------------
-# include "command/env.sh"
-# source $SWARMFILE
-#
-# # ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY ./root_private_key /run/secrets/root_private_key)"
-# ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY /run/secrets/root_private_key)"
-# if defined $ROOT_PRIVATE_KEY; then
-#   echo "$ROOT_PRIVATE_KEY" > root_private_key.tmp
-#   chmod 400 root_private_key.tmp
-#   ROOT_PUBLIC_KEY="$(ssh-keygen -y -f root_private_key.tmp) root"
-#   rm -f root_private_key.tmp
-# fi
-# ROOT_PASSWORD=$(env_or_file ROOT_PASSWORD /run/secrets/root_password)
-# undefined $DROPLET_IMAGE && DROPLET_IMAGE="ubuntu-20-04-x64"
-# undefined $DROPLET_SIZE && DROPLET_SIZE="s-1vcpu-1gb"
-# undefined $VOLUME_SIZE && VOLUME_SIZE="10"
-# undefined $REGION && REGION="tor1"
-# undefined $FS_TYPE && FS_TYPE="ext4"
-# WEBHOOK="$(env_or_file WEBHOOK /run/secrets/webhook)"
-
-
 
 echo_next "Workspace Config"
 echo_line green
