@@ -30,7 +30,6 @@ if undefined $DOMAIN; then
 fi
 
 
-# PRIMARY=$(get_swarm_primary)
 REPLICAS=$(get_swarm_replicas)
 
 if defined $REPLICAS; then

@@ -88,7 +88,7 @@ echo_env DB_PASSWORD
 echo_env DB_HOST
 echo_env DB_PORT
 
-echo_next "Swarm Config"
+echo_next "Node Config"
 echo_line green
 echo_env DO_AUTH_TOKEN 21
 echo_env ROOT_PASSWORD
@@ -96,7 +96,7 @@ echo_env BASICAUTH_USER
 echo_env BASICAUTH_PASSWORD
 echo_env WEBHOOK 24
 
-echo_next "Immutable Config"
+echo_next "Swarm Config"
 echo_line green
 echo_env DROPLET_IMAGE
 echo_env REGION

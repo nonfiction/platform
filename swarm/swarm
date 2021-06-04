@@ -12,7 +12,7 @@ include() {
 # Bash helper functions
 include "lib/helpers.sh"
 
-defined $EDITOR || EDITOR=nano
+defined $EDITOR || EDITOR=vi
 defined $XDG_CONFIG_HOME || XDG_CONFIG_HOME=$HOME/.config
 defined $XDG_DATA_HOME || XDG_DATA_HOME=$HOME/.local/share
 

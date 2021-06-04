@@ -19,14 +19,8 @@ if hasnt $SWARMFILE; then
   exit 1
 fi
 
-PRIMARY=$(get_swarm_primary)
-REPLICAS=$(get_swarm_replicas)
-
 # Environment Variables
 include "lib/env.sh"
-
-# VOLUME_SIZE=$3
-# DROPLET_SIZE=$3
 
 PRIMARY=$(get_swarm_primary)
 VOLUME_SIZE=$(get_volume_size $PRIMARY)

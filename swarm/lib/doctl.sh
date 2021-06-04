@@ -56,130 +56,6 @@ verify_doctl() {
 }
 
 
-# See if this droplet's name is available as a new primary
-droplet_reserved() {
-  defined $1 || return 1
-  local r; r=$(doctl compute droplet list --no-header --format "ID,Name,Tags" | grep -v primary: | grep " $1 " | xargs)
-  defined $r && return 0
-  return 1
-}
-
-# See if a swarm exists (looking up by tag name)
-swarm_exists() {
-  defined $1 || return 1
-  local tag; tag="swarm:$(slugify $1)"
-  local s; s=$(doctl compute droplet list --no-header --format "Tags" | grep $tag | head -n1 )
-  defined $s && return 0
-  return 1
-}
-
-# # No swarmfile? Here we go...
-# if hasnt $SWARMFILE; then
-#
-#   # Make sure the name is available for use as a primary node
-#   if droplet_reserved $SWARMFILE; then
-#     echo_stop "The droplet named $SWARMFILE isn't available as a primary node."
-#     exit 1
-#   fi
-#
-#   # Make sure this swarm doesn't already exist without a swarmfile
-#   if swarm_exists $SWARMFILE; then
-#     echo_stop "This swarm already exists, but you're missing the SWARMFILE: $SWARMFILE"
-#     exit 1
-#   fi
-#
-#   # No swarmfile and new swarm? Generate the swarmfile...
-#   curl -sL https://github.com/nonfiction/platform/raw/master/swarm/lib/swarmfile > $SWARMFILE
-#   sed -i "s/__SWARM__/${SWARM}/g" $SWARMFILE
-#   sed -i "s/__DOMAIN__/${DOMAIN}/g" $SWARMFILE
-#
-#   echo_info "Swarmfile finished! Save this file in a safe place and re-run the swarm command when ready."
-#   exit 0
-#
-# fi
-
-
-# # ---------------------------------------------------------
-# # Environment Variables
-# # ---------------------------------------------------------
-# set_env() {
-#
-# # DOMAIN from env or secret
-# export DOMAIN=$(env_or_file DOMAIN /run/secrets/domain)
-# # if undefined $DOMAIN; then
-# #   echo_stop "Missing DOMAIN!"
-# #   echo "Create a domain name named by Digital Ocean and set it to an environment variable named:"
-# #   echo_env_example "DOMAIN" "example.com"
-# #   # exit 1
-# # fi
-#
-# # ROOT_PRIVATE_KEY from env or secret
-# # ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY ./root_private_key /run/secrets/root_private_key)"
-# export ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY /run/secrets/root_private_key)"
-# # if undefined $ROOT_PRIVATE_KEY; then
-# #   echo_stop "Missing ROOT_PRIVATE_KEY!"
-# #   echo "Generate an SSH key and set it to an environment variable named:"
-# #   echo_env_example "ROOT_PRIVATE_KEY" "-----BEGIN RSA PRIVATE KEY----- ..."
-# #   echo "OR save a file in your current directory named: root_private_key"
-# #   # exit 1
-# #
-# # else
-#
-#
-# if defined $ROOT_PRIVATE_KEY; then
-#
-#   # ROOT_PUBLIC_KEY from ROOT_PRIVATE_KEY
-#   echo "$ROOT_PRIVATE_KEY" > root_private_key.tmp
-#   chmod 400 root_private_key.tmp
-#   export ROOT_PUBLIC_KEY="$(ssh-keygen -y -f root_private_key.tmp) root"
-#   rm -f root_private_key.tmp
-#
-# fi
-#
-# # ROOT_PASSWORD from env or secret
-# export ROOT_PASSWORD=$(env_or_file ROOT_PASSWORD /run/secrets/root_password)
-# # if undefined $ROOT_PASSWORD; then
-# #   echo_stop "Missing ROOT_PASSWORD!"
-# #   echo "Create a root password and set it to an environment variable named:"
-# #   echo_env_example "ROOT_PASSWORD" "secret"
-# #   # exit 1
-# # fi
-#
-# # DROPLET_IMAGE from env, or default
-# # - ubuntu-18-04-x64
-# # - ubuntu-20-04-x64
-# if undefined $DROPLET_IMAGE; then
-#   export DROPLET_IMAGE="ubuntu-20-04-x64"
-# fi
-#
-# # DROPLET_SIZE from env, or default
-# # $5/mo: s-1vcpu-1gb
-# # $15/mo: s-2vcpu-2gb 
-# if undefined $DROPLET_SIZE; then
-#   export DROPLET_SIZE="s-1vcpu-1gb"
-# fi
-#
-# # VOLUME_SIZE from env, or default
-# if undefined $VOLUME_SIZE; then
-#   export VOLUME_SIZE="10"
-# fi
-#
-# # REGION from env, or default
-# if undefined $REGION; then
-#   export REGION="tor1"
-# fi
-#
-# # FS_TYPE from env, or default
-# if undefined $FS_TYPE; then
-#   export FS_TYPE="ext4"
-# fi
-#
-# # WEBHOOK from env or secret
-# export WEBHOOK="$(env_or_file WEBHOOK /run/secrets/webhook)"
-#
-# }
-
-
 # ---------------------------------------------------------
 # Droplet functions
 # ---------------------------------------------------------
@@ -1072,6 +948,27 @@ echo_droplet_prices() {
   # echo_env_example "DROPLET_SIZE" "s-2vcpu-2gb"
 }
 
+# ---------------------------------------------------------
+# Swarm functions
+# ---------------------------------------------------------
+
+# See if this droplet's name is available as a new primary
+droplet_reserved() {
+  defined $1 || return 1
+  local r; r=$(doctl compute droplet list --no-header --format "ID,Name,Tags" | grep -v primary: | grep " $1 " | xargs)
+  defined $r && return 0
+  return 1
+}
+
+# See if a swarm exists (looking up by tag name)
+swarm_exists() {
+  defined $1 || return 1
+  local tag; tag="swarm:$(slugify $1)"
+  local s; s=$(doctl compute droplet list --no-header --format "Tags" | grep $tag | head -n1 )
+  defined $s && return 0
+  return 1
+}
+
 swarmfile_from_fqdn() {
   defined $1 || return 1
   local slug; slug=$(slugify "$1")
@@ -1080,21 +977,17 @@ swarmfile_from_fqdn() {
 
 swarm_tag() {
   defined $DOMAIN || return 1
-  # defined $SWARM || return 1
   defined $NODE || return 1
-  # local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
   local slug; slug=$(slugify "${NODE}.${DOMAIN}")
   echo "swarm:${slug}"  
 }
 
 role_tag() {
   defined $DOMAIN || return 1
-  # defined $SWARM || return 1
   defined $NODE || return 1
   local role=$1
   undefined $1 && role="primary"
   [ $role != "primary" ] && role="replica"
-  # local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
   local slug; slug=$(slugify "${NODE}.${DOMAIN}")
   echo "${role}:${slug}"  
 }
@@ -1102,8 +995,6 @@ role_tag() {
 primary_tag() {
   defined $DOMAIN || return 1
   defined $NODE || return 1
-  # defined $SWARM || return 1
-  # local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
   local slug; slug=$(slugify "${NODE}.${DOMAIN}")
   echo "primary:${slug}"  
 }
@@ -1111,9 +1002,7 @@ primary_tag() {
 replica_tag() {
   defined $DOMAIN || return 1
   defined $NODE || return 1
-  # defined $SWARM || return 1
   local slug; slug=$(slugify "${NODE}.${DOMAIN}")
-  # local slug; slug=$(slugify "${SWARM}.${DOMAIN}")
   echo "replica:${slug}"  
 }
 

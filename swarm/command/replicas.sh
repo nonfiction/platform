@@ -24,10 +24,6 @@ PRIMARY=$(get_swarm_primary)
 REMOVALS=$(get_swarm_removals $ARGS)
 ADDITIONS=$(get_swarm_additions $ARGS)
 
-# echo_env PRIMARY
-# echo_env REMOVALS
-# echo_env ADDITIONS
-
 # Look up number of existing replicas in swarm, including additions, without removals
 REPLICAS=$(get_swarm_replicas "$ADDITIONS" "$REMOVALS")
 

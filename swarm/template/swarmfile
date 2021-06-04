@@ -42,7 +42,7 @@ export DB_HOST=__DB_HOST__
 export DB_PORT=25060
 
 
-# Swarm configuration
+# Node configuration
 # -----------------------
 
 # Used by doctl for swarm management & traefik for certificate renewals
@@ -60,7 +60,7 @@ export BASICAUTH_PASSWORD=__BASICAUTH_PASSWORD__
 export WEBHOOK=__WEBHOOK__
 
 
-# Immutable configuration
+# Swarm configuration
 # These settings cannot be modified after the swarm has been created
 # -----------------------
 
