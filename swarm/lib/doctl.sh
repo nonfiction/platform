@@ -1068,7 +1068,7 @@ echo_droplet_prices() {
   local f="Slug,Disk,PriceMonthly"
   doctl compute size list --format="$f" | head -1 && \
   doctl compute size list --format="$f" | grep --color=never -e "s-[0-9]vcpu-[0-9]gb "
-  echo_env_example "DROPLET_SIZE" "s-2vcpu-2gb"
+  # echo_env_example "DROPLET_SIZE" "s-2vcpu-2gb"
 }
 
 swarmfile_from_fqdn() {

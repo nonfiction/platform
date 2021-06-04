@@ -19,11 +19,40 @@ if hasnt $SWARMFILE; then
   exit 1
 fi
 
-DROPLET_SIZE=$3
-if undefined $DROPLET_SIZE; then
-  PRIMARY=$(get_swarm_primary)
-  get_droplet_size $PRIMARY
+PRIMARY=$(get_swarm_primary)
+REPLICAS=$(get_swarm_replicas)
+
+# Environment Variables
+include "command/env.sh"
+
+# VOLUME_SIZE=$3
+# DROPLET_SIZE=$3
+
+PRIMARY=$(get_swarm_primary)
+VOLUME_SIZE=$(get_volume_size $PRIMARY)
+DROPLET_SIZE=$(get_droplet_size $PRIMARY)
+
+if undefined $ARGS; then
+  count=$((1 + $(echo $REPLICAS | wc -w)))
+  [ "$count" = "1" ] && count="Single"
+  echo_next "${count}-node swarm..."
+  echo "$(echo_env VOLUME_SIZE) (GB)"
+  echo "$(echo_env DROPLET_SIZE) (choose slug listed below)"
+  echo
+  echo_droplet_prices
 else
+
+  for arg in $ARGS; do
+    if [[ $arg =~ ^[0-9]+$ ]]; then 
+      export VOLUME_SIZE=$arg
+    else
+      export DROPLET_SIZE=$arg
+    fi
+  done
+
+  echo "$(echo_env VOLUME_SIZE)"
+  echo "$(echo_env DROPLET_SIZE)"
+
   include "command/process.sh"
   include "command/update.sh"
 fi

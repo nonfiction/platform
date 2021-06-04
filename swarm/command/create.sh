@@ -7,6 +7,9 @@ include "lib/helpers.sh"
 include "lib/doctl.sh"
 verify_doctl
 
+# Environment Variables
+include "command/env.sh"
+
 if undefined $SWARM; then
   echo
   echo "Usage:  swarm create SWARM [VOLUME_SIZE: $VOLUME_SIZE] [DROPLET_SIZE: $DROPLET_SIZE]"

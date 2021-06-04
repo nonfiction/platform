@@ -7,8 +7,10 @@ include "lib/helpers.sh"
 # Environment Variables
 # ---------------------------------------------------------
 
-if has $SWARMFILE; then
-  source $SWARMFILE
+if defined $SWARM; then
+  if has $SWARMFILE; then
+    source $SWARMFILE
+  fi
 fi
 
 # ROOT_PRIVATE_KEY="$(env_or_file ROOT_PRIVATE_KEY ./root_private_key /run/secrets/root_private_key)"
