@@ -435,6 +435,7 @@ get_swarm_removals() {
 
   # Add all the named removals, so long as it's not primary
   for next in $named_removals; do
+    next=$(node_from_fqdn $next)
     if [ "${next}" != "${PRIMARY}" ]; then
       has_droplet $next && removals="${removals} ${next}"
     fi
@@ -469,7 +470,7 @@ get_swarm_additions() {
 
   # Add all the named additions, so long as it doesn't yet exist
   for next in $named_additions; do
-    next=$(echo $next | awk '{print tolower($0)}')
+    next=$(echo $next | awk '{print tolower($0)}' | node_from_fqdn)
     has_droplet $next || additions="${additions} ${next}"
     add_reserved $next
   done
