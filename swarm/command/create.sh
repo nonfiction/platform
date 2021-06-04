@@ -21,8 +21,14 @@ defined $NODE || exit 1
 defined $DOMAIN || exit 1
 defined $SWARMFILE || exit 1
 
-defined $3 && VOLUME_SIZE=$3 || VOLUME_SIZE=10
-defined $4 && DROPLET_SIZE=$4 || DROPLET_SIZE="s-1vcpu-1gb"
+# Override VOLUME_SIZE or DROPLET_SIZE
+for arg in $ARGS; do
+  if [[ $arg =~ ^[0-9]+$ ]]; then 
+    export VOLUME_SIZE=$arg
+  else
+    export DROPLET_SIZE=$arg
+  fi
+done
 
 # Check if swarmfile exists
 if has $SWARMFILE; then
