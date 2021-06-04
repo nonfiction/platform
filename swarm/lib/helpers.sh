@@ -234,27 +234,31 @@ domain_from_slug() {
 }
 
 args() {
-  local args
-  args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)
-  echo "$args" | tr ' ' '\n' | sort | uniq | xargs
+  # local args
+  # args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)
+  # echo "$args" | tr ' ' '\n' | sort | uniq | xargs
+  echo "$(input $1)" | tr ' ' '\n' | sort | uniq | xargs
 }
 
 rargs() {
-  local args
-  args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)
-  echo "$args" | tr ' ' '\n' | sort | uniq | tac | xargs
+  # local args
+  # args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)
+  # echo "$args" | tr ' ' '\n' | sort | uniq | tac | xargs
+  echo "$(input $1)" | tr ' ' '\n' | sort | uniq | tac | xargs
 }
 
 first() {
-  local args
-  args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)
-  echo "$args" | awk '{print $1}'
+  # local args
+  # args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)
+  # echo "$args" | awk '{print $1}'
+  echo "$(input $1)" | awk '{print $1}'
 }
 
 after_first() {
-  local args
-  args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)
-  echo "$args" | awk '{$1=""}1' | xargs
+  # local args
+  # args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)
+  # echo "$args" | awk '{$1=""}1' | xargs
+  echo "$(input $1)" | awk '{$1=""}1' | xargs
 }
 
 lines() {
