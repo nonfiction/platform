@@ -62,6 +62,9 @@ else
 
     echo_next "Creating SWARMFILE: ${SWARMFILE}"
 
+    echo_info "Git config info"
+    echo "If this swarm is used for development, who is writing these commits?"
+
     ask_input GIT_USER_NAME
     GIT_USER_NAME=$(ask_env_file_default GIT_USER_NAME /run/secrets/git_user_name)
     sed -i "s/__GIT_USER_NAME__/${GIT_USER_NAME}/g" /tmp/swarmfile
@@ -71,6 +74,9 @@ else
     GIT_USER_EMAIL=$(ask_env_file_default GIT_USER_EMAIL /run/secrets/git_user_email)
     sed -i "s/__GIT_USER_EMAIL__/${GIT_USER_EMAIL}/g" /tmp/swarmfile
     echo_env GIT_USER_EMAIL
+
+    echo_info "Github account"
+    echo "https://github.com/settings/tokens"
 
     ask_input GITHUB_USER
     GITHUB_USER=$(ask_env_file_default GITHUB_USER /run/secrets/github_user)
@@ -85,16 +91,24 @@ else
     sed -i "s/__CODE_PASSWORD__/$(generate_password)/g" /tmp/swarmfile 
     sed -i "s/__SUDO_PASSWORD__/$(generate_password)/g" /tmp/swarmfile 
 
+    echo_info "Digital Ocean: personal access token"
+    echo "https://cloud.digitalocean.com/account/api/tokens"
+
     ask_input DO_AUTH_TOKEN
     DO_AUTH_TOKEN=$(env_file_ask DO_AUTH_TOKEN /run/secrets/do_auth_token)
     sed -i "s/__DO_AUTH_TOKEN__/${DO_AUTH_TOKEN}/g" /tmp/swarmfile
     echo_env DO_AUTH_TOKEN
+
+    echo_info "Webhook is called by the swarm manager to signal when nodes are ready"
+    echo "https://api.slack.com/messaging/webhooks"
 
     ask_input WEBHOOK
     WEBHOOK=$(env_file_ask WEBHOOK /run/secrets/webhook)
     sed -i "s|__WEBHOOK__|${WEBHOOK}|g" /tmp/swarmfile
     echo_env WEBHOOK
 
+    echo_info "Digital Ocean: database cluster"
+    echo "https://cloud.digitalocean.com/databases"
     ask_input DB_HOST
     DB_HOST=$(env_file_ask DB_HOST /run/secrets/db_host)
     sed -i "s|__DB_HOST__|${DB_HOST}|g" /tmp/swarmfile
