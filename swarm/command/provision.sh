@@ -46,16 +46,14 @@ else
   # If primary doesn't exist yet, count that as an addition
   if ! has_droplet $PRIMARY; then
     ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | args)"
-  else
-
-    # Ensure new droplets have a volume size no smaller than primary's volume 
-    # This is because a replicated volume will only be as largest as it's smallest node
-    primary_volume_size=$(get_volume_size $PRIMARY)
-    [ "$VOLUME_SIZE" -lt "$primary_volume_size" ] && VOLUME_SIZE=$primary_volume_size
-
   fi
 
 fi
+
+# Ensure new droplets have a volume size no smaller than primary's volume 
+# This is because a replicated volume will only be as largest as it's smallest node
+primary_volume_size=$(get_volume_size $PRIMARY)
+[ "$VOLUME_SIZE" -lt "$primary_volume_size" ] && VOLUME_SIZE=$primary_volume_size
 
 NODES="$(echo "${PRIMARY} ${REPLICAS}" | xargs)"
 
@@ -210,7 +208,7 @@ for node in $REMOVALS; do
 done
 
 
-# First node processed has a primary role
+# First node provisioned has a primary role
 role="primary"
 reset_changes
 
@@ -222,7 +220,7 @@ for node_name in $NODES; do
   echo_record_info  $node_name
 
   if has_changes; then 
-    if ask "Process droplet?"; then
+    if ask "Provision droplet?"; then
       
       # First create/resize the volume that will be attached
       create_or_resize_volume $node_name $role

@@ -61,4 +61,5 @@ else
 
   include "command/provision.sh"
   include "command/deploy.sh"
+  k
 fi
