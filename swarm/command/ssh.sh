@@ -19,11 +19,11 @@ if hasnt $SWARMFILE; then
   exit 1
 fi
 
-# Environment Variables
-include "lib/env.sh"
-
 PRIMARY=$(get_swarm_primary)
 REPLICAS=$(get_swarm_replicas)
+
+# Environment Variables
+include "lib/env.sh"
 
 if defined $ARGS; then
   run $ARGS

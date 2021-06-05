@@ -19,13 +19,13 @@ if hasnt $SWARMFILE; then
   exit 1
 fi
 
-# Environment Variables
-include "lib/env.sh"
-
+# Get primary and its size
 PRIMARY=$(get_swarm_primary)
 VOLUME_SIZE=$(get_volume_size $PRIMARY)
 DROPLET_SIZE=$(get_droplet_size $PRIMARY)
 
+# Environment Variables
+include "lib/env.sh"
 
 INSPECT_ONLY=1
 include "command/provision.sh"

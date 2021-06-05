@@ -19,12 +19,13 @@ if hasnt $SWARMFILE; then
   exit 1
 fi
 
-# Environment Variables
-include "lib/env.sh"
-
+# Get primary and its size
 PRIMARY=$(get_swarm_primary)
 VOLUME_SIZE=$(get_volume_size $PRIMARY)
 DROPLET_SIZE=$(get_droplet_size $PRIMARY)
+
+# Environment Variables
+include "lib/env.sh"
 
 if undefined $ARGS; then
   count=$((1 + $(echo $REPLICAS | wc -w)))
@@ -46,6 +47,8 @@ else
 
   echo "$(echo_env VOLUME_SIZE)"
   echo "$(echo_env DROPLET_SIZE)"
+
+  RESIZE=1
 
   include "command/provision.sh"
   include "command/deploy.sh"

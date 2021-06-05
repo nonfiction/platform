@@ -17,11 +17,14 @@ if hasnt $SWARMFILE; then
   exit 1
 fi
 
+# Primary usually matches swarm name (but it doesn't have to)
+PRIMARY=$(get_swarm_primary)
+VOLUME_SIZE=$(get_volume_size $PRIMARY)
+DROPLET_SIZE=$(get_droplet_size $PRIMARY)
+
 # Environment Variables
 include "lib/env.sh"
 
-# Primary usually matches swarm name (but it doesn't have to)
-PRIMARY=$(get_swarm_primary)
 
 # Swap a replica and primary node
 PROMOTED=$(get_swarm_promotion $ARGS)
@@ -56,20 +59,6 @@ primary_volume_size=$(get_volume_size $PRIMARY)
 [ "$VOLUME_SIZE" -lt "$primary_volume_size" ] && VOLUME_SIZE=$primary_volume_size
 
 NODES="$(echo "${PRIMARY} ${REPLICAS}" | xargs)"
-
-# # Environment Variables
-# include "lib/env.sh"
-
-# # Ensure new droplets have a volume size no smaller than primary's volume 
-# # This is because a replicated volume will only be as largest as it's smallest node
-# if has_droplet $PRIMARY; then
-#   primary_volume_size=$(get_volume_size $PRIMARY)
-#   [ "$VOLUME_SIZE" -lt "$primary_volume_size" ] && VOLUME_SIZE=$primary_volume_size
-#
-# # If primary doesn't exist yet, count that as an addition
-# else
-#   ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | args)"
-# fi
 
 
 # Count the number of nodes in this swarm

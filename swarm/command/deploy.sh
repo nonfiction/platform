@@ -20,15 +20,21 @@ if hasnt $SWARMFILE; then
   exit 1
 fi
 
-# ---------------------------------------------------------
-# Environment Variables
-# ---------------------------------------------------------
-include "lib/env.sh"
+# Skip this if provision is called from "swarm size"
+if undefined $RESIZE; then
 
-defined $PRIMARY || PRIMARY=$(get_swarm_primary)
-defined $REPLICAS || REPLICAS=$(get_swarm_replicas)
-defined $NODES || NODES="$(echo "${PRIMARY} ${REPLICAS}" | xargs)"
+  # Get primary and its size 
+  PRIMARY=$(get_swarm_primary)
+  VOLUME_SIZE=$(get_volume_size $PRIMARY)
+  DROPLET_SIZE=$(get_droplet_size $PRIMARY)
 
+  # Environment Variables
+  include "lib/env.sh"
+
+fi
+
+REPLICAS=$(get_swarm_replicas)
+NODES="$(echo "${PRIMARY} ${REPLICAS}" | xargs)"
 
 # ---------------------------------------------------------
 # Verify all nodes are ready
