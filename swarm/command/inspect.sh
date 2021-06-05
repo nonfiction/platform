@@ -28,4 +28,4 @@ DROPLET_SIZE=$(get_droplet_size $PRIMARY)
 
 
 INSPECT_ONLY=1
-include "lib/process.sh"
+include "command/provision.sh"

@@ -59,6 +59,6 @@ else
   # Add old primary to replicas, remove new primary from replicas
   REPLICAS=$(get_swarm_replicas $DEMOTED $PROMOTED)
 
-  include "lib/process.sh"
-  include "command/update.sh"
+  include "command/provision.sh"
+  include "command/deploy.sh"
 fi

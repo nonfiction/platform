@@ -5,35 +5,83 @@ include "lib/helpers.sh"
 include "lib/doctl.sh"
 verify_doctl
 
-defined $SWARM
-defined $NODE
-defined $DOMAIN
+if undefined $SWARM; then
+  echo
+  echo "Usage:  swarm provision SWARM [ARGS]"
+  echo
+  exit 1
+fi
 
-defined $PRIMARY || PRIMARY=$(get_swarm_primary)
-defined $REPLICAS || REPLICAS=$(get_swarm_replicas)
-[ "$REPLICAS" = "-" ] && REPLICAS=""
-defined $NODES || NODES="$(echo "${PRIMARY} ${REPLICAS}" | xargs)"
+if hasnt $SWARMFILE; then
+  echo_stop "Swarm named $SWARM not found in $SWARMFILE"
+  exit 1
+fi
 
 # Environment Variables
 include "lib/env.sh"
 
-# Ensure new droplets have a volume size no smaller than primary's volume 
-# This is because a replicated volume will only be as largest as it's smallest node
-if has_droplet $PRIMARY; then
-  primary_volume_size=$(get_volume_size $PRIMARY)
-  [ "$VOLUME_SIZE" -lt "$primary_volume_size" ] && VOLUME_SIZE=$primary_volume_size
+# Primary usually matches swarm name (but it doesn't have to)
+PRIMARY=$(get_swarm_primary)
 
-# If primary doesn't exist yet, count that as an addition
+# Swap a replica and primary node
+PROMOTED=$(get_swarm_promotion $ARGS)
+if defined $PROMOTED; then
+  DEMOTED=$PRIMARY
+
+  # Reassign PRIMARY for display
+  PRIMARY=$PROMOTED
+
+  # Add old primary to replicas, remove new primary from replicas
+  REPLICAS=$(get_swarm_replicas $DEMOTED $PROMOTED)
+
+
+# Add or remove replicas
 else
-  ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | args)"
+  REMOVALS=$(get_swarm_removals $ARGS)
+  ADDITIONS=$(get_swarm_additions $ARGS)
+
+  # Look up number of existing replicas in swarm, including additions, without removals
+  REPLICAS=$(get_swarm_replicas "$ADDITIONS" "$REMOVALS")
+
+  # If primary doesn't exist yet, count that as an addition
+  if ! has_droplet $PRIMARY; then
+    ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | args)"
+  else
+
+    # Ensure new droplets have a volume size no smaller than primary's volume 
+    # This is because a replicated volume will only be as largest as it's smallest node
+    primary_volume_size=$(get_volume_size $PRIMARY)
+    [ "$VOLUME_SIZE" -lt "$primary_volume_size" ] && VOLUME_SIZE=$primary_volume_size
+
+  fi
+
 fi
+
+NODES="$(echo "${PRIMARY} ${REPLICAS}" | xargs)"
+
+# # Environment Variables
+# include "lib/env.sh"
+
+# # Ensure new droplets have a volume size no smaller than primary's volume 
+# # This is because a replicated volume will only be as largest as it's smallest node
+# if has_droplet $PRIMARY; then
+#   primary_volume_size=$(get_volume_size $PRIMARY)
+#   [ "$VOLUME_SIZE" -lt "$primary_volume_size" ] && VOLUME_SIZE=$primary_volume_size
+#
+# # If primary doesn't exist yet, count that as an addition
+# else
+#   ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | args)"
+# fi
 
 
 # Count the number of nodes in this swarm
 count=$((1 + $(echo $REPLICAS | wc -w)))
 [ "$count" = "1" ] && count="" || count="[x${count}]"
-echo_next "${SWARM} ${count}"
-echo_line green
+if defined $INSPECT_ONLY; then
+  echo_main "INSPECT ${SWARM} ${count}"
+else
+  echo_main "PROVISION ${SWARM} ${count}"
+fi
 echo_env PRIMARY
 defined $REPLICAS  && echo_env REPLICAS
 defined $PROMOTED  && echo_env PROMOTED

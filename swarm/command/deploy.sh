@@ -9,7 +9,7 @@ verify_doctl
 
 if undefined $SWARM; then
   echo
-  echo "Usage:  swarm update SWARM"
+  echo "Usage:  swarm deploy SWARM"
   echo
   exit 1
 fi

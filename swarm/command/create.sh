@@ -39,8 +39,6 @@ if has $SWARMFILE; then
 
   else
     include "command/edit.sh"
-    include "lib/process.sh"
-    include "command/update.sh"
   fi
 
 # Swarmfile doesn't exist
@@ -139,24 +137,28 @@ else
     # Save from tmp to where it belongs
     mv /tmp/swarmfile $SWARMFILE
 
-    # Edit the swarmfile
-    include "command/edit.sh"
+    # # Edit the swarmfile
+    # include "command/edit.sh"
+    #
+    # # Re-read env variables from new swarmfile
+    # unset ROOT_PRIVATE_KEY
+    # unset ROOT_PUBLIC_KEY
+    # unset ROOT_PASSWORD
+    # unset DROPLET_IMAGE
+    # unset DROPLET_SIZE
+    # unset VOLUME_SIZE
+    # unset REGION
+    # unset FS_TYPE
+    # unset WEBHOOK
+    # unset DO_AUTH_TOKEN
+    # include "lib/env.sh"
+    #
+    # # Create primary
+    # include "command/provision.sh"
 
-    # Re-read env variables from new swarmfile
-    unset ROOT_PRIVATE_KEY
-    unset ROOT_PUBLIC_KEY
-    unset ROOT_PASSWORD
-    unset DROPLET_IMAGE
-    unset DROPLET_SIZE
-    unset VOLUME_SIZE
-    unset REGION
-    unset FS_TYPE
-    unset WEBHOOK
-    unset DO_AUTH_TOKEN
-    include "lib/env.sh"
-
-    # Create primary
-    include "lib/process.sh"
+    echo_info "...done!"
+    echo_next "swarm edit $SWARM - edit the newly created swarm"
+    echo_next "swarm provision $SWARM -  provision the newly created swarm"
 
   fi
 

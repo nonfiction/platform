@@ -30,8 +30,12 @@ case $COMMAND in
     include "command/create.sh"
     ;;
 
-  delete | d | rm)
+  delete | rm)
     include "command/delete.sh"
+    ;;
+
+  deploy | d)
+    include "command/deploy.sh"
     ;;
 
   edit | e)
@@ -46,12 +50,8 @@ case $COMMAND in
     include "command/list.sh"
     ;;
 
-  primary | p)
-    include "command/primary.sh"
-    ;;
-
-  replicas | r)
-    include "command/replicas.sh"
+  provision | p)
+    include "command/provision.sh"
     ;;
 
   ssh)
@@ -62,10 +62,6 @@ case $COMMAND in
     include "command/size.sh"
     ;;
 
-  update | u)
-    include "command/update.sh"
-    ;;
-
   help | h | *)
 
     echo
@@ -74,14 +70,15 @@ case $COMMAND in
     echo "Management Commands:"
     echo "  create"
     echo "  delete"
+    echo "  deploy"
     echo "  edit"
     echo "  inspect"
     echo "  list"
     echo "  primary"
+    echo "  provision"
     echo "  replicas"
     echo "  ssh"
     echo "  size"
-    echo "  update"
     echo "  help"
     echo
     ;;

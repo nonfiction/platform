@@ -47,7 +47,7 @@ else
   echo "$(echo_env VOLUME_SIZE)"
   echo "$(echo_env DROPLET_SIZE)"
 
-  include "lib/process.sh"
-  include "command/update.sh"
+  include "command/provision.sh"
+  include "command/deploy.sh"
 fi
 

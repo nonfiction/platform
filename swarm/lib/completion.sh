@@ -17,24 +17,22 @@ function _swarm () {
   defined $XDG_CONFIG_HOME || XDG_CONFIG_HOME=$HOME/.config
   defined $XDG_DATA_HOME || XDG_DATA_HOME=$HOME/.local/share
 
-  local commands="create delete edit inspect list primary replicas ssh size update help"
+  local commands="create delete deploy edit inspect list provision ssh size help"
   local word="${COMP_WORDS[COMP_CWORD]}";
 
   # List commands
   if   [ "${#COMP_WORDS[@]}" = "2" ]; then 
 
-      if [[ $word = c* ]];  then commands="create"
-    elif [[ $word = d* ]];  then commands="delete"
-    elif [[ $word = e* ]];  then commands="edit"
-    elif [[ $word = h* ]];  then commands="help"
-    elif [[ $word = i* ]];  then commands="inspect"
-    elif [[ $word = l* ]];  then commands="list"
-    elif [[ $word = p* ]];  then commands="primary"
-    elif [[ $word = r* ]];  then commands="replicas"
-    elif [[ $word = ss* ]]; then commands="ssh"
-    elif [[ $word = si* ]]; then commands="size"
-    elif [[ $word = s* ]];  then commands="ssh size"
-    elif [[ $word = u* ]];  then commands="update"
+      if [[ $word = c*   ]]; then commands="create"
+    elif [[ $word = del* ]]; then commands="delete"
+    elif [[ $word = d*   ]]; then commands="deploy"
+    elif [[ $word = e*   ]]; then commands="edit"
+    elif [[ $word = h*   ]]; then commands="help"
+    elif [[ $word = i*   ]]; then commands="inspect"
+    elif [[ $word = l*   ]]; then commands="list"
+    elif [[ $word = p*   ]]; then commands="provision"
+    elif [[ $word = si*  ]]; then commands="size"
+    elif [[ $word = s*   ]]; then commands="ssh"
     fi
 
     COMPREPLY=($commands)
