@@ -147,7 +147,7 @@ echo_run() {
 
 
 # Check for environment variable, or fall back on up to 2 files
-env_or_file() {
+env_file() {
   local variable="${!1}"
   if undefined "$variable"; then
     defined "$2" && has "$2" && variable="$(cat $2)"
@@ -170,20 +170,7 @@ env_file_default() {
   echo "$variable"
 }
 
-env_file_ask() {
-  local variable="${!1}"
-  if undefined "$variable"; then
-    defined "$2" && has "$2" && variable="$(cat $2)"
-    if undefined "$variable"; then
-      defined "$3" && has "$3" && variable="$(cat $3)"
-      if undefined "$variable"; then
-        read variable
-      fi
-    fi
-  fi
-  echo "$variable"
-}
-
+# Ask for input, using environment variable or file as suggested value
 ask_env_file_default() {
   local variable="${!1}"
   if undefined "$variable"; then

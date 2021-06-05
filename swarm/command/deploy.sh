@@ -75,8 +75,8 @@ for node in $NODES; do
   # Prepare environment variables for run command
   env=""
   env="${env} NODE=\"$node\""
-  env="${env} DOMAIN=\"$DOMAIN\""
-  env="${env} FS_TYPE=\"$FS_TYPE\""
+  # env="${env} DOMAIN=\"$DOMAIN\""
+  # env="${env} FS_TYPE=\"$FS_TYPE\""
   env="${env} HOSTS_FILE=\"$hosts\""
   env="${env} WEBHOOK=\"$WEBHOOK\""
   env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
@@ -120,6 +120,16 @@ for node in $NODES; do
   run $node "${env} /root/platform/swarm/node/docker"
 
 done
+
+echo_next "Docker secrets..."
+# # Prepare environment variables for run command
+# env="SECRETS=1"
+# env="${env} DO_AUTH_TOKEN=\"$DO_AUTH_TOKEN\""
+# env="${env} ROOT_PRIVATE_KEY=\"$ROOT_PRIVATE_KEY\""
+# env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
+#
+# # Run script on node
+# run $node "${env} /root/platform/swarm/node/docker"
 
 
 # ---------------------------------------------------------

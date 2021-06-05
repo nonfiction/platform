@@ -88,7 +88,7 @@ else
     echo_env GITHUB_USER
 
     ask_input GITHUB_TOKEN
-    GITHUB_TOKEN=$(env_file_ask GITHUB_TOKEN /run/secrets/github_token)
+    GITHUB_TOKEN=$(ask_env_file_default GITHUB_TOKEN /run/secrets/github_token)
     sed -i "s/__GITHUB_TOKEN__/${GITHUB_TOKEN}/g" /tmp/swarmfile
     echo_env GITHUB_TOKEN
 
@@ -99,7 +99,7 @@ else
     echo "https://cloud.digitalocean.com/account/api/tokens"
 
     ask_input DO_AUTH_TOKEN
-    DO_AUTH_TOKEN=$(env_file_ask DO_AUTH_TOKEN /run/secrets/do_auth_token)
+    DO_AUTH_TOKEN=$(ask_env_file_default DO_AUTH_TOKEN /run/secrets/do_auth_token)
     sed -i "s/__DO_AUTH_TOKEN__/${DO_AUTH_TOKEN}/g" /tmp/swarmfile
     echo_env DO_AUTH_TOKEN
 
@@ -107,19 +107,19 @@ else
     echo "https://api.slack.com/messaging/webhooks"
 
     ask_input WEBHOOK
-    WEBHOOK=$(env_file_ask WEBHOOK /run/secrets/webhook)
+    WEBHOOK=$(ask_env_file_default WEBHOOK /run/secrets/webhook)
     sed -i "s|__WEBHOOK__|${WEBHOOK}|g" /tmp/swarmfile
     echo_env WEBHOOK
 
     echo_info "Digital Ocean: database cluster"
     echo "https://cloud.digitalocean.com/databases"
     ask_input DB_HOST
-    DB_HOST=$(env_file_ask DB_HOST /run/secrets/db_host)
+    DB_HOST=$(ask_env_file_default DB_HOST /run/secrets/db_host)
     sed -i "s|__DB_HOST__|${DB_HOST}|g" /tmp/swarmfile
     echo_env DB_HOST
 
     ask_input DB_PASSWORD
-    DB_PASSWORD=$(env_file_ask DB_PASSWORD /run/secrets/db_password)
+    DB_PASSWORD=$(ask_env_file_default DB_PASSWORD /run/secrets/db_password)
     sed -i "s/__DB_PASSWORD__/${DB_PASSWORD}/g" /tmp/swarmfile
     echo_env DB_PASSWORD
 

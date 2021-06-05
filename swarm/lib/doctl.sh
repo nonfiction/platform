@@ -425,6 +425,7 @@ create_droplet() {
   defined $SWARM || return
   defined $DOMAIN || return
   defined $REGION || return
+  defined $FS_TYPE || return
   defined $DROPLET_SIZE || return
   defined $DROPLET_IMAGE || return
   defined $ROOT_PASSWORD || return
@@ -433,8 +434,6 @@ create_droplet() {
   local node=$1
   local role=$2
   local volume_id; volume_id="$(get_volume_id $1)"
-  # undefined $2 && role="primary"
-  # [ $role != "primary" ] && role="replica"
   
   # Download cloud-config.yml and fill out variables
   local config=/tmp/cloud-config.yml
@@ -442,6 +441,9 @@ create_droplet() {
   sed -i "s/__NODE__/${node}/" $config
   sed -i "s/__SWARM__/${SWARM}/" $config
   sed -i "s/__DOMAIN__/${DOMAIN}/" $config
+  sed -i "s/__REGION__/${REGION}/" $config
+  sed -i "s/__FS_TYPE__/${FS_TYPE}/" $config
+  sed -i "s/__DROPLET_IMAGE__/${DROPLET_IMAGE}/" $config
   sed -i "s|__ROOT_PUBLIC_KEY__|${ROOT_PUBLIC_KEY}|" $config
   sed -i "s|__WEBHOOK__|${WEBHOOK}|" $config
   

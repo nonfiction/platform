@@ -37,6 +37,21 @@ write_files:
   - path: /etc/swarm
     content: | 
        __SWARM__
+
+  # Make note of which droplet image
+  - path: /etc/droplet_image
+    content: | 
+       __DROPLET_IMAGE__
+
+  # Make note of which file system
+  - path: /etc/fs_type
+    content: | 
+       __FS_TYPE__
+
+  # Make note of which region
+  - path: /etc/region
+    content: | 
+       __REGION__
   
   # Optimize SSH for docker
   - path: /etc/ssh/sshd_config
