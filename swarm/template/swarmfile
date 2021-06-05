@@ -3,17 +3,23 @@
 # Usage examples
 # -----------------------
 #
-# # Run node configuration on this swarm:
-# swarm update __NODE__.__DOMAIN__ 
-#
 # # Add two replicas:
-# swarm replicas __NODE__.__DOMAIN__ +2
+# swarm provision __NODE__.__DOMAIN__ +2
 #
 # # Remove specific replica:
-# swarm replicas __NODE__.__DOMAIN__ -__NODE__02
+# swarm provision __NODE__.__DOMAIN__ -__NODE__02
 #
 # # Promote replica to primary:
-# swarm primary __NODE__.__DOMAIN__ __NODE__01
+# swarm provision __NODE__.__DOMAIN__ ^__NODE__01
+#
+# # Increase the volume size to 20GB:
+# swarm size __NODE__.__DOMAIN__ 20
+#
+# # Run node configuration and deploy this swarm:
+# swarm deploy __NODE__.__DOMAIN__ 
+#
+# # SSH into the first replica in this swarm:
+# swarm ssh __NODE__.__DOMAIN__ __NODE__01
 
 
 # Workspace configuration
