@@ -5,7 +5,7 @@ include "lib/helpers.sh"
 
 if undefined $SWARM; then
   echo
-  echo "Usage:  swarm delete SWARM"
+  echo "Usage:  swarm remove SWARM"
   echo
   exit 1
 fi
