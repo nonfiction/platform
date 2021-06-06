@@ -30,8 +30,8 @@ case $COMMAND in
     include "command/create.sh"
     ;;
 
-  delete | rm)
-    include "command/delete.sh"
+  remove | r | rm)
+    include "command/remove.sh"
     ;;
 
   deploy | d)
@@ -69,12 +69,12 @@ case $COMMAND in
     echo
     echo "Management Commands:"
     echo "  create"
-    echo "  delete"
     echo "  deploy"
     echo "  edit"
     echo "  inspect"
     echo "  list"
     echo "  provision"
+    echo "  remove"
     echo "  ssh"
     echo "  size"
     echo "  help"
