@@ -102,7 +102,7 @@ for node in $NODES; do
 done
 
 # Build certs config for traefik yaml
-dashboards="${n}"
+dashboards=""
 for node in $NODES; do
   dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.rule: \"Host(\`traefik.${node}.${DOMAIN}\`)\""
   dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.entrypoints: \"websecure\""
