@@ -102,16 +102,13 @@ for node in $NODES; do
 done
 
 # Build certs config for traefik yaml
-dashboards="${n}traefik.http.services.traefik.loadbalancer.server.port: \"888"\"
+dashboards="${n}"
 for node in $NODES; do
-  # dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.rule: "
-  # dashboards+='"Host(`traefik.'
-  # dashboards+=$node.$DOMAIN
-  # dashboards+='`)"'
   dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.rule: \"Host(\`traefik.${node}.${DOMAIN}\`)\""
   dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.entrypoints: \"websecure\""
   dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.tls: \"true\""
   dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.service: \"api@internal\""
+  dashboards="${dashboards}${n}traefik.http.services.traefik-${node}.loadbalancer.server.port: \"888"\"
 done
 
 # Loop all nodes in swarm

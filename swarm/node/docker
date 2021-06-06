@@ -112,7 +112,9 @@ elif defined $SECRETS && defined $DO_AUTH_TOKEN; then
 # ----------------------------------------
 elif defined $STACK && defined $CERTS && defined $DASHBOARDS && defined $DO_AUTH_TOKEN; then
 
+  # Create traefik stack
   stack=/root/platform/traefik.yml
+  echo_next "Writing ${stack}"
   curl -sL https://github.com/nonfiction/platform/raw/master/traefik.yml > $stack
   sed -i "s/__CERTS__/$(echo "$CERTS" | base64 -d)/" $stack
   sed -i "s/__DASHBOARDS__/$(echo "$DASHBOARDS" | base64 -d)/" $stack
