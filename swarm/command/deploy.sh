@@ -92,6 +92,24 @@ done
 echo_main "2. Docker Config..."
 count=1
 
+# Build certs config for traefik yaml
+i=0; n="\n        " # new line & 8 spaces
+certs="${n}traefik.http.routers.wildcard-certs.tls.certresolver: \"digitalocean\""
+for node in $NODES; do
+  certs="${certs}${n}traefik.http.routers.wildcard-certs.tls.domains[${i}].main: \"${node}.${DOMAIN}\""
+  certs="${certs}${n}traefik.http.routers.wildcard-certs.tls.domains[${i}].sans: \"*.${node}.${DOMAIN}\""
+  ((i++))
+done
+
+# Build certs config for traefik yaml
+dashboards="${n}traefik.http.services.traefik.loadbalancer.server.port: \"888"\"
+for node in $NODES; do
+  dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.rule: \"Host(`traefik.${node}.${DOMAIN}`)\""
+  dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.entrypoints: \"websecure\""
+  dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.tls: \"true\""
+  dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.service: \"api@internal\""
+done
+
 # Loop all nodes in swarm
 for node in $NODES; do
 
@@ -113,6 +131,16 @@ for node in $NODES; do
   env="${env} NODE=\"$node\""
   env="${env} PRIVATE_IP=\"$(get_droplet_private_ip $node)\""
   env="${env} JOIN_TOKEN=\"$join_token\""
+
+  # Run script on node
+  run $node "${env} /root/platform/swarm/node/docker"
+
+
+  # Prepare environment variables for run command
+  env="STACK=1"
+  env="${env} CERTS=\"$certs\""
+  env="${env} DASHBOARDS=\"$dashboards\""
+  env="${env} DO_AUTH_TOKEN=\"$DO_AUTH_TOKEN\""
 
   # Run script on node
   run $node "${env} /root/platform/swarm/node/docker"

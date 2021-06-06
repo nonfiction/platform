@@ -107,4 +107,15 @@ elif defined $SECRETS && defined $DO_AUTH_TOKEN; then
   echo "NODE=$(cat /etc/node)" | tee --append $dotenv
   echo "DO_AUTH_TOKEN=${DO_AUTH_TOKEN}" | tee --append $dotenv
 
+
+# STACK
+# ----------------------------------------
+elif defined $STACK && defined $CERTS && defined $DASHBOARDS && defined $DO_AUTH_TOKEN; then
+
+  stack=/root/platform/traefik.yml
+  curl -sL https://github.com/nonfiction/platform/raw/master/traefik.yml > $stack
+  sed -i "s/__CERTS__/${CERTS}/" $stack
+  sed -i "s/__DASHBOARDS__/${DASHBOARDS}/" $stack
+  sed -i "s/__DO_AUTH_TOKEN__/${DO_AUTH_TOKEN}/" $stack
+
 fi

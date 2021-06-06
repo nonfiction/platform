@@ -60,6 +60,10 @@ services:
     deploy:
       mode: global
 
+      placement:
+        constraints:
+          - node.role == manager
+
       # placement:
       #   # constraints:
       #   #   # Make the traefik service run only on the node with this label
@@ -70,19 +74,13 @@ services:
         traefik.enable: "true"
         traefik.docker.network: "proxy"
 
-        # Dashboard
-        traefik.http.routers.traefik.rule: "Host(`traefik.${SWARM}`)"
-        traefik.http.routers.traefik.entrypoints: "websecure"
-        traefik.http.routers.traefik.tls: "true"
-        traefik.http.routers.traefik.service: "api@internal"
+        # Dashboards __DASHBOARDS__
+        # traefik.http.routers.traefik.rule: "Host(`traefik.__NODE__.__DOMAIN__`)"
+        # traefik.http.routers.traefik.entrypoints: "websecure"
+        # traefik.http.routers.traefik.tls: "true"
+        # traefik.http.routers.traefik.service: "api@internal"
+        # traefik.http.services.traefik.loadbalancer.server.port: "888"
 
-        traefik.http.services.traefik.loadbalancer.server.port: "888"
-
-
-        # Global wildcard certificates
-        traefik.http.routers.wildcard-certs.tls.certresolver: "digitalocean"
-        traefik.http.routers.wildcard-certs.tls.domains[0].main: "${SWARM}"
-        traefik.http.routers.wildcard-certs.tls.domains[0].sans: "*.${SWARM}"
 
         # # Global redirect to https
         # traefik.http.routers.http-catchall.rule: "hostregexp(`{host:.+}`)"
@@ -90,16 +88,25 @@ services:
         # traefik.http.routers.http-catchall.middlewares: "redirect-to-https@docker"
         # traefik.http.middlewares.redirect-to-https.redirectscheme.scheme: "https"
 
+        # Global wildcard certificates __CERTS__
+        # traefik.http.routers.wildcard-certs.tls.certresolver: "digitalocean"
+        # traefik.http.routers.wildcard-certs.tls.domains[0].main: "__NODE__.__DOMAIN__"
+        # traefik.http.routers.wildcard-certs.tls.domains[0].sans: "*.__NODE__.__DOMAIN__"
+
 
     environment:
-      DO_AUTH_TOKEN: "${DO_AUTH_TOKEN}"
+      DO_AUTH_TOKEN: "__DO_AUTH_TOKEN__"
 
     networks:
       - proxy
 
     ports:
-      - "80:80"
-      - "443:443"
+      - target: 80
+        published: 80
+        mode: host
+      - target: 443
+        published: 443
+        mode: host
 
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
