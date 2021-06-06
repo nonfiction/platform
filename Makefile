@@ -1,29 +1,19 @@
 include .env
 
-init: .env data network
-
-.env:
-	cp example.env .env
+init: data network
 
 data:
 	mkdir -p /work
-	mkdir -p data/work-cache
-	mkdir -p data/work-data
-	mkdir -p data/portainer
-	touch data/acme.json
-	chmod 600 data/acme.json
-	touch data/traefik.yml
+	# mkdir -p /data/work-cache
+	# mkdir -p /data/work-data
+	# mkdir -p /data/portainer
+	mkdir -p /data/traefik
+	touch /data/traefik/traefik.yml
+	touch /data/traefik/acme.json
+	chmod 600 /data/traefik/acme.json
 
 network:
-	docker network create traefik
+	docker network create --driver=overlay proxy
 
-up:
-	docker-compose up -d
-down: 
-	docker-compose down
-
-pull: 
-	docker-compose pull
-
-logs: 
-	docker-compose logs -f
+deploy:
+	docker stack deploy -c traefik.yml $(NODE)

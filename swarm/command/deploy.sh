@@ -119,21 +119,19 @@ for node in $NODES; do
 
 done
 
-echo_main "3. Docker Secrets..."
-# # Prepare environment variables for run command
-# env="SECRETS=1"
-# env="${env} DO_AUTH_TOKEN=\"$DO_AUTH_TOKEN\""
-# env="${env} ROOT_PRIVATE_KEY=\"$ROOT_PRIVATE_KEY\""
-# env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
-#
-# # Run script on node
-# run $node "${env} /root/platform/swarm/node/docker"
+echo_main "2b. Docker Secrets..."
+# Prepare environment variables for run command
+env="SECRETS=1"
+env="${env} DO_AUTH_TOKEN=\"$DO_AUTH_TOKEN\""
+
+# Run script on node
+run $PRIMARY "${env} /root/platform/swarm/node/docker"
 
 
 # ---------------------------------------------------------
 # Create Gluster Volume
 # ---------------------------------------------------------
-echo_main "4. Gluster Config..."
+echo_main "3. Gluster Config..."
 count=1
 
 # Loop all nodes in swarm
@@ -158,8 +156,9 @@ done
 # ---------------------------------------------------------
 # Deploy Swarm
 # ---------------------------------------------------------
-echo_main "5. Deploy Swarm..."
-run $PRIMARY "cd /root/platform && ls -lah"
+echo_main "4. Deploy Swarm..."
+run $PRIMARY "cd /root/platform && make init"
+run $PRIMARY "cd /root/platform && make deploy"
 
 
 # ---------------------------------------------------------

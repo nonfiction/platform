@@ -93,4 +93,18 @@ elif defined $JOIN && defined $NODE && defined $JOIN_TOKEN && defined $PRIVATE_I
 
   fi
 
+
+# SECRETS (run on manager)
+# ----------------------------------------
+elif defined $SECRETS && defined $DO_AUTH_TOKEN; then
+
+  # Create dotenv file
+  dotenv="/root/platform/.env"
+  echo_next "Writing ${dotenv}"
+  echo "" > $dotenv
+
+  echo "SWARM=$(cat /etc/swarm)" | tee --append $dotenv
+  echo "NODE=$(cat /etc/node)" | tee --append $dotenv
+  echo "DO_AUTH_TOKEN=${DO_AUTH_TOKEN}" | tee --append $dotenv
+
 fi

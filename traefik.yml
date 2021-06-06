@@ -1,0 +1,106 @@
+version: '3.8'
+
+networks:
+  proxy:
+    name: proxy
+    external: true
+
+services:
+
+  traefik:
+    image: traefik:v2.4.8
+    command:
+
+      # Enable Docker in Traefik, so that it reads labels from Docker services
+      # Enable Docker Swarm mode
+      - --providers.docker
+      - --providers.docker.swarmmode
+      # - --providers.docker.endpoint=tcp://127.0.0.1:2375
+      - --providers.docker.endpoint=unix:///var/run/docker.sock
+
+      # Do not expose all Docker services, only the ones explicitly exposed
+      - --providers.docker.exposedbydefault=false
+
+      # Use this docker network for container communications
+      - --providers.docker.network=traefik
+
+      # Enable the access log, with HTTP requests
+      - --accesslog
+
+      # Enable the Traefik log, for configurations and errors
+      - --log
+
+      # Enable the Dashboard and API
+      - --api
+      - --api.insecure
+      - --pilot.dashboard=false
+
+      # Allow backend services to serve https with self-signed certs
+      - --serversTransport.insecureSkipVerify=true
+
+      # Create a entrypoints http/https listening on ports 80/443
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+
+
+      # Support auto-renewing https certificates
+      - --certificatesResolvers.digitalocean.acme.dnsChallenge=true
+      - --certificatesResolvers.digitalocean.acme.dnsChallenge.provider=digitalocean
+      - --certificatesresolvers.digitalocean.acme.email=dns@nonfiction.ca
+      - --certificatesresolvers.digitalocean.acme.storage=/acme.json
+      - --certificatesResolvers.digitalocean.acme.dnsChallenge.resolvers=1.1.1.1:53,8.8.8.8:53
+      - --certificatesresolvers.digitalocean.acme.dnschallenge.delaybeforecheck=0
+
+      # - --providers.file.directory=/root/docker-host/config
+      # - --providers.file.watch=true
+      
+      # # Add a constraint to only use services with the label "traefik.constraint-label=traefik-public"
+      # - --providers.docker.constraints=Label(`traefik.constraint-label`, `traefik-public`)
+      
+    deploy:
+      mode: global
+
+      # placement:
+      #   # constraints:
+      #   #   # Make the traefik service run only on the node with this label
+      #   #   # as the node with it has the volume for the certificates
+      #   #   - node.labels.traefik-public.traefik-public-certificates == true
+      
+      labels:
+        traefik.enable: "true"
+        traefik.docker.network: "proxy"
+
+        # Dashboard
+        traefik.http.routers.traefik.rule: "Host(`traefik.${SWARM}`)"
+        traefik.http.routers.traefik.entrypoints: "websecure"
+        traefik.http.routers.traefik.tls: "true"
+        traefik.http.routers.traefik.service: "api@internal"
+
+        traefik.http.services.traefik.loadbalancer.server.port: "888"
+
+
+        # Global wildcard certificates
+        traefik.http.routers.wildcard-certs.tls.certresolver: "digitalocean"
+        traefik.http.routers.wildcard-certs.tls.domains[0].main: "${SWARM}"
+        traefik.http.routers.wildcard-certs.tls.domains[0].sans: "*.${SWARM}"
+
+        # # Global redirect to https
+        # traefik.http.routers.http-catchall.rule: "hostregexp(`{host:.+}`)"
+        # traefik.http.routers.http-catchall.entrypoints: "web"
+        # traefik.http.routers.http-catchall.middlewares: "redirect-to-https@docker"
+        # traefik.http.middlewares.redirect-to-https.redirectscheme.scheme: "https"
+
+
+    environment:
+      DO_AUTH_TOKEN: "${DO_AUTH_TOKEN}"
+
+    networks:
+      - proxy
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/data/traefik/acme.json:/acme.json"
