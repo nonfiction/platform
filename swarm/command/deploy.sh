@@ -104,6 +104,10 @@ done
 # Build certs config for traefik yaml
 dashboards="${n}traefik.http.services.traefik.loadbalancer.server.port: \"888"\"
 for node in $NODES; do
+  # dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.rule: "
+  # dashboards+='"Host(`traefik.'
+  # dashboards+=$node.$DOMAIN
+  # dashboards+='`)"'
   dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.rule: \"Host(\`traefik.${node}.${DOMAIN}\`)\""
   dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.entrypoints: \"websecure\""
   dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.tls: \"true\""
@@ -138,8 +142,8 @@ for node in $NODES; do
 
   # Prepare environment variables for run command
   env="STACK=1"
-  env="${env} CERTS=\"${certs}\""
-  env="${env} DASHBOARDS=\"${dashboards}\""
+  env="${env} CERTS=\"$(echo -n "$certs" | base64)\""
+  env="${env} DASHBOARDS=\"$(echo -n "$dashboards" | base64)\""
   env="${env} DO_AUTH_TOKEN=\"${DO_AUTH_TOKEN}\""
 
   # Run script on node

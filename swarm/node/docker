@@ -114,8 +114,8 @@ elif defined $STACK && defined $CERTS && defined $DASHBOARDS && defined $DO_AUTH
 
   stack=/root/platform/traefik.yml
   curl -sL https://github.com/nonfiction/platform/raw/master/traefik.yml > $stack
-  sed -i "s/__CERTS__/${CERTS}/" $stack
-  sed -i "s/__DASHBOARDS__/${DASHBOARDS}/" $stack
+  sed -i "s/__CERTS__/$(echo "$CERTS" | base64 -d)/" $stack
+  sed -i "s/__DASHBOARDS__/$(echo "$DASHBOARDS" | base64 -d)/" $stack
   sed -i "s/__DO_AUTH_TOKEN__/${DO_AUTH_TOKEN}/" $stack
 
 fi
