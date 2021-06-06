@@ -138,9 +138,9 @@ for node in $NODES; do
 
   # Prepare environment variables for run command
   env="STACK=1"
-  env="${env} CERTS=\"$certs\""
-  env="${env} DASHBOARDS=\"$dashboards\""
-  env="${env} DO_AUTH_TOKEN=\"$DO_AUTH_TOKEN\""
+  env="${env} CERTS=\"${certs}\""
+  env="${env} DASHBOARDS=\"${dashboards}\""
+  env="${env} DO_AUTH_TOKEN=\"${DO_AUTH_TOKEN}\""
 
   # Run script on node
   run $node "${env} /root/platform/swarm/node/docker"
