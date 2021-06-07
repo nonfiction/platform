@@ -14,7 +14,7 @@ services:
         traefik.http.services.hello-world.loadbalancer.server.port: "443"
         traefik.http.services.hello-world.loadbalancer.server.scheme: "https"
         traefik.http.routers.hello-world-insecure.rule: "Host(`hello-world.abc.nfweb.ca`,`hello-world.abc01.nfweb.ca`)"
-        traefik.http.routers.hello-world-insecure.entrypoints: "websecure"
+        traefik.http.routers.hello-world-insecure.entrypoints: "web"
         traefik.http.services.hello-world-insecure.loadbalancer.server.port: "80"
         traefik.http.services.hello-world-insecure.loadbalancer.server.scheme: "http"
 
