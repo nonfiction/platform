@@ -14,8 +14,8 @@ data:
 	chmod 600 /data/traefik/acme.json
 
 network:
-	docker network create --driver=overlay proxy || true
-	docker network create --driver=overlay dockersocket || true
+	docker network create --driver=overlay proxy
+	docker network create --driver=overlay --attachable dockersocket
 
 dockersocket:
 	docker container run -d --privileged -p 127.0.0.1:2375:2375 \
@@ -28,7 +28,7 @@ dockersocket:
     -e SWARM=1 \
     -e TASKS=1 \
     -e NODES=1 \
-    tecnativa/docker-socket-proxy || true
+    tecnativa/docker-socket-proxy
 
 deploy: dockersocket
 	# docker stack deploy -c traefik.yml -c hello-world.yml -c portainer.yml $(NODE)
