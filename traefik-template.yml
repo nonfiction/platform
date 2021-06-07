@@ -59,15 +59,23 @@ services:
         traefik.enable: "true"
         traefik.docker.network: "proxy"
 
-        # Domains Certificates __DOMAINS__
+        # Domains Certificates
+        traefik.http.routers.wildcard-certs.tls.certresolver: "digitalocean" # __DOMAINS__
+        # traefik.http.routers.wildcard-certs.tls.domains[0].main: "example.nfweb.ca"
+        # traefik.http.routers.wildcard-certs.tls.domains[0].sans: "*.example.nfweb.ca"
 
-        # Dashboards __DASHBOARDS__
+        # Dashboards
+        traefik.http.routers.traefik.rule: "Host(__DASHBOARDS__)"
+        traefik.http.routers.traefik.entrypoints: "websecure"
+        traefik.http.routers.traefik.tls: "true"
+        traefik.http.routers.traefik.service: "api@internal"
+        traefik.http.services.traefik.loadbalancer.server.port: "888"
 
-        # Global redirect to https
-        traefik.http.routers.http-catchall.rule: "hostregexp(`{host:.+}`)"
-        traefik.http.routers.http-catchall.entrypoints: "web"
-        traefik.http.routers.http-catchall.middlewares: "redirect-to-https@docker"
-        traefik.http.middlewares.redirect-to-https.redirectscheme.scheme: "https"
+        # # Global redirect to https
+        # traefik.http.routers.http-catchall.rule: "hostregexp(`{host:.+}`)"
+        # traefik.http.routers.http-catchall.entrypoints: "web"
+        # traefik.http.routers.http-catchall.middlewares: "redirect-to-https@docker"
+        # traefik.http.middlewares.redirect-to-https.redirectscheme.scheme: "https"
 
     environment:
       DO_AUTH_TOKEN: "__DO_AUTH_TOKEN__"

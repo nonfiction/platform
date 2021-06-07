@@ -139,10 +139,8 @@ for node in $NODES; do
 
   # Build docker stack yaml files
   env="STACK=1"
-  # env="${env} CERTS=\"$(echo -n "$certs" | base64)\""
-  # env="${env} DASHBOARDS=\"$(echo -n "$dashboards" | base64)\""
-  # env="${env} DO_AUTH_TOKEN=\"${DO_AUTH_TOKEN}\""
   env="${env} NODES=\"${NODES}\""
+  env="${env} PRIMARY=\"${PRIMARY}\""
   env="${env} DO_AUTH_TOKEN=\"${DO_AUTH_TOKEN}\""
 
   # Run script on node
