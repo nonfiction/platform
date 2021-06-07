@@ -51,9 +51,9 @@ services:
     deploy:
       mode: global
 
-      placement:
-        constraints:
-          - node.role == manager
+      # placement:
+      #   constraints:
+      #     - node.role == manager
 
       labels:
         traefik.enable: "true"
