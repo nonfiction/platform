@@ -1,10 +1,4 @@
 version: '3.8'
-
-networks:
-  proxy:
-    name: proxy
-    external: true
-
 services:
 
   traefik:
@@ -16,16 +10,17 @@ services:
       # Enable Docker Swarm mode
       - --providers.docker.swarmmode
       # - --providers.docker.endpoint=tcp://127.0.0.1:2375
-      - --providers.docker.endpoint=unix:///var/run/docker.sock
+      # - --providers.docker.endpoint=unix:///var/run/docker.sock
+      - --providers.docker.endPoint=http://dockersocket:2375
 
       # Do not expose all Docker services, only the ones explicitly exposed
       - --providers.docker.exposedbydefault=false
 
       # Use this docker network for container communications
-      - --providers.docker.network=traefik
+      - --providers.docker.network=proxy
 
       # Enable the access log, with HTTP requests
-      - --accesslog
+      # - --accesslog
 
       # Enable the Traefik log, for configurations and errors
       - --log
@@ -79,6 +74,7 @@ services:
 
     networks:
       - proxy
+      - docker
 
     ports:
       - target: 80
@@ -88,6 +84,44 @@ services:
         published: 443
         mode: host
 
+    logging:
+      options:
+        max-size: "1m"
+
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "/data/traefik/acme.json:/acme.json"
+
+# this custom haproxy allows us to move traefik to worker nodes
+# while this container listens on managers and only allows
+# traefik to connect, read-only, to limited docker api calls
+# https://github.com/Tecnativa/docker-socket-proxy
+  dockersocket:
+    image: tecnativa/docker-socket-proxy
+    networks:
+      - docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # CONTAINERS: 1
+      NETWORKS: 1
+      SERVICES: 1
+      # SWARM: 1
+      TASKS: 1
+    deploy:
+      mode: global
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      options:
+        max-size: "1m"
+
+networks:
+  proxy:
+    name: proxy
+    driver: overlay
+  docker:
+    name: docker
+    driver: overlay
+    driver_opts:
+      encrypted: 'true'
