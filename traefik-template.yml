@@ -69,7 +69,8 @@ services:
         traefik.http.routers.traefik.entrypoints: "websecure"
         traefik.http.routers.traefik.tls: "true"
         traefik.http.routers.traefik.service: "api@internal"
-        traefik.http.services.traefik.loadbalancer.server.port: "888"
+        traefik.http.services.traefik.loadbalancer.server.port: "8080"
+        # traefik.http.services.traefik.loadbalancer.server.port: "888"
 
         # # Global redirect to https
         # traefik.http.routers.http-catchall.rule: "hostregexp(`{host:.+}`)"

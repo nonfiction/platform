@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  
+  portainer:
+    image: portainer/portainer-ce:latest
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /data/portainer:/data
+
+    deploy:
+      mode: global
+      labels:
+        traefik.enable: "true"
+        traefik.docker.network: "proxy"
+
+        traefik.http.routers.portainer.rule: "Host(`portainer.abc.nfweb.ca`,`portainer.abc01.nfweb.ca`)"
+        traefik.http.routers.portainer.entrypoints: "websecure"
+        traefik.http.routers.portainer.tls.certresolver: "digitalocean"
+        traefik.http.routers.portainer.service: "portainer"
+        traefik.http.services.portainer.loadbalancer.server.port: "9000"
+
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    name: proxy
+    driver: overlay
+    external: true
