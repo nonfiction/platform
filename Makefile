@@ -13,7 +13,7 @@ data:
 	chmod 600 /data/traefik/acme.json
 
 network:
-	docker network create --driver=overlay proxy
+	#docker network create --driver=overlay proxy
 
 deploy:
 	docker stack deploy -c traefik.yml $(NODE)
