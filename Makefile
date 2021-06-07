@@ -17,3 +17,4 @@ network:
 
 deploy:
 	docker stack deploy -c traefik.yml $(NODE)
+	docker stack deploy -c hello-world.yml $(NODE)
