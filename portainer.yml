@@ -10,6 +10,8 @@ services:
 
     deploy:
       mode: global
+      placement:
+        constraints: [node.role == manager]
       labels:
         traefik.enable: "true"
         traefik.docker.network: "proxy"
