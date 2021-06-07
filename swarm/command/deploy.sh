@@ -137,10 +137,12 @@ for node in $NODES; do
   run $node "${env} /root/platform/swarm/node/docker"
 
 
-  # Prepare environment variables for run command
+  # Build docker stack yaml files
   env="STACK=1"
-  env="${env} CERTS=\"$(echo -n "$certs" | base64)\""
-  env="${env} DASHBOARDS=\"$(echo -n "$dashboards" | base64)\""
+  # env="${env} CERTS=\"$(echo -n "$certs" | base64)\""
+  # env="${env} DASHBOARDS=\"$(echo -n "$dashboards" | base64)\""
+  # env="${env} DO_AUTH_TOKEN=\"${DO_AUTH_TOKEN}\""
+  env="${env} NODES=\"${NODES}\""
   env="${env} DO_AUTH_TOKEN=\"${DO_AUTH_TOKEN}\""
 
   # Run script on node

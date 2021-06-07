@@ -64,7 +64,7 @@ services:
         traefik.enable: "true"
         traefik.docker.network: "proxy"
 
-        # Certificates __CERTS__
+        # Domains Certificates __DOMAINS__
 
         # Dashboards __DASHBOARDS__
 
