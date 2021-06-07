@@ -59,6 +59,7 @@ count=1
 hosts="127.0.0.1 localhost"
 for node in $NODES; do
   ip="$(get_droplet_private_ip $node)"
+  [ "$node" = "$PRIMARY" ] && node="${node} primary"
   hosts="${hosts}\n${ip} ${node}"
 done
 
@@ -91,25 +92,6 @@ done
 # ---------------------------------------------------------
 echo_main "2. Docker Config..."
 count=1
-
-# Build certs config for traefik yaml
-i=0; n="\n        " # new line & 8 spaces
-certs="${n}traefik.http.routers.wildcard-certs.tls.certresolver: \"digitalocean\""
-for node in $NODES; do
-  certs="${certs}${n}traefik.http.routers.wildcard-certs.tls.domains[${i}].main: \"${node}.${DOMAIN}\""
-  certs="${certs}${n}traefik.http.routers.wildcard-certs.tls.domains[${i}].sans: \"*.${node}.${DOMAIN}\""
-  ((i++))
-done
-
-# Build certs config for traefik yaml
-dashboards=""
-for node in $NODES; do
-  dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.rule: \"Host(\`traefik.${node}.${DOMAIN}\`)\""
-  dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.entrypoints: \"websecure\""
-  dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.tls: \"true\""
-  dashboards="${dashboards}${n}traefik.http.routers.traefik-${node}.service: \"api@internal\""
-  dashboards="${dashboards}${n}traefik.http.services.traefik-${node}.loadbalancer.server.port: \"888"\"
-done
 
 # Loop all nodes in swarm
 for node in $NODES; do
