@@ -50,11 +50,12 @@ services:
       # - --providers.file.directory=/root/docker-host/config
       # - --providers.file.watch=true
       
+    secrets:
+      - root_private_key
+
     deploy:
       mode: global
 
-      secrets:
-        - root_private_key
 
       # placement:
       #   constraints:
@@ -133,6 +134,10 @@ services:
 #     logging:
 #       options:
 #         max-size: "1m"
+
+secrets:
+  root_private_key:
+    external: true
 
 networks:
   proxy:
