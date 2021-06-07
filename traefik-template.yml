@@ -101,26 +101,30 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "/data/traefik/acme.json:/acme.json"
 
-# this custom haproxy allows us to move traefik to worker nodes
-# while this container listens on managers and only allows
-# traefik to connect, read-only, to limited docker api calls
 # https://github.com/Tecnativa/docker-socket-proxy
   dockersocket:
     image: tecnativa/docker-socket-proxy
+    privileged: true
     networks:
       - docker
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      CONTAINERS: 1
-      NETWORKS: 1
-      SERVICES: 1
-      SWARM: 1
-      TASKS: 1
     deploy:
       mode: global
       placement:
         constraints: [node.role == manager]
+    environment:
+      CONTAINERS: 1
+      NETWORKS: 1
+      POST: 1
+      SERVICES: 1
+      SWARM: 1
+      TASKS: 1
+      NODES: 1
+    ports:
+      - protocol: tcp
+        published: 2375
+        target: 2375      
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     logging:
       options:
         max-size: "1m"
