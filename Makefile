@@ -20,7 +20,7 @@ data:
 
 network:
 	docker network create --driver=overlay proxy
-	docker network create --driver=overlay --attachable dockersocket
+	# docker network create --driver=overlay --attachable dockersocket
 
 # dockersocket:
 # 	docker container run -d --privileged -p 127.0.0.1:2375:2375 \

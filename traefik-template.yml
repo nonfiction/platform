@@ -89,7 +89,7 @@ services:
 
     networks:
       - proxy
-      - dockersocket
+      # - dockersocket
 
     ports:
       - target: 80
@@ -144,7 +144,7 @@ networks:
     name: proxy
     driver: overlay
     external: true
-  dockersocket:
-    name: dockersocket
-    driver: overlay
-    external: true
+  # dockersocket:
+  #   name: dockersocket
+  #   driver: overlay
+  #   external: true
