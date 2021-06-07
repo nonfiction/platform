@@ -10,8 +10,8 @@ services:
       # Enable Docker Swarm mode
       - --providers.docker.swarmmode
       # - --providers.docker.endpoint=tcp://127.0.0.1:2375
-      # - --providers.docker.endpoint=unix:///var/run/docker.sock
-      - --providers.docker.endPoint=http://dockersocket:2375
+      - --providers.docker.endpoint=unix:///var/run/docker.sock
+      # - --providers.docker.endPoint=http://dockersocket:2375
 
       # Do not expose all Docker services, only the ones explicitly exposed
       - --providers.docker.exposedbydefault=false
@@ -111,10 +111,10 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      # CONTAINERS: 1
+      CONTAINERS: 1
       NETWORKS: 1
       SERVICES: 1
-      # SWARM: 1
+      SWARM: 1
       TASKS: 1
     deploy:
       mode: global
