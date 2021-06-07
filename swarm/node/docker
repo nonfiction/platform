@@ -119,6 +119,7 @@ elif defined $SECRETS && defined $ROOT_PRIVATE_KEY && defined $ROOT_PASSWORD && 
 elif defined $STACK && defined $PRIMARY && defined $NODES && defined $DO_AUTH_TOKEN; then
 
   DOMAIN=$(cat /etc/domain)
+  PRIMARY_IP=$(cat /etc/hosts | grep primary | awk '{print $1}')
 
   # Build domain certs config for traefik yaml
   DOMAINS=""; i=0; n="\n        " # new line & 8 spaces
@@ -139,6 +140,7 @@ elif defined $STACK && defined $PRIMARY && defined $NODES && defined $DO_AUTH_TO
   stack="/root/platform/traefik.yml"
   echo_next "Writing ${stack}"
   curl -sL https://github.com/nonfiction/platform/raw/master/traefik-template.yml > $stack
+  sed -i "s/__PRIMARY_IP__/${PRIMARY_IP}/" $stack
   sed -i "s/__DOMAINS__/${DOMAINS}/" $stack
   sed -i "s/__DASHBOARDS__/${DASHBOARDS}/" $stack
   sed -i "s/__DO_AUTH_TOKEN__/${DO_AUTH_TOKEN}/" $stack
