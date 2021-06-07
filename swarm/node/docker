@@ -96,7 +96,7 @@ elif defined $JOIN && defined $NODE && defined $JOIN_TOKEN && defined $PRIVATE_I
 
 # SECRETS (run on manager)
 # ----------------------------------------
-elif defined $SECRETS && defined $DO_AUTH_TOKEN; then
+elif defined $SECRETS && defined $ROOT_PRIVATE_KEY && defined $ROOT_PASSWORD && defined $DO_AUTH_TOKEN; then
 
   # Create dotenv file
   dotenv="/root/platform/.env"
@@ -106,6 +106,11 @@ elif defined $SECRETS && defined $DO_AUTH_TOKEN; then
   echo "SWARM=$(cat /etc/swarm)" | tee --append $dotenv
   echo "NODE=$(cat /etc/node)" | tee --append $dotenv
   echo "DO_AUTH_TOKEN=${DO_AUTH_TOKEN}" | tee --append $dotenv
+
+  echo_next "Adding secrets"
+  echo "$DO_AUTH_TOKEN" | docker secret create do_auth_token -
+  echo "$ROOT_PASSWORD" | docker secret create root_password -
+  echo -n "$ROOT_PRIVATE_KEY" | docker secret create root_private_key -
 
 
 # STACK

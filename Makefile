@@ -1,6 +1,6 @@
 include .env
 
-init: data network
+init: data network traefik
 
 data:
 	mkdir -p /work
@@ -17,20 +17,23 @@ network:
 	docker network create --driver=overlay proxy
 	docker network create --driver=overlay --attachable dockersocket
 
-dockersocket:
-	docker container run -d --privileged -p 127.0.0.1:2375:2375 \
-		--name=dockersocket --network=dockersocket \
-		-v /var/run/docker.sock:/var/run/docker.sock:ro \
-		-e CONTAINERS=1 \
-		-e NETWORKS=1 \
-    -e POST=1 \
-    -e SERVICES=1 \
-    -e SWARM=1 \
-    -e TASKS=1 \
-    -e NODES=1 \
-    tecnativa/docker-socket-proxy
+traefik:
+	docker build -t nonfiction/traefik .
 
-deploy: dockersocket
+# dockersocket:
+# 	docker container run -d --privileged -p 127.0.0.1:2375:2375 \
+# 		--name=dockersocket --network=dockersocket \
+# 		-v /var/run/docker.sock:/var/run/docker.sock:ro \
+# 		-e CONTAINERS=1 \
+# 		-e NETWORKS=1 \
+#     -e POST=1 \
+#     -e SERVICES=1 \
+#     -e SWARM=1 \
+#     -e TASKS=1 \
+#     -e NODES=1 \
+#     tecnativa/docker-socket-proxy
+
+deploy: 
 	# docker stack deploy -c traefik.yml -c hello-world.yml -c portainer.yml $(NODE)
 	docker stack deploy -c traefik.yml $(NODE)
 	docker stack deploy -c portainer.yml $(NODE)

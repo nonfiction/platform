@@ -128,15 +128,27 @@ for node in $NODES; do
   # Run script on node
   run $node "${env} /root/platform/swarm/node/docker"
 
+
+  # Secrets
+  env="SECRETS=1"
+  env="${env} DO_AUTH_TOKEN=\"$DO_AUTH_TOKEN\""
+  env="${env} ROOT_PRIVATE_KEY=\"$ROOT_PRIVATE_KEY\""
+  env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
+
+  # Run script on node
+  run $node "${env} /root/platform/swarm/node/docker"
+
 done
 
-echo_main "2b. Docker Secrets..."
-# Prepare environment variables for run command
-env="SECRETS=1"
-env="${env} DO_AUTH_TOKEN=\"$DO_AUTH_TOKEN\""
-
-# Run script on node
-run $PRIMARY "${env} /root/platform/swarm/node/docker"
+# echo_main "2b. Docker Secrets..."
+# # Prepare environment variables for run command
+# env="SECRETS=1"
+# env="${env} DO_AUTH_TOKEN=\"$DO_AUTH_TOKEN\""
+# env="${env} ROOT_PRIVATE_KEY=\"$ROOT_PRIVATE_KEY\""
+# env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
+#
+# # Run script on node
+# run $PRIMARY "${env} /root/platform/swarm/node/docker"
 
 
 # ---------------------------------------------------------
