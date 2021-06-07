@@ -2,8 +2,7 @@ version: '3.8'
 services:
 
   traefik:
-    # image: traefik:v2.4.8
-    image: nonfiction/traefik:latest
+    image: nonfiction/traefik:v2.4.8
     command:
 
       # Enable Docker in Traefik, so that it reads labels from Docker services
