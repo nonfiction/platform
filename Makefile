@@ -1,6 +1,11 @@
 include .env
 
-init: data network traefik
+# make traefik to build and push this customized image to docker hub
+traefik:
+	docker build -t nonfiction/traefik:v2.4.8 .
+	docker push nonfiction/traefik:v2.4.8
+
+init: data network
 
 data:
 	mkdir -p /work
@@ -16,9 +21,6 @@ data:
 network:
 	docker network create --driver=overlay proxy
 	docker network create --driver=overlay --attachable dockersocket
-
-traefik:
-	docker build -t nonfiction/traefik .
 
 # dockersocket:
 # 	docker container run -d --privileged -p 127.0.0.1:2375:2375 \
