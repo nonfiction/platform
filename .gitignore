@@ -3,5 +3,6 @@ scratch
 .env
 traefik.yml
 hello-world.yml
+portainer.yml
 root_private_key
 root_private_key.tmp

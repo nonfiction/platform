@@ -121,6 +121,23 @@ elif defined $STACK && defined $PRIMARY && defined $NODES && defined $DO_AUTH_TO
   DOMAIN=$(cat /etc/domain)
   PRIMARY_IP=$(cat /etc/primary_ip)
 
+  # Create a comma-separated list of hostnames for traefik configs
+  build_hosts() {
+    local hosts=""
+    for node in $NODES; do
+      hosts+=",\`${1}.${node}.${DOMAIN}\`"
+    done
+    echo "${hosts:1}"
+  }
+
+  # Build list of hostnames for dashboard in traefik yaml
+  HOSTS="$(build_hosts "traefik")"
+  # HOSTS=""
+  # for node in $NODES; do
+  #   HOSTS+=",\`traefik.${node}.${DOMAIN}\`"
+  # done
+  # HOSTS="${HOSTS:1}"
+
   # Build domain certs config for traefik yaml
   DOMAINS=""; i=0; n="\n        " # new line & 8 spaces
   for node in $NODES; do
@@ -129,34 +146,35 @@ elif defined $STACK && defined $PRIMARY && defined $NODES && defined $DO_AUTH_TO
     ((i++))
   done
 
-  # Build list of hostnames for dashboard in traefik yaml
-  DASHBOARDS=""
-  for node in $NODES; do
-    DASHBOARDS+=",\`traefik.${node}.${DOMAIN}\`"
-  done
-  DASHBOARDS="${DASHBOARDS:1}"
-
   # Create traefik stack
   stack="/root/platform/traefik.yml"
   echo_next "Writing ${stack}"
   curl -sL https://github.com/nonfiction/platform/raw/master/stack-traefik.yml > $stack
-  sed -i "s/__PRIMARY_IP__/${PRIMARY_IP}/" $stack
+  sed -i "s/__HOSTS__/${HOSTS}/" $stack
   sed -i "s/__DOMAINS__/${DOMAINS}/" $stack
-  sed -i "s/__DASHBOARDS__/${DASHBOARDS}/" $stack
+  sed -i "s/__PRIMARY_IP__/${PRIMARY_IP}/" $stack
   sed -i "s/__DO_AUTH_TOKEN__/${DO_AUTH_TOKEN}/" $stack
 
 
-  # Build list of hostnames for hello world yaml
-  HOSTS=""
-  for node in $NODES; do
-    HOSTS+=",\`hello-world.${node}.${DOMAIN}\`"
-  done
-  HOSTS="${HOSTS:1}"
+  # HOSTS=""
+  # for node in $NODES; do
+  #   HOSTS+=",\`hello-world.${node}.${DOMAIN}\`"
+  # done
+  # HOSTS="${HOSTS:1}"
 
   # Create traefik stack
+  HOSTS="$(build_hosts "hello-world")"
   stack="/root/platform/hello-world.yml"
   echo_next "Writing ${stack}"
   curl -sL https://github.com/nonfiction/platform/raw/master/stack-hello-world.yml > $stack
+  sed -i "s/__HOSTS__/${HOSTS}/" $stack
+
+
+  # Create portainer stack
+  HOSTS="$(build_hosts "portainer")"
+  stack="/root/platform/portainer.yml"
+  echo_next "Writing ${stack}"
+  curl -sL https://github.com/nonfiction/platform/raw/master/stack-portainer.yml > $stack
   sed -i "s/__HOSTS__/${HOSTS}/" $stack
 
 fi
