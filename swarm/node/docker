@@ -118,15 +118,12 @@ elif defined $SECRETS && defined $ROOT_PRIVATE_KEY && defined $ROOT_PASSWORD && 
 # elif defined $STACK && defined $CERTS && defined $DASHBOARDS && defined $DO_AUTH_TOKEN; then
 elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
 
-  # DOMAIN=$(cat /etc/domain)
-  # PRIMARY_IP=$(cat /etc/primary_ip)
-
   # Create a comma-separated list of hostnames for traefik configs
   build_hosts() {
     local domain=$(cat /etc/domain)
     local hosts=""
     for node in $NODES; do
-      hosts+=",\`${1}.${node}.${DOMAIN}\`"
+      hosts+=",\`${1}.${node}.${domain}\`"
     done
     echo "${hosts:1}"
   }
@@ -136,28 +133,18 @@ elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
     local domain=$(cat /etc/domain)
     local domains="" i=0 n="\n        " # new line & 8 spaces
     for node in $NODES; do
-      DOMAINS+="${n}traefik.http.routers.wildcard-certs.tls.domains[${i}].main: \"${node}.${domain}\""
-      DOMAINS+="${n}traefik.http.routers.wildcard-certs.tls.domains[${i}].sans: \"*.${node}.${domain}\""
+      domains+="${n}traefik.http.routers.wildcard-certs.tls.domains[${i}].main: \"${node}.${domain}\""
+      domains+="${n}traefik.http.routers.wildcard-certs.tls.domains[${i}].sans: \"*.${node}.${domain}\""
       ((i++))
     done
     echo "$domains"
   }
-
-  # # Build domain certs config for traefik yaml
-  # DOMAINS=""; i=0; n="\n        " # new line & 8 spaces
-  # for node in $NODES; do
-  #   DOMAINS+="${n}traefik.http.routers.wildcard-certs.tls.domains[${i}].main: \"${node}.${DOMAIN}\""
-  #   DOMAINS+="${n}traefik.http.routers.wildcard-certs.tls.domains[${i}].sans: \"*.${node}.${DOMAIN}\""
-  #   ((i++))
-  # done
-
 
   # Create traefik stack
   stack="/root/platform/traefik.yml"
   echo_next "Writing ${stack}"
   curl -sL https://github.com/nonfiction/platform/raw/master/stack-traefik.yml > $stack
   sed -i "s/__HOSTS__/$(build_hosts "traefik")/" $stack
-  # sed -i "s/__DOMAINS__/${DOMAINS}/" $stack
   sed -i "s/__DOMAINS__/$(build_domains)/" $stack
   sed -i "s/__PRIMARY_IP__/$(cat /etc/primary_ip)/" $stack
   sed -i "s/__DO_AUTH_TOKEN__/${DO_AUTH_TOKEN}/" $stack
