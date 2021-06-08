@@ -15,10 +15,6 @@ services:
         traefik.http.routers.hello-world.rule: "Host(`hello-world.abc.nfweb.ca`,`hello-world.abc01.nfweb.ca`)"
         traefik.http.routers.hello-world.tls.certresolver: "digitalocean"
 
-    expose:
-      - '8080'
-      - '443'
-
     networks:
       - proxy
 

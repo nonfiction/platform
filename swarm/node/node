@@ -15,8 +15,8 @@ include "lib/volumes.sh"
 
 
 # Update primary in case it has changed
-if defined $PRIMARY; then
-  echo "$PRIMARY" > /etc/primary
+if defined $PRIMARY_IP; then
+  echo "$PRIMARY_IP" > /etc/primary_ip
 fi
 
 # Update webhook in case it has changed
