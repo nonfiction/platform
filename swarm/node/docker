@@ -119,7 +119,7 @@ elif defined $SECRETS && defined $ROOT_PRIVATE_KEY && defined $ROOT_PASSWORD && 
 elif defined $STACK && defined $PRIMARY && defined $NODES && defined $DO_AUTH_TOKEN; then
 
   DOMAIN=$(cat /etc/domain)
-  PRIMARY_IP=$(cat /etc/hosts | grep primary | awk '{print $1}')
+  PRIMARY_IP=$(cat /etc/primary_ip)
 
   # Build domain certs config for traefik yaml
   DOMAINS=""; i=0; n="\n        " # new line & 8 spaces
