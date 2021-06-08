@@ -1,5 +1,6 @@
 version: '3.8'
 services:
+# : { } [ ] , & * ? | - < > = ! % @ \
 
   workspace:
     image: nonfiction/workspace:latest
@@ -8,6 +9,8 @@ services:
 
     deploy:
       mode: global
+      placement:
+        constraints: [node.role == manager]
 
       labels:
         traefik.enable: "true"
@@ -20,18 +23,6 @@ services:
         traefik.http.routers.workspace.entrypoints: "websecure"
         traefik.http.routers.workspace.tls.certresolver: "digitalocean"
 
-    networks:
-      - proxy
-
-    ports:
-      - target: 2222
-        published: 2222
-        mode: host
-      - target: "60000-60100"
-        published: "60000-60100"
-        protocol: udp
-        mode: host
-
     volumes:
       - "/work/cache:/cache"
       - "/work/data:/data"
@@ -39,12 +30,54 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - ".:/root/platform"
 
-      # : { } [ ] , & * ? | - < > = ! % @ \
-
     secrets:
       - root_private_key
       - root_password
       - do_auth_token
+
+    networks:
+      - proxy
+
+    ports:
+      - target: 2222
+        published: 2222
+        mode: host
+      - target: 60000
+        published: 60000
+        protocol: udp
+        mode: host
+      - target: 60001
+        published: 60001
+        protocol: udp
+        mode: host
+      - target: 60002
+        published: 60002
+        protocol: udp
+        mode: host
+      - target: 60003
+        published: 60004
+        protocol: udp
+        mode: host
+      - target: 60005
+        published: 60005
+        protocol: udp
+        mode: host
+      - target: 60006
+        published: 60006
+        protocol: udp
+        mode: host
+      - target: 60007
+        published: 60007
+        protocol: udp
+        mode: host
+      - target: 60008
+        published: 60008
+        protocol: udp
+        mode: host
+      - target: 60009
+        published: 60009
+        protocol: udp
+        mode: host
 
     logging:
       options:
