@@ -139,7 +139,7 @@ elif defined $STACK && defined $PRIMARY && defined $NODES && defined $DO_AUTH_TO
   # Create traefik stack
   stack="/root/platform/traefik.yml"
   echo_next "Writing ${stack}"
-  curl -sL https://github.com/nonfiction/platform/raw/master/traefik-template.yml > $stack
+  curl -sL https://github.com/nonfiction/platform/raw/master/stack-traefik.yml > $stack
   sed -i "s/__PRIMARY_IP__/${PRIMARY_IP}/" $stack
   sed -i "s/__DOMAINS__/${DOMAINS}/" $stack
   sed -i "s/__DASHBOARDS__/${DASHBOARDS}/" $stack
@@ -156,7 +156,7 @@ elif defined $STACK && defined $PRIMARY && defined $NODES && defined $DO_AUTH_TO
   # Create traefik stack
   stack="/root/platform/hello-world.yml"
   echo_next "Writing ${stack}"
-  curl -sL https://github.com/nonfiction/platform/raw/master/hello-world-template.yml > $stack
+  curl -sL https://github.com/nonfiction/platform/raw/master/stack-hello-world.yml > $stack
   sed -i "s/__HOSTS__/${HOSTS}/" $stack
 
 fi
