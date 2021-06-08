@@ -140,6 +140,7 @@ elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
     echo "$domains"
   }
 
+
   # Create traefik stack
   stack="/root/platform/traefik.yml"
   echo_next "Writing ${stack}"
@@ -162,5 +163,14 @@ elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
   echo_next "Writing ${stack}"
   curl -sL https://github.com/nonfiction/platform/raw/master/stack-portainer.yml > $stack
   sed -i "s/__HOSTS__/$(build_hosts "portainer")/" $stack
+
+
+  # Create workspace stack
+  stack="/root/platform/workspace.yml"
+  echo_next "Writing ${stack}"
+  curl -sL https://github.com/nonfiction/platform/raw/master/stack-workspace.yml > $stack
+  sed -i "s/__HOSTS__/$(build_hosts "workspace")/" $stack
+  sed -i "s/__SWARM__/$(cat /etc/swarm)/" $stack
+
 
 fi

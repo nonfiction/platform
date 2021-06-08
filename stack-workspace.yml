@@ -1,0 +1,65 @@
+version: '3.8'
+services:
+
+  workspace:
+    image: nonfiction/workspace:latest
+    hostname: __SWARM__
+    restart: unless-stopped
+
+    deploy:
+      mode: global
+
+      labels:
+        traefik.enable: "true"
+        traefik.docker.network: "proxy"
+        
+        traefik.http.services.workspace.loadbalancer.server.port: "80"
+        traefik.http.services.workspace.loadbalancer.server.scheme: "http"
+
+        traefik.http.routers.workspace.rule: "Host(__HOSTS__)"
+        traefik.http.routers.workspace.entrypoints: "websecure"
+        traefik.http.routers.workspace.tls.certresolver: "digitalocean"
+
+    networks:
+      - proxy
+
+    ports:
+      - target: 2222
+        published: 2222
+        mode: host
+      - target: "60000-60100"
+        published: "60000-60100"
+        protocol: udp
+        mode: host
+
+    volumes:
+      - "/work/cache:/cache"
+      - "/work/data:/data"
+      - "/work:/work"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - ".:/root/platform"
+
+      # : { } [ ] , & * ? | - < > = ! % @ \
+
+    secrets:
+      - root_private_key
+      - root_password
+      - do_auth_token
+
+    logging:
+      options:
+        max-size: "1m"
+
+secrets:
+  root_private_key:
+    external: true
+  root_password:
+    external: true
+  do_auth_token:
+    external: true
+
+networks:
+  proxy:
+    name: proxy
+    driver: overlay
+    external: true
