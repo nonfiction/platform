@@ -59,6 +59,7 @@ services:
       labels:
         traefik.enable: "true"
         traefik.docker.network: "proxy"
+        traefik.docker.lbswarm: "true"
 
         # Domains Certificates
         traefik.http.routers.wildcard-certs.tls.certresolver: "digitalocean" # __DOMAINS__
