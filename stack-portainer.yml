@@ -19,7 +19,6 @@ services:
         traefik.http.services.portainer.loadbalancer.server.port: "9000"
 
         traefik.http.routers.portainer.rule: "Host(__HOSTS__)"
-        traefik.http.routers.portainer.service: "portainer"
         traefik.http.routers.portainer.entrypoints: "websecure"
         traefik.http.routers.portainer.tls.certresolver: "digitalocean"
 
