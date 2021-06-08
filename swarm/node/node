@@ -14,6 +14,11 @@ include "lib/helpers.sh"
 include "lib/volumes.sh"
 
 
+# Update primary in case it has changed
+if defined $PRIMARY; then
+  echo "$PRIMARY" > /etc/primary
+fi
+
 # Update webhook in case it has changed
 if defined $WEBHOOK; then
   echo "$WEBHOOK" > /etc/webhook

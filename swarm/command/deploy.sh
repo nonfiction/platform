@@ -76,6 +76,7 @@ for node in $NODES; do
   # Prepare environment variables for run command
   env=""
   env="${env} NODE=\"$node\""
+  env="${env} PRIMARY=\"$PRIMARY\""
   env="${env} HOSTS_FILE=\"$hosts\""
   env="${env} WEBHOOK=\"$WEBHOOK\""
   env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""

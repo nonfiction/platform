@@ -53,10 +53,20 @@ write_files:
     content: | 
        __REGION__
   
-  # Optimize SSH for docker
+  # Optimize SSHD for docker
   - path: /etc/ssh/sshd_config
     content: | 
        MaxSessions 500
+    append: true
+
+  # Optimize SSH for docker
+  - path: /etc/ssh/ssh_config
+    content: | 
+       StrictHostKeyChecking no
+       UserKnownHostsFile=/dev/null
+       ControlMaster auto
+       ControlPath ~/.ssh/control-%C
+       ControlPersist yes
     append: true
     
   # Auto-prune docker once in a while
