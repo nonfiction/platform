@@ -13,7 +13,7 @@ services:
         traefik.http.services.hello-world.loadbalancer.server.port: "80"
         traefik.http.services.hello-world.loadbalancer.server.scheme: "http"
 
-        traefik.http.routers.hello-world.rule: "Host(`hello-world.abc.nfweb.ca`,`hello-world.abc02.nfweb.ca`,`hello-world.abc02.nfweb.ca`)"
+        traefik.http.routers.hello-world.rule: "Host(`hello-world.abc.nfweb.ca`,`hello-world.abc01.nfweb.ca`,`hello-world.abc02.nfweb.ca`)"
         traefik.http.routers.hello-world.entrypoints: "websecure"
         traefik.http.routers.hello-world.tls.certresolver: "digitalocean"
 
