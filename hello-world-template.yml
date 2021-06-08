@@ -3,7 +3,6 @@ services:
   
   hello-world:
     image: nonfiction/hello-world
-    # image: nginx:1.19-alpine
 
     deploy:
       mode: global
@@ -15,6 +14,7 @@ services:
         traefik.http.services.hello-world.loadbalancer.server.scheme: "http"
 
         traefik.http.routers.hello-world.rule: "Host(`hello-world.abc.nfweb.ca`,`hello-world.abc01.nfweb.ca`,`hello-world.abc02.nfweb.ca`)"
+        traefik.http.routers.hello-world.rule: "Host(__HOSTS__)"
         traefik.http.routers.hello-world.entrypoints: "websecure"
         traefik.http.routers.hello-world.tls.certresolver: "digitalocean"
 

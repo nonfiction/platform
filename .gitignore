@@ -2,5 +2,6 @@ data
 scratch
 .env
 traefik.yml
+hello-world.yml
 root_private_key
 root_private_key.tmp
