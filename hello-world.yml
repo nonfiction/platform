@@ -2,7 +2,8 @@ version: '3.8'
 services:
   
   hello-world:
-    image: nginx:1.19-alpine
+    image: nonfiction/hello-world
+    # image: nginx:1.19-alpine
 
     deploy:
       mode: global
