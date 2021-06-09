@@ -123,27 +123,28 @@ elif defined $SECRETS && defined $ROOT_PRIVATE_KEY && defined $ROOT_PASSWORD && 
 
     # Update the secret...
     else
+      echo "$secret already exists - cannot update yet"
 
-      # Create a new secret with a similar name
-      echo "docker secret create ${secret_name_new}"
-      echo -n "${env_value}" | docker secret create $secret_name_new -
-
-      # Remove the old secret from all services while adding the new one
-      for service in ${@:2}; do
-        echo_run "docker service update --detach=false --secret-rm ${secret_name} --secret-add source=${secret_name_new},target=${secret_name} nf_${service}"
-      done
-
-      # Remove the old secret
-      echo_run "docker secret rm ${secret_name}"
-
-      # Create the old secret again with the new value
-      echo "docker secret create ${secret_name}"
-      echo -n "${env_value}" | docker secret create $secret_name -
-
-      # Remove the new secret from all services while adding the old one again
-      for service in ${@:2}; do
-        echo_run "docker service update --detach=false --secret-rm ${secret_name_new} --secret-add source=${secret_name},target=${secret_name} nf_${service}"
-      done
+      # # Create a new secret with a similar name
+      # echo "docker secret create ${secret_name_new}"
+      # echo -n "${env_value}" | docker secret create $secret_name_new -
+      #
+      # # Remove the old secret from all services while adding the new one
+      # for service in ${@:2}; do
+      #   echo_run "docker service update --detach=false --secret-rm ${secret_name} --secret-add source=${secret_name_new},target=${secret_name} nf_${service}"
+      # done
+      #
+      # # Remove the old secret
+      # echo_run "docker secret rm ${secret_name}"
+      #
+      # # Create the old secret again with the new value
+      # echo "docker secret create ${secret_name}"
+      # echo -n "${env_value}" | docker secret create $secret_name -
+      #
+      # # Remove the new secret from all services while adding the old one again
+      # for service in ${@:2}; do
+      #   echo_run "docker service update --detach=false --secret-rm ${secret_name_new} --secret-add source=${secret_name},target=${secret_name} nf_${service}"
+      # done
 
     fi
   }
