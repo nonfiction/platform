@@ -123,7 +123,7 @@ elif defined $SECRETS && defined $ROOT_PRIVATE_KEY && defined $ROOT_PASSWORD && 
 
     # Update the secret...
     else
-      echo "$secret already exists - cannot update yet"
+      echo "$secret_name already exists - cannot update yet"
 
       # # Create a new secret with a similar name
       # echo "docker secret create ${secret_name_new}"
