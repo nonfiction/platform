@@ -4,7 +4,7 @@
 include() {
   [ -z "$1" ] && return 1
   if [ -e /root/platform/swarm/$1 ]; then source /root/platform/swarm/$1;
-  else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/$1); fi
+  else source <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/$1); fi
 }
 
 # Bash helper functions
@@ -144,7 +144,7 @@ elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
   # Create traefik stack
   stack="/root/platform/traefik.yml"
   echo_next "Writing ${stack}"
-  curl -sL https://github.com/nonfiction/platform/raw/master/stack-traefik.yml > $stack
+  curl -sL https://github.com/nonfiction/platform/raw/main/stack-traefik.yml > $stack
   sed -i "s/__HOSTS__/$(build_hosts "traefik")/" $stack
   sed -i "s/__DOMAINS__/$(build_domains)/" $stack
   sed -i "s/__PRIMARY_IP__/$(cat /etc/primary_ip)/" $stack
@@ -154,21 +154,21 @@ elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
   # Create hello-world stack
   stack="/root/platform/hello-world.yml"
   echo_next "Writing ${stack}"
-  curl -sL https://github.com/nonfiction/platform/raw/master/stack-hello-world.yml > $stack
+  curl -sL https://github.com/nonfiction/platform/raw/main/stack-hello-world.yml > $stack
   sed -i "s/__HOSTS__/$(build_hosts "hello-world")/" $stack
 
 
   # Create portainer stack
   stack="/root/platform/portainer.yml"
   echo_next "Writing ${stack}"
-  curl -sL https://github.com/nonfiction/platform/raw/master/stack-portainer.yml > $stack
+  curl -sL https://github.com/nonfiction/platform/raw/main/stack-portainer.yml > $stack
   sed -i "s/__HOSTS__/$(build_hosts "portainer")/" $stack
 
 
   # Create workspace stack
   stack="/root/platform/workspace.yml"
   echo_next "Writing ${stack}"
-  curl -sL https://github.com/nonfiction/platform/raw/master/stack-workspace.yml > $stack
+  curl -sL https://github.com/nonfiction/platform/raw/main/stack-workspace.yml > $stack
   sed -i "s/__HOSTS__/$(build_hosts "workspace")/" $stack
   sed -i "s/__SWARM__/$(cat /etc/swarm)/" $stack
 

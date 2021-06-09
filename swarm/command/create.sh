@@ -58,7 +58,7 @@ else
 
     # Download the template
     rm -rf /tmp/swarmfile
-    curl -sL https://github.com/nonfiction/platform/raw/master/swarm/template/swarmfile > /tmp/swarmfile
+    curl -sL https://github.com/nonfiction/platform/raw/main/swarm/template/swarmfile > /tmp/swarmfile
 
     # Fill in the blanks
     sed -i "s/__NODE__/${NODE}/g" /tmp/swarmfile

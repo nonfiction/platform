@@ -4,7 +4,7 @@
 include() {
   [ -z "$1" ] && return 1
   if [ -e /root/platform/swarm/$1 ]; then source /root/platform/swarm/$1;
-  else source <(curl -fsSL https://github.com/nonfiction/platform/raw/master/swarm/$1); fi
+  else source <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/$1); fi
 }
 
 # Bash helper functions
