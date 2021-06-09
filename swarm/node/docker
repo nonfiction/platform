@@ -109,9 +109,31 @@ elif defined $SECRETS && defined $ROOT_PRIVATE_KEY && defined $ROOT_PASSWORD && 
   echo "DO_AUTH_TOKEN=${DO_AUTH_TOKEN}" | tee --append $dotenv
 
   echo_next "Adding secrets"
-  echo "$DO_AUTH_TOKEN" | docker secret create do_auth_token -
-  echo "$ROOT_PASSWORD" | docker secret create root_password -
   echo -n "$ROOT_PRIVATE_KEY" | docker secret create root_private_key -
+  echo "$ROOT_PASSWORD" | docker secret create root_password -
+  echo "$DO_AUTH_TOKEN" | docker secret create do_auth_token -
+
+  echo "$DROPLET_IMAGE" | docker secret create droplet_image -
+  echo "$REGION" | docker secret create region -
+  echo "$FS_TYPE" | docker secret create fs_type -
+
+  echo "$CODE_PASSWORD" | docker secret create code_password -
+  echo "$SUDO_PASSWORD" | docker secret create sudo_password -
+
+  echo "$BASICAUTH_USER" | docker secret create basicauth_user -
+  echo "$BASICAUTH_PASSWORD" | docker secret create basicauth_password -
+
+  echo "$GIT_USER_NAME" | docker secret create git_user_name -
+  echo "$GIT_USER_EMAIL" | docker secret create git_user_email -
+  echo "$GITHUB_USER" | docker secret create github_user -
+  echo "$GITHUB_TOKEN" | docker secret create github_token -
+
+  echo "$WEBHOOK" | docker secret create webhook -
+
+  echo "$DB_USER" | docker secret create db_user -
+  echo "$DB_HOST" | docker secret create db_host -
+  echo "$DB_PASSWORD" | docker secret create db_password -
+  echo "$DB_PORT" | docker secret create db_port -
 
 
 # STACK
@@ -150,13 +172,14 @@ elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
   sed -i "s/__DOMAINS__/$(build_domains)/" $stack
   sed -i "s/__PRIMARY_IP__/$(cat /etc/primary_ip)/" $stack
   sed -i "s/__DO_AUTH_TOKEN__/${DO_AUTH_TOKEN}/" $stack
-
+  echo_run "docker pull nonfiction/traefik"
 
   # Create hello-world stack
   stack="/root/platform/hello-world.yml"
   echo_next "Writing ${stack}"
   curl -sL https://github.com/nonfiction/platform/raw/main/stack-hello-world.yml > $stack
   sed -i "s/__HOSTS__/$(build_hosts "hello-world")/" $stack
+  echo_run "docker pull nonfiction/hello-world"
 
 
   # Create portainer stack
@@ -164,6 +187,7 @@ elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
   echo_next "Writing ${stack}"
   curl -sL https://github.com/nonfiction/platform/raw/main/stack-portainer.yml > $stack
   sed -i "s/__HOSTS__/$(build_hosts "portainer")/" $stack
+  echo_run "docker pull portainer/portainer-ce"
 
 
   # Create workspace stack
@@ -172,6 +196,7 @@ elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
   curl -sL https://github.com/nonfiction/platform/raw/main/stack-workspace.yml > $stack
   sed -i "s/__HOSTS__/$(build_hosts "workspace")/" $stack
   sed -i "s/__SWARM__/$(cat /etc/swarm)/" $stack
+  echo_run "docker pull nonfiction/workspace"
 
 
 fi
