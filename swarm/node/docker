@@ -103,37 +103,78 @@ elif defined $SECRETS && defined $ROOT_PRIVATE_KEY && defined $ROOT_PASSWORD && 
   dotenv="/root/platform/.env"
   echo_next "Writing ${dotenv}"
   echo "" > $dotenv
-
   echo "SWARM=$(cat /etc/swarm)" | tee --append $dotenv
   echo "NODE=$(cat /etc/node)" | tee --append $dotenv
-  echo "DO_AUTH_TOKEN=${DO_AUTH_TOKEN}" | tee --append $dotenv
 
-  echo_next "Adding secrets"
-  echo -n "$ROOT_PRIVATE_KEY" | docker secret create root_private_key -
-  echo "$ROOT_PASSWORD" | docker secret create root_password -
-  echo "$DO_AUTH_TOKEN" | docker secret create do_auth_token -
+  # Create or update docker secrets
+  set_secret() {
 
-  echo "$DROPLET_IMAGE" | docker secret create droplet_image -
-  echo "$REGION" | docker secret create region -
-  echo "$FS_TYPE" | docker secret create fs_type -
+    local env_name="${1}"
+    local env_value="${!1}"
+    local secret_name="$(echo $name | tr '[:upper:]' '[:lower:]')"
+    local secret_name_new="${secret_name}_new"
 
-  echo "$CODE_PASSWORD" | docker secret create code_password -
-  echo "$SUDO_PASSWORD" | docker secret create sudo_password -
+    # Skip if there's no value
+    undefined "$env_value" && return
 
-  echo "$BASICAUTH_USER" | docker secret create basicauth_user -
-  echo "$BASICAUTH_PASSWORD" | docker secret create basicauth_password -
+    # Doesn't yet exist? Easy, just add the secret
+    if undefined "$(docker secret ls | grep " $secret_name ")"; then
+      echo -n "${env_value}" | docker secret create $secret_name -
 
-  echo "$GIT_USER_NAME" | docker secret create git_user_name -
-  echo "$GIT_USER_EMAIL" | docker secret create git_user_email -
-  echo "$GITHUB_USER" | docker secret create github_user -
-  echo "$GITHUB_TOKEN" | docker secret create github_token -
+    # Update the secret...
+    else
 
-  echo "$WEBHOOK" | docker secret create webhook -
+      # Create a new secret with a similar name
+      echo "docker secret create ${secret_name_new}"
+      echo -n "${env_value}" | docker secret create $secret_name_new -
 
-  echo "$DB_USER" | docker secret create db_user -
-  echo "$DB_HOST" | docker secret create db_host -
-  echo "$DB_PASSWORD" | docker secret create db_password -
-  echo "$DB_PORT" | docker secret create db_port -
+      # Remove the old secret from all services while adding the new one
+      for service in ${@:2}; do
+        echo_run "docker service update --detach=false --secret-rm ${secret_name} --secret-add source=${secret_name_new},target=${secret_name} nf_${service}"
+      done
+
+      # Remove the old secret
+      echo_run "docker secret rm ${secret_name}"
+
+      # Create the old secret again with the new value
+      echo "docker secret create ${secret_name}"
+      echo -n "${env_value}" | docker secret create $secret_name -
+
+      # Remove the new secret from all services while adding the old one again
+      for service in ${@:2}; do
+        echo_run "docker service update --detach=false --secret-rm ${secret_name_new} --secret-add source=${secret_name},target=${secret_name} nf_${service}"
+      done
+
+    fi
+  }
+
+  echo_next "Setting docker secrets"
+
+  set_secret DO_AUTH_TOKEN traefik workspace
+  set_secret ROOT_PRIVATE_KEY traefik workspace
+  set_secret ROOT_PASSWORD workspace
+
+  set_secret DROPLET_IMAGE workspace
+  set_secret REGION workspace
+  set_secret FS_TYPE workspace
+
+  set_secret CODE_PASSWORD workspace
+  set_secret SUDO_PASSWORD workspace
+
+  set_secret BASICAUTH_USER workspace
+  set_secret BASICAUTH_PASSWORD workspace
+
+  set_secret GIT_USER_NAME workspace
+  set_secret GIT_USER_EMAIL workspace
+  set_secret GITHUB_USER workspace
+  set_secret GITHUB_TOKEN workspace
+
+  set_secret WEBHOOK workspace
+
+  set_secret DB_USER workspace
+  set_secret DB_HOST workspace
+  set_secret DB_PASSWORD workspace
+  set_secret DB_PORT workspace
 
 
 # STACK

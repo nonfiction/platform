@@ -19,7 +19,7 @@ network:
 	docker network create --driver=overlay proxy
 
 deploy: 
-	docker stack deploy -c traefik.yml $(NODE)
-	docker stack deploy -c hello-world.yml $(NODE)
-	docker stack deploy -c portainer.yml $(NODE)
-	docker stack deploy -c workspace.yml $(NODE)
+	docker stack deploy -c traefik.yml nf
+	docker stack deploy -c hello-world.yml nf
+	docker stack deploy -c portainer.yml nf
+	docker stack deploy -c workspace.yml nf
