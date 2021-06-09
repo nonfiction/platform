@@ -3,7 +3,8 @@
 # Source once locally if available OR via curl if not 
 include() {
   [ -z "$1" ] && return 1
-  if [ -e /root/platform/swarm/$1 ]; then source /root/platform/swarm/$1;
+  if [ -e /usr/local/share/platform/swarm/$1 ]; then source /usr/local/share/platform/swarm/$1;
+  elif [ -e /root/platform/swarm/$1 ]; then source /root/platform/swarm/$1;
   else source <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/$1); fi
 }
 
