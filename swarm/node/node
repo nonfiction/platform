@@ -43,7 +43,7 @@ fi
 
 # Settings authorized_keys
 if defined $ROOT_PUBLIC_KEY; then
-  keys="$(curl -sL https://github.com/nonfiction/workspace/raw/main/config/ssh/authorized_keys)"
+  keys="$(curl -sL https://github.com/nonfiction/workspace/raw/main/etc/ssh/authorized_keys)"
   keys=$(echo -e "${ROOT_PUBLIC_KEY}\n${keys}")
   echo_next "Writing /root/.ssh/authorized_keys"
   echo "$keys" | tee /root/.ssh/authorized_keys
