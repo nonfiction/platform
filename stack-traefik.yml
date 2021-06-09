@@ -2,7 +2,7 @@ version: '3.8'
 services:
 
   traefik:
-    image: nonfiction/traefik:v2.4.8
+    image: nonfiction/traefik:latest
     command:
 
       # Enable Docker in Traefik, so that it reads labels from Docker services
@@ -51,6 +51,7 @@ services:
       # - --providers.file.watch=true
       
     secrets:
+      - do_auth_token
       - root_private_key
 
     deploy:
@@ -79,9 +80,6 @@ services:
         traefik.http.routers.http-catchall.middlewares: "redirect-to-https@docker"
         traefik.http.middlewares.redirect-to-https.redirectscheme.scheme: "https"
 
-    environment:
-      DO_AUTH_TOKEN: "__DO_AUTH_TOKEN__"
-
     networks:
       - proxy
 
@@ -98,9 +96,11 @@ services:
         max-size: "1m"
 
     volumes:
-      - "/data/traefik/acme.json:/acme.json"
+      - /data/traefik/acme.json:/acme.json
 
 secrets:
+  do_auth_token:
+    external: true
   root_private_key:
     external: true
 

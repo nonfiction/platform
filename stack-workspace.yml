@@ -23,9 +23,9 @@ services:
         traefik.http.routers.workspace.tls.certresolver: "digitalocean"
 
     volumes:
-      - "/work:/work"
-      - "/data:/data"
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - /work:/work
+      - /data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
 
     secrets:
       - basicauth_password
