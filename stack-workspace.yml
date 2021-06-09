@@ -5,7 +5,7 @@ services:
   workspace:
     image: nonfiction/workspace:latest
     hostname: __SWARM__
-    restart: unless-stopped
+    # restart: unless-stopped
 
     deploy:
       mode: global
@@ -16,8 +16,8 @@ services:
         traefik.enable: "true"
         traefik.docker.network: "proxy"
         
-        traefik.http.services.workspace.loadbalancer.server.port: "80"
-        traefik.http.services.workspace.loadbalancer.server.scheme: "http"
+        traefik.http.services.workspace.loadbalancer.server.port: "8443"
+        traefik.http.services.workspace.loadbalancer.server.scheme: "https"
 
         traefik.http.routers.workspace.rule: "Host(__HOSTS__)"
         traefik.http.routers.workspace.entrypoints: "websecure"
