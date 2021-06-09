@@ -24,8 +24,8 @@ services:
         traefik.http.routers.workspace.tls.certresolver: "digitalocean"
 
     volumes:
-      - "/work/cache:/cache"
-      - "/work/data:/data"
+      - "share:/usr/local/share"
+      - "cache:/usr/local/cache"
       - "/work:/work"
       - "/var/run/docker.sock:/var/run/docker.sock"
       - ".:/root/platform"
