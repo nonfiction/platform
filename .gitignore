@@ -4,5 +4,6 @@ scratch
 traefik.yml
 hello-world.yml
 portainer.yml
+workspace.yml
 root_private_key
 root_private_key.tmp
