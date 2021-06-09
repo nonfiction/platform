@@ -14,7 +14,7 @@ services:
       labels:
         traefik.enable: "true"
         traefik.docker.network: "proxy"
-        
+
         traefik.http.services.workspace.loadbalancer.server.port: "8443"
         traefik.http.services.workspace.loadbalancer.server.scheme: "https"
 
@@ -24,13 +24,29 @@ services:
 
     volumes:
       - "/work:/work"
+      - "/data:/data"
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - ".:/root/platform"
 
     secrets:
-      - root_private_key
-      - root_password
+      - basicauth_password
+      - basicauth_user
+      - code_password
+      - db_host
+      - db_password
+      - db_port
+      - db_user
       - do_auth_token
+      - droplet_image
+      - fs_type
+      - git_user_email
+      - git_user_name
+      - github_token
+      - github_user
+      - region
+      - root_password
+      - root_private_key
+      - sudo_password
+      - webhook
 
     networks:
       - proxy
@@ -81,11 +97,43 @@ services:
         max-size: "1m"
 
 secrets:
-  root_private_key:
+  basicauth_password:
+    external: true
+  basicauth_user:
+    external: true
+  code_password:
+    external: true
+  db_host:
+    external: true
+  db_password:
+    external: true
+  db_port:
+    external: true
+  db_user:
+    external: true
+  do_auth_token:
+    external: true
+  droplet_image:
+    external: true
+  fs_type:
+    external: true
+  git_user_email:
+    external: true
+  git_user_name:
+    external: true
+  github_token:
+    external: true
+  github_user:
+    external: true
+  region:
     external: true
   root_password:
     external: true
-  do_auth_token:
+  root_private_key:
+    external: true
+  sudo_password:
+    external: true
+  webhook:
     external: true
 
 networks:
