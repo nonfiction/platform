@@ -49,10 +49,6 @@ services:
 
       # - --providers.file.directory=/root/docker-host/config
       # - --providers.file.watch=true
-      
-    secrets:
-      - do_auth_token
-      - root_private_key
 
     deploy:
       mode: global

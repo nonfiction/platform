@@ -185,9 +185,20 @@ elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
 # ----------------------------------------
 elif defined $PULL; then
 
+  echo_next "Pulling traefik..."
   echo_run "docker pull nonfiction/traefik"
+
+  echo_next "Pulling hello-world..."
   echo_run "docker pull nonfiction/hello-world"
-  defined $IS_PRIMARY && echo_run "docker pull portainer/portainer-ce"
-  defined $IS_PRIMARY && echo_run "docker pull nonfiction/workspace"
+
+  if defined $IS_PRIMARY; then
+    echo_next "Pulling portainer..."
+    echo_run "docker pull portainer/portainer-ce"
+  fi
+
+  if defined $IS_PRIMARY; then
+    echo_next "Pulling workspace..."
+    echo_run "docker pull nonfiction/workspace"
+  fi
 
 fi
