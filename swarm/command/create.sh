@@ -66,6 +66,8 @@ else
 
     echo_next "Creating SWARMFILE: ${SWARMFILE}"
 
+    echo_main_alt "Droplet Details"
+
     ask_input DROPLET_IMAGE
     DROPLET_IMAGE=$(ask_env_file_default DROPLET_IMAGE /usr/local/env/DROPLET_IMAGE "ubuntu-20-04-x64")
     sed -i "s/__DROPLET_IMAGE__/${DROPLET_IMAGE}/g" /tmp/swarmfile
@@ -86,7 +88,7 @@ else
     sed -i "s/__ROOT_PASSWORD__/$(generate_password)/g" /tmp/swarmfile
 
 
-    echo_info "Digital Ocean: personal access token"
+    echo_main_alt "Digital Ocean: personal access token"
     echo "https://cloud.digitalocean.com/account/api/tokens"
 
     ask_input DO_AUTH_TOKEN
@@ -95,7 +97,7 @@ else
     echo_env DO_AUTH_TOKEN
 
 
-    echo_info "Webhook is called by the swarm manager to signal when nodes are ready"
+    echo_main_alt "Webhook is called by the swarm manager to signal when nodes are ready"
     echo "https://api.slack.com/messaging/webhooks"
 
     ask_input WEBHOOK
@@ -104,7 +106,7 @@ else
     echo_env WEBHOOK
 
 
-    echo_info "Git config info"
+    echo_main_alt "Git config info"
     echo "If this swarm is used for development, who is writing these commits?"
 
     ask_input GIT_USER_NAME
@@ -117,7 +119,7 @@ else
     sed -i "s/__GIT_USER_EMAIL__/${GIT_USER_EMAIL}/g" /tmp/swarmfile
     echo_env GIT_USER_EMAIL
 
-    echo_info "Github account"
+    echo_main_alt "Github account"
     echo "https://github.com/settings/tokens"
 
     ask_input GITHUB_USER
@@ -131,7 +133,7 @@ else
     echo_env GITHUB_TOKEN
 
 
-    echo_info "VS Code password"
+    echo_main_alt "VS Code password"
     echo "This really ought to be a complicated password"
 
     ask_input CODE_PASSWORD
@@ -139,7 +141,7 @@ else
     sed -i "s/__CODE_PASSWORD__/${CODE_PASSWORD}/g" /tmp/swarmfile 
 
 
-    echo_info "Sudo password"
+    echo_main_alt "Sudo password"
     echo "Choose something you don't mind typing regularily"
 
     ask_input SUDO_PASSWORD
@@ -147,7 +149,7 @@ else
     sed -i "s/__SUDO_PASSWORD__/${SUDO_PASSWORD}/g" /tmp/swarmfile 
 
 
-    echo_info "Digital Ocean: database cluster"
+    echo_main_alt "Digital Ocean: database cluster"
     echo "https://cloud.digitalocean.com/databases"
 
     ask_input DB_HOST
@@ -170,7 +172,7 @@ else
     sed -i "s/__DB_PASSWORD__/${DB_PASSWORD}/g" /tmp/swarmfile
     echo_env DB_PASSWORD
 
-    echo_info "BasicAuth login"
+    echo_main_alt "BasicAuth login"
     echo "This may need to be shared with clients occasionally"
 
     ask_input BASICAUTH_USER
@@ -184,6 +186,17 @@ else
     echo_env BASICAUTH_PASSWORD
 
 
+    # Confirm
+    if ask "Save?"; then  
+
+      # Save from tmp to where it belongs
+      mv /tmp/swarmfile $SWARMFILE
+
+    else
+      echo_stop "Cancelled."  
+      rm -f /tmp/swarmfile
+      exit 1;
+    fi
 
     # echo "export ROOT_PRIVATE_KEY=\"" >> /tmp/swarmfile
     # truncate -s-1 /tmp/swarmfile
@@ -192,8 +205,6 @@ else
     # echo -n "\"" >> /tmp/swarmfile 
     # echo "" >> /tmp/swarmfile 
 
-    # Save from tmp to where it belongs
-    mv /tmp/swarmfile $SWARMFILE
 
     echo_info "...done!"
     echo_next "swarm edit $SWARM - edit the newly created swarm"

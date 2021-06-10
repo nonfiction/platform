@@ -98,6 +98,14 @@ echo_main() {
   echo_line blue
 }
 
+echo_main_alt() {
+  defined $1 || return
+  echo
+  echo
+  echo "$(echo_color black/on_blue " ★ ") $(echo_color blue " ${@} ")"
+  echo_line blue
+}
+
 echo_next() {
   defined $1 || return
   echo

@@ -95,92 +95,9 @@ elif defined $JOIN && defined $NODE && defined $JOIN_TOKEN && defined $PRIVATE_I
   fi
 
 
-# SECRETS (run on manager)
-# ----------------------------------------
-elif defined $SECRETS && defined $ROOT_PRIVATE_KEY && defined $ROOT_PASSWORD && defined $DO_AUTH_TOKEN; then
-
-  # Create dotenv file
-  dotenv="/root/platform/.env"
-  echo_next "Writing ${dotenv}"
-  echo "" > $dotenv
-  echo "SWARM=$(cat /etc/swarm)" | tee --append $dotenv
-  echo "NODE=$(cat /etc/node)" | tee --append $dotenv
-
-  # Create or update docker secrets
-  set_secret() {
-
-    local env_name="${1}"
-    local env_value="${!1}"
-    local secret_name="$(echo $env_name | tr '[:upper:]' '[:lower:]')"
-    local secret_name_new="${secret_name}_new"
-
-    # Skip if there's no value
-    undefined "$env_value" && return
-
-    # Doesn't yet exist? Easy, just add the secret
-    if undefined "$(docker secret ls | grep " $secret_name ")"; then
-      echo -n "${env_value}" | docker secret create $secret_name -
-
-    # Update the secret...
-    else
-      echo "$secret_name already exists - cannot update yet"
-
-      # # Create a new secret with a similar name
-      # echo "docker secret create ${secret_name_new}"
-      # echo -n "${env_value}" | docker secret create $secret_name_new -
-      #
-      # # Remove the old secret from all services while adding the new one
-      # for service in ${@:2}; do
-      #   echo_run "docker service update --detach=false --secret-rm ${secret_name} --secret-add source=${secret_name_new},target=${secret_name} nf_${service}"
-      # done
-      #
-      # # Remove the old secret
-      # echo_run "docker secret rm ${secret_name}"
-      #
-      # # Create the old secret again with the new value
-      # echo "docker secret create ${secret_name}"
-      # echo -n "${env_value}" | docker secret create $secret_name -
-      #
-      # # Remove the new secret from all services while adding the old one again
-      # for service in ${@:2}; do
-      #   echo_run "docker service update --detach=false --secret-rm ${secret_name_new} --secret-add source=${secret_name},target=${secret_name} nf_${service}"
-      # done
-
-    fi
-  }
-
-  echo_next "Setting docker secrets"
-
-  set_secret DO_AUTH_TOKEN traefik workspace
-  set_secret ROOT_PRIVATE_KEY traefik workspace
-  set_secret ROOT_PASSWORD workspace
-
-  set_secret DROPLET_IMAGE workspace
-  set_secret REGION workspace
-  set_secret FS_TYPE workspace
-
-  set_secret CODE_PASSWORD workspace
-  set_secret SUDO_PASSWORD workspace
-
-  set_secret BASICAUTH_USER workspace
-  set_secret BASICAUTH_PASSWORD workspace
-
-  set_secret GIT_USER_NAME workspace
-  set_secret GIT_USER_EMAIL workspace
-  set_secret GITHUB_USER workspace
-  set_secret GITHUB_TOKEN workspace
-
-  set_secret WEBHOOK workspace
-
-  set_secret DB_USER workspace
-  set_secret DB_HOST workspace
-  set_secret DB_PASSWORD workspace
-  set_secret DB_PORT workspace
-
 
 # STACK
 # ----------------------------------------
-# elif defined $STACK && defined $CERTS && defined $DASHBOARDS && defined $DO_AUTH_TOKEN; then
 elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
 
   # Create a comma-separated list of hostnames for traefik configs
@@ -214,14 +131,12 @@ elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
   sed -i "s/__DOMAINS__/$(build_domains)/" $stack
   sed -i "s/__PRIMARY_IP__/$(cat /etc/primary_ip)/" $stack
   sed -i "s/__DO_AUTH_TOKEN__/${DO_AUTH_TOKEN}/" $stack
-  echo_run "docker pull nonfiction/traefik"
 
   # Create hello-world stack
   stack="/root/platform/hello-world.yml"
   echo_next "Writing ${stack}"
   curl -sL https://github.com/nonfiction/platform/raw/main/stack-hello-world.yml > $stack
   sed -i "s/__HOSTS__/$(build_hosts "hello-world")/" $stack
-  echo_run "docker pull nonfiction/hello-world"
 
 
   # Create portainer stack
@@ -229,11 +144,9 @@ elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
   echo_next "Writing ${stack}"
   curl -sL https://github.com/nonfiction/platform/raw/main/stack-portainer.yml > $stack
   sed -i "s/__HOSTS__/$(build_hosts "portainer")/" $stack
-  echo_run "docker pull portainer/portainer-ce"
 
 
   # Create workspace stack
-  
   stack="/root/platform/workspace.yml"
   echo_next "Writing ${stack}"
   curl -sL https://github.com/nonfiction/platform/raw/main/stack-workspace.yml > $stack
@@ -267,7 +180,14 @@ elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
   sed -i "s/__ROOT_PASSWORD__/${ROOT_PASSWORD}/" $stack
   sed -i "s/__ROOT_PRIVATE_KEY__/${ROOT_PRIVATE_KEY}/" $stack
 
-  echo_run "docker pull nonfiction/workspace"
 
+# PULL
+# ----------------------------------------
+elif defined $PULL; then
+
+  echo_run "docker pull nonfiction/traefik"
+  echo_run "docker pull nonfiction/hello-world"
+  defined $IS_PRIMARY && echo_run "docker pull portainer/portainer-ce"
+  defined $IS_PRIMARY && echo_run "docker pull nonfiction/workspace"
 
 fi

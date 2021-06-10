@@ -1,10 +1,3 @@
-include .env
-
-# make traefik to build and push this customized image to docker hub
-traefik:
-	docker build -t nonfiction/traefik:v2.4.8 .
-	docker push nonfiction/traefik:v2.4.8
-
 init: data network
 
 data:
