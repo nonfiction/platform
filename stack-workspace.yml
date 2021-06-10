@@ -1,6 +1,5 @@
 version: '3.8'
 services:
-# : { } [ ] , & * ? | - < > = ! % @ \
 
   workspace:
     image: nonfiction/workspace:latest
@@ -73,27 +72,11 @@ services:
         protocol: udp
         mode: host
       - target: 60003
+        published: 60003
+        protocol: udp
+        mode: host
+      - target: 60004
         published: 60004
-        protocol: udp
-        mode: host
-      - target: 60005
-        published: 60005
-        protocol: udp
-        mode: host
-      - target: 60006
-        published: 60006
-        protocol: udp
-        mode: host
-      - target: 60007
-        published: 60007
-        protocol: udp
-        mode: host
-      - target: 60008
-        published: 60008
-        protocol: udp
-        mode: host
-      - target: 60009
-        published: 60009
         protocol: udp
         mode: host
 
@@ -106,3 +89,5 @@ networks:
     name: proxy
     driver: overlay
     external: true
+
+# : { } [ ] , & * ? | - < > = ! % @ \

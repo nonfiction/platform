@@ -9,10 +9,10 @@ data:
 	chmod 600 /data/traefik/acme.json
 
 network:
-	docker network create --driver=overlay proxy
+	# docker network create --driver=overlay proxy
 
 deploy: 
-	docker stack deploy -c traefik.yml nf
-	docker stack deploy -c hello-world.yml nf
-	docker stack deploy -c portainer.yml nf
-	docker stack deploy -c workspace.yml nf
+	docker stack deploy -c traefik.yml platform
+	docker stack deploy -c hello-world.yml platform
+	docker stack deploy -c portainer.yml platform
+	docker stack deploy -c workspace.yml platform

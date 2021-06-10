@@ -102,4 +102,4 @@ networks:
   proxy:
     name: proxy
     driver: overlay
-    external: true
+    # external: true
