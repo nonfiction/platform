@@ -35,7 +35,7 @@ verify_doctl() {
     echo_info "doctl unauthorized, checking for token..."
     
     #  https://cloud.digitalocean.com/account/api/tokens
-    DO_AUTH_TOKEN=$(env_file_default DO_AUTH_TOKEN /run/secrets/do_auth_token)
+    DO_AUTH_TOKEN=$(env_file_default DO_AUTH_TOKEN /usr/local/env/DO_AUTH_TOKEN)
     if undefined "$DO_AUTH_TOKEN"; then
       echo_stop "Missing DO_AUTH_TOKEN!"
       echo "https://cloud.digitalocean.com/account/api/tokens"
