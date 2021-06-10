@@ -84,7 +84,7 @@ else
     echo_env FS_TYPE
 
     # Generate SSH key (base64-encoded)
-    sed -i "s|__ROOT_PRIVATE_KEY__|$(generate_key)|g" /tmp|swarmfile
+    sed -i "s|__ROOT_PRIVATE_KEY__|$(generate_key)|g" /tmp/swarmfile
     sed -i "s|__ROOT_PASSWORD__|$(generate_password)|g" /tmp/swarmfile
 
 
