@@ -121,12 +121,15 @@ elif defined $STACK && defined $NODES; then
     done
     echo "$domains"
   }
-
+  
+  # URL to repo for downloading files
+  BASE="https://github.com/nonfiction/platform/raw/main"
 
   # Create traefik stack
   stack="/root/platform/traefik.yml"
   echo_next "Writing ${stack}"
-  curl -sL https://github.com/nonfiction/platform/raw/main/stack-traefik.yml > $stack
+  rm -f $stack
+  curl -fsSL $BASE/stack-traefik.yml > $stack
   sed -i "s|__HOSTS__|$(build_hosts "traefik")|" $stack
   sed -i "s|__DOMAINS__|$(build_domains)|" $stack
   sed -i "s|__PRIMARY_IP__|$(cat /etc/primary_ip)|" $stack
@@ -135,21 +138,24 @@ elif defined $STACK && defined $NODES; then
   # Create hello-world stack
   stack="/root/platform/hello-world.yml"
   echo_next "Writing ${stack}"
-  curl -sL https://github.com/nonfiction/platform/raw/main/stack-hello-world.yml > $stack
+  rm -f $stack
+  curl -fsSL $BASE/stack-hello-world.yml > $stack
   sed -i "s|__HOSTS__|$(build_hosts "hello-world")|" $stack
 
 
   # Create portainer stack
   stack="/root/platform/portainer.yml"
   echo_next "Writing ${stack}"
-  curl -sL https://github.com/nonfiction/platform/raw/main/stack-portainer.yml > $stack
+  rm -f $stack
+  curl -fsSL $BASE/stack-portainer.yml > $stack
   sed -i "s|__HOSTS__|$(build_hosts "portainer")|" $stack
 
 
   # Create workspace stack
   stack="/root/platform/workspace.yml"
   echo_next "Writing ${stack}"
-  curl -sL https://github.com/nonfiction/platform/raw/main/stack-workspace.yml > $stack
+  rm -f $stack
+  curl -fsSL $BASE/stack-workspace.yml > $stack
 
   sed -i "s|__HOSTS__|$(build_hosts "workspace")|" $stack
   sed -i "s|__SWARM__|$(cat /etc/swarm)|" $stack
