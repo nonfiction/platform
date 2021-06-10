@@ -155,7 +155,7 @@ elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
   sed -i "s/__SWARM__/$(cat /etc/swarm)/" $stack
 
   sed -i "s/__DO_AUTH_TOKEN__/${DO_AUTH_TOKEN}/" $stack
-  sed -i "s/__WEBHOOK__/${WEBHOO}/" $stack
+  sed -i "s/__WEBHOOK__/${WEBHOOK}/" $stack
 
   sed -i "s/__DROPLET_IMAGE__/${DROPLET_IMAGE}/" $stack
   sed -i "s/__FS_TYPE__/${FS_TYPE}/" $stack
