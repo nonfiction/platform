@@ -61,8 +61,8 @@ else
     curl -sL https://github.com/nonfiction/platform/raw/main/swarm/template/swarmfile > /tmp/swarmfile
 
     # Fill in the blanks
-    sed -i "s/__NODE__/${NODE}/g" /tmp/swarmfile
-    sed -i "s/__DOMAIN__/${DOMAIN}/g" /tmp/swarmfile
+    sed -i "s|__NODE__|${NODE}|g" /tmp/swarmfile
+    sed -i "s|__DOMAIN__|${DOMAIN}|g" /tmp/swarmfile
 
     echo_next "Creating SWARMFILE: ${SWARMFILE}"
 
@@ -70,22 +70,22 @@ else
 
     ask_input DROPLET_IMAGE
     DROPLET_IMAGE=$(ask_env_file_default DROPLET_IMAGE /usr/local/env/DROPLET_IMAGE "ubuntu-20-04-x64")
-    sed -i "s/__DROPLET_IMAGE__/${DROPLET_IMAGE}/g" /tmp/swarmfile
+    sed -i "s|__DROPLET_IMAGE__|${DROPLET_IMAGE}|g" /tmp/swarmfile
     echo_env DROPLET_IMAGE
 
     ask_input REGION
     DROPLET_IMAGE=$(ask_env_file_default REGION /usr/local/env/REGION "tor1")
-    sed -i "s/__REGION__/${REGION}/g" /tmp/swarmfile
+    sed -i "s|__REGION__|${REGION}|g" /tmp/swarmfile
     echo_env REGION
     
     ask_input FS_TYPE
     FS_TYPE=$(ask_env_file_default FS_TYPE /usr/local/env/REGION "ext4")
-    sed -i "s/__FS_TYPE__/${FS_TYPE}/g" /tmp/swarmfile
+    sed -i "s|__FS_TYPE__|${FS_TYPE}|g" /tmp/swarmfile
     echo_env FS_TYPE
 
     # Generate SSH key (base64-encoded)
-    sed -i "s/__ROOT_PRIVATE_KEY__/$(generate_key)/g" /tmp/swarmfile
-    sed -i "s/__ROOT_PASSWORD__/$(generate_password)/g" /tmp/swarmfile
+    sed -i "s|__ROOT_PRIVATE_KEY__|$(generate_key)|g" /tmp|swarmfile
+    sed -i "s|__ROOT_PASSWORD__|$(generate_password)|g" /tmp/swarmfile
 
 
     echo_main_alt "Digital Ocean: personal access token"
@@ -93,7 +93,7 @@ else
 
     ask_input DO_AUTH_TOKEN
     DO_AUTH_TOKEN=$(ask_env_file_default DO_AUTH_TOKEN /usr/local/env/DO_AUTH_TOKEN)
-    sed -i "s/__DO_AUTH_TOKEN__/${DO_AUTH_TOKEN}/g" /tmp/swarmfile
+    sed -i "s|__DO_AUTH_TOKEN__|${DO_AUTH_TOKEN}|g" /tmp/swarmfile
     echo_env DO_AUTH_TOKEN
 
 
@@ -111,12 +111,12 @@ else
 
     ask_input GIT_USER_NAME
     GIT_USER_NAME=$(ask_env_file_default GIT_USER_NAME /usr/local/env/GIT_USER_NAME)
-    sed -i "s/__GIT_USER_NAME__/${GIT_USER_NAME}/g" /tmp/swarmfile
+    sed -i "s|__GIT_USER_NAME__|${GIT_USER_NAME}|g" /tmp/swarmfile
     echo_env GIT_USER_NAME
 
     ask_input GIT_USER_EMAIL
     GIT_USER_EMAIL=$(ask_env_file_default GIT_USER_EMAIL /usr/local/env/GIT_USER_EMAIL)
-    sed -i "s/__GIT_USER_EMAIL__/${GIT_USER_EMAIL}/g" /tmp/swarmfile
+    sed -i "s|__GIT_USER_EMAIL__|${GIT_USER_EMAIL}|g" /tmp/swarmfile
     echo_env GIT_USER_EMAIL
 
     echo_main_alt "Github account"
@@ -124,12 +124,12 @@ else
 
     ask_input GITHUB_USER
     GITHUB_USER=$(ask_env_file_default GITHUB_USER /usr/local/env/GITHUB_USER)
-    sed -i "s/__GITHUB_USER__/${GITHUB_USER}/g" /tmp/swarmfile
+    sed -i "s|__GITHUB_USER__|${GITHUB_USER}|g" /tmp/swarmfile
     echo_env GITHUB_USER
 
     ask_input GITHUB_TOKEN
     GITHUB_TOKEN=$(ask_env_file_default GITHUB_TOKEN /usr/local/env/GITHUB_TOKEN)
-    sed -i "s/__GITHUB_TOKEN__/${GITHUB_TOKEN}/g" /tmp/swarmfile
+    sed -i "s|__GITHUB_TOKEN__|${GITHUB_TOKEN}|g" /tmp/swarmfile
     echo_env GITHUB_TOKEN
 
 
@@ -138,7 +138,7 @@ else
 
     ask_input CODE_PASSWORD
     CODE_PASSWORD=$(ask_env_file_default CODE_PASSWORD /usr/local/env/CODE_PASSWORD $(generate_password))
-    sed -i "s/__CODE_PASSWORD__/${CODE_PASSWORD}/g" /tmp/swarmfile 
+    sed -i "s|__CODE_PASSWORD__|${CODE_PASSWORD}|g" /tmp/swarmfile 
 
 
     echo_main_alt "Sudo password"
@@ -146,7 +146,7 @@ else
 
     ask_input SUDO_PASSWORD
     SUDO_PASSWORD=$(ask_env_file_default SUDO_PASSWORD /usr/local/env/SUDO_PASSWORD $(generate_password))
-    sed -i "s/__SUDO_PASSWORD__/${SUDO_PASSWORD}/g" /tmp/swarmfile 
+    sed -i "s|__SUDO_PASSWORD__|${SUDO_PASSWORD}|g" /tmp/swarmfile 
 
 
     echo_main_alt "Digital Ocean: database cluster"
@@ -159,17 +159,17 @@ else
 
     ask_input DB_PORT
     DB_PORT=$(ask_env_file_default DB_PORT /usr/local/env/DB_PORT "25060")
-    sed -i "s/__DB_PORT__/${DB_PORT}/g" /tmp/swarmfile
+    sed -i "s|__DB_PORT__|${DB_PORT}|g" /tmp/swarmfile
     echo_env DB_PORT
 
     ask_input DB_USER
     DB_USER=$(ask_env_file_default DB_USER /usr/local/env/DB_USER "doadmin")
-    sed -i "s/__DB_USER__/${DB_USER}/g" /tmp/swarmfile
+    sed -i "s|__DB_USER__|${DB_USER}|g" /tmp/swarmfile
     echo_env DB_USER
 
     ask_input DB_PASSWORD
     DB_PASSWORD=$(ask_env_file_default DB_PASSWORD /usr/local/env/DB_PASSWORD)
-    sed -i "s/__DB_PASSWORD__/${DB_PASSWORD}/g" /tmp/swarmfile
+    sed -i "s|__DB_PASSWORD__|${DB_PASSWORD}|g" /tmp/swarmfile
     echo_env DB_PASSWORD
 
     echo_main_alt "BasicAuth login"
@@ -177,12 +177,12 @@ else
 
     ask_input BASICAUTH_USER
     BASICAUTH_USER=$(ask_env_file_default BASICAUTH_USER /usr/local/env/BASICAUTH_USER "nonfiction")
-    sed -i "s/__BASICAUTH_USER__/${BASICAUTH_USER}/g" /tmp/swarmfile
+    sed -i "s|__BASICAUTH_USER__|${BASICAUTH_USER}|g" /tmp/swarmfile
     echo_env BASICAUTH_USER
 
     ask_input BASICAUTH_PASSWORD
     BASICAUTH_PASSWORD=$(ask_env_file_default BASICAUTH_PASSWORD /usr/local/env/BASICAUTH_PASSWORD $(generate_password))
-    sed -i "s/__BASICAUTH_PASSWORD__/${BASICAUTH_PASSWORD}/g" /tmp/swarmfile
+    sed -i "s|__BASICAUTH_PASSWORD__|${BASICAUTH_PASSWORD}|g" /tmp/swarmfile
     echo_env BASICAUTH_PASSWORD
 
 
@@ -197,14 +197,6 @@ else
       rm -f /tmp/swarmfile
       exit 1;
     fi
-
-    # echo "export ROOT_PRIVATE_KEY=\"" >> /tmp/swarmfile
-    # truncate -s-1 /tmp/swarmfile
-    # generate_key >> /tmp/swarmfile
-    # truncate -s-1 /tmp/swarmfile 
-    # echo -n "\"" >> /tmp/swarmfile 
-    # echo "" >> /tmp/swarmfile 
-
 
     echo_info "...done!"
     echo_next "swarm edit $SWARM - edit the newly created swarm"

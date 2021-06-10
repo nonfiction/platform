@@ -42,11 +42,9 @@ export SUDO_PASSWORD=__SUDO_PASSWORD__
 
 # External database cluster credentials
 # https://cloud.digitalocean.com/databases
-# export DB_USER=doadmin
 export DB_USER=__DB_USER__
 export DB_PASSWORD=__DB_PASSWORD__
 export DB_HOST=__DB_HOST__
-# export DB_PORT=25060
 export DB_PORT=__DB_PORT__
 
 
@@ -60,7 +58,6 @@ export DO_AUTH_TOKEN=__DO_AUTH_TOKEN__
 export ROOT_PASSWORD=__ROOT_PASSWORD__
 
 # Password-protected pages like traefik dashboard
-# export BASICAUTH_USER=nonfiction
 export BASICAUTH_USER=__BASICAUTH_USER__
 export BASICAUTH_PASSWORD=__BASICAUTH_PASSWORD__
 
@@ -73,11 +70,8 @@ export WEBHOOK=__WEBHOOK__
 # These settings cannot be modified after the swarm has been created
 # -----------------------
 
-# export DROPLET_IMAGE=ubuntu-20-04-x64
 export DROPLET_IMAGE=__DROPLET_IMAGE__
-# export REGION=tor1
 export REGION=__REGION__
-# export FS_TYPE=ext4
 export FS_TYPE=__FS_TYPE__
 
 # All nodes in the swarm are accesible via this private key

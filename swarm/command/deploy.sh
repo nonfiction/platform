@@ -127,6 +127,8 @@ for node in $NODES; do
 
 done
 
+echo_node_counter 1 1 $PRIMARY
+
 # Build docker stack yaml files
 env="STACK=1"
 env="${env} NODES=\"$NODES\""

@@ -127,23 +127,23 @@ elif defined $STACK && defined $NODES; then
   stack="/root/platform/traefik.yml"
   echo_next "Writing ${stack}"
   curl -sL https://github.com/nonfiction/platform/raw/main/stack-traefik.yml > $stack
-  sed -i "s/__HOSTS__/$(build_hosts "traefik")/" $stack
-  sed -i "s/__DOMAINS__/$(build_domains)/" $stack
-  sed -i "s/__PRIMARY_IP__/$(cat /etc/primary_ip)/" $stack
-  sed -i "s/__DO_AUTH_TOKEN__/${DO_AUTH_TOKEN}/" $stack
+  sed -i "s|__HOSTS__|$(build_hosts "traefik")|" $stack
+  sed -i "s|__DOMAINS__|$(build_domains)|" $stack
+  sed -i "s|__PRIMARY_IP__|$(cat /etc/primary_ip)|" $stack
+  sed -i "s|__DO_AUTH_TOKEN__|${DO_AUTH_TOKEN}|" $stack
 
   # Create hello-world stack
   stack="/root/platform/hello-world.yml"
   echo_next "Writing ${stack}"
   curl -sL https://github.com/nonfiction/platform/raw/main/stack-hello-world.yml > $stack
-  sed -i "s/__HOSTS__/$(build_hosts "hello-world")/" $stack
+  sed -i "s|__HOSTS__|$(build_hosts "hello-world")|" $stack
 
 
   # Create portainer stack
   stack="/root/platform/portainer.yml"
   echo_next "Writing ${stack}"
   curl -sL https://github.com/nonfiction/platform/raw/main/stack-portainer.yml > $stack
-  sed -i "s/__HOSTS__/$(build_hosts "portainer")/" $stack
+  sed -i "s|__HOSTS__|$(build_hosts "portainer")|" $stack
 
 
   # Create workspace stack
@@ -151,34 +151,34 @@ elif defined $STACK && defined $NODES; then
   echo_next "Writing ${stack}"
   curl -sL https://github.com/nonfiction/platform/raw/main/stack-workspace.yml > $stack
 
-  sed -i "s/__HOSTS__/$(build_hosts "workspace")/" $stack
-  sed -i "s/__SWARM__/$(cat /etc/swarm)/" $stack
+  sed -i "s|__HOSTS__|$(build_hosts "workspace")|" $stack
+  sed -i "s|__SWARM__|$(cat /etc/swarm)|" $stack
 
-  sed -i "s/__DO_AUTH_TOKEN__/${DO_AUTH_TOKEN}/" $stack
-  sed -i "s/__WEBHOOK__/${WEBHOOK}/" $stack
+  sed -i "s|__DO_AUTH_TOKEN__|${DO_AUTH_TOKEN}|" $stack
+  sed -i "s|__WEBHOOK__|${WEBHOOK}|" $stack
 
-  sed -i "s/__DROPLET_IMAGE__/${DROPLET_IMAGE}/" $stack
-  sed -i "s/__FS_TYPE__/${FS_TYPE}/" $stack
-  sed -i "s/__REGION__/${REGION}/" $stack
+  sed -i "s|__DROPLET_IMAGE__|${DROPLET_IMAGE}|" $stack
+  sed -i "s|__FS_TYPE__|${FS_TYPE}|" $stack
+  sed -i "s|__REGION__|${REGION}|" $stack
 
-  sed -i "s/__CODE_PASSWORD__/${CODE_PASSWORD}/" $stack
-  sed -i "s/__SUDO_PASSWORD__/${SUDO_PASSWORD}/" $stack
+  sed -i "s|__CODE_PASSWORD__|${CODE_PASSWORD}|" $stack
+  sed -i "s|__SUDO_PASSWORD__|${SUDO_PASSWORD}|" $stack
   
-  sed -i "s/__BASICAUTH_PASSWORD__/${BASICAUTH_PASSWORD}/" $stack
-  sed -i "s/__BASICAUTH_USER__/${BASICAUTH_USER}/" $stack
+  sed -i "s|__BASICAUTH_PASSWORD__|${BASICAUTH_PASSWORD}|" $stack
+  sed -i "s|__BASICAUTH_USER__|${BASICAUTH_USER}|" $stack
 
-  sed -i "s/__DB_HOST__/${DB_HOST}/" $stack
-  sed -i "s/__DB_PASSWORD__/${DB_PASSWORD}/" $stack
-  sed -i "s/__DB_PORT__/${DB_PORT}/" $stack
-  sed -i "s/__DB_USER__/${DB_USER}/" $stack
+  sed -i "s|__DB_HOST__|${DB_HOST}|" $stack
+  sed -i "s|__DB_PASSWORD__|${DB_PASSWORD}|" $stack
+  sed -i "s|__DB_PORT__|${DB_PORT}|" $stack
+  sed -i "s|__DB_USER__|${DB_USER}|" $stack
 
-  sed -i "s/__GITHUB_TOKEN__/${GITHUB_TOKEN}/" $stack
-  sed -i "s/__GITHUB_USER__/${GITHUB_USER}/" $stack
-  sed -i "s/__GIT_USER_EMAIL__/${GIT_USER_EMAIL}/" $stack
-  sed -i "s/__GIT_USER_NAME__/${GIT_USER_NAME}/" $stack
+  sed -i "s|__GITHUB_TOKEN__|${GITHUB_TOKEN}|" $stack
+  sed -i "s|__GITHUB_USER__|${GITHUB_USER}|" $stack
+  sed -i "s|__GIT_USER_EMAIL__|${GIT_USER_EMAIL}|" $stack
+  sed -i "s|__GIT_USER_NAME__|${GIT_USER_NAME}|" $stack
 
-  sed -i "s/__ROOT_PASSWORD__/${ROOT_PASSWORD}/" $stack
-  sed -i "s/__ROOT_PRIVATE_KEY__/${ROOT_PRIVATE_KEY}/" $stack
+  sed -i "s|__ROOT_PASSWORD__|${ROOT_PASSWORD}|" $stack
+  sed -i "s|__ROOT_PRIVATE_KEY__|${ROOT_PRIVATE_KEY}|" $stack
 
 
 # PULL
