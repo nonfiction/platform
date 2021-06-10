@@ -859,7 +859,7 @@ run() {
 
   # Temporarily save the private key as a file
   local key; key="/tmp/key-$(echo '('`date +"%s.%N"` ' * 1000000)/1' | bc).txt"
-  echo "$ROOT_PRIVATE_KEY" > $key
+  echo "$ROOT_PRIVATE_KEY" | base64 -d > $key
   chmod 400 $key
 
   # SSH with the private and pass any commands

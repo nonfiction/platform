@@ -7,9 +7,12 @@ services:
     hostname: __SWARM__
 
     deploy:
-      mode: global
+      mode: replicated
+      replicas: 1
       placement:
-        constraints: [node.role == manager]
+
+      restart_policy:
+        condition: on-failure
 
       labels:
         traefik.enable: "true"
@@ -27,26 +30,26 @@ services:
       - /data:/data
       - /var/run/docker.sock:/var/run/docker.sock
 
-    secrets:
-      - basicauth_password
-      - basicauth_user
-      - code_password
-      - db_host
-      - db_password
-      - db_port
-      - db_user
-      - do_auth_token
-      - droplet_image
-      - fs_type
-      - git_user_email
-      - git_user_name
-      - github_token
-      - github_user
-      - region
-      - root_password
-      - root_private_key
-      - sudo_password
-      - webhook
+    environment:
+      DO_AUTH_TOKEN: "__DO_AUTH_TOKEN__"
+      WEBHOOK: "__WEBHOOK__"
+      DROPLET_IMAGE: "__DROPLET_IMAGE__"
+      FS_TYPE: "__FS_TYPE__"
+      REGION: "__REGION__"
+      CODE_PASSWORD: "__CODE_PASSWORD__"
+      SUDO_PASSWORD: "__SUDO_PASSWORD__"
+      BASICAUTH_PASSWORD: "__BASICAUTH_PASSWORD__"
+      BASICAUTH_USER: "__BASICAUTH_USER__"
+      DB_HOST: "__DB_HOST__"
+      DB_PASSWORD: "__DB_PASSWORD__"
+      DB_PORT: "__DB_PORT__"
+      DB_USER: "__DB_USER__"
+      GITHUB_TOKEN: "__GITHUB_TOKEN__"
+      GITHUB_USER: "__GITHUB_USER__"
+      GIT_USER_EMAIL: "__GIT_USER_EMAIL__"
+      GIT_USER_NAME: "__GIT_USER_NAME__"
+      ROOT_PASSWORD: "__ROOT_PASSWORD__"
+      ROOT_PRIVATE_KEY: "__ROOT_PRIVATE_KEY__"
 
     networks:
       - proxy
@@ -95,46 +98,6 @@ services:
     logging:
       options:
         max-size: "1m"
-
-secrets:
-  basicauth_password:
-    external: true
-  basicauth_user:
-    external: true
-  code_password:
-    external: true
-  db_host:
-    external: true
-  db_password:
-    external: true
-  db_port:
-    external: true
-  db_user:
-    external: true
-  do_auth_token:
-    external: true
-  droplet_image:
-    external: true
-  fs_type:
-    external: true
-  git_user_email:
-    external: true
-  git_user_name:
-    external: true
-  github_token:
-    external: true
-  github_user:
-    external: true
-  region:
-    external: true
-  root_password:
-    external: true
-  root_private_key:
-    external: true
-  sudo_password:
-    external: true
-  webhook:
-    external: true
 
 networks:
   proxy:

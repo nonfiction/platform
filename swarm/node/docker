@@ -233,11 +233,40 @@ elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
 
 
   # Create workspace stack
+  
   stack="/root/platform/workspace.yml"
   echo_next "Writing ${stack}"
   curl -sL https://github.com/nonfiction/platform/raw/main/stack-workspace.yml > $stack
+
   sed -i "s/__HOSTS__/$(build_hosts "workspace")/" $stack
   sed -i "s/__SWARM__/$(cat /etc/swarm)/" $stack
+
+  sed -i "s/__DO_AUTH_TOKEN__/${DO_AUTH_TOKEN}/" $stack
+  sed -i "s/__WEBHOOK__/${WEBHOO}/" $stack
+
+  sed -i "s/__DROPLET_IMAGE__/${DROPLET_IMAGE}/" $stack
+  sed -i "s/__FS_TYPE__/${FS_TYPE}/" $stack
+  sed -i "s/__REGION__/${REGION}/" $stack
+
+  sed -i "s/__CODE_PASSWORD__/${CODE_PASSWORD}/" $stack
+  sed -i "s/__SUDO_PASSWORD__/${SUDO_PASSWORD}/" $stack
+  
+  sed -i "s/__BASICAUTH_PASSWORD__/${BASICAUTH_PASSWORD}/" $stack
+  sed -i "s/__BASICAUTH_USER__/${BASICAUTH_USER}/" $stack
+
+  sed -i "s/__DB_HOST__/${DB_HOST}/" $stack
+  sed -i "s/__DB_PASSWORD__/${DB_PASSWORD}/" $stack
+  sed -i "s/__DB_PORT__/${DB_PORT}/" $stack
+  sed -i "s/__DB_USER__/${DB_USER}/" $stack
+
+  sed -i "s/__GITHUB_TOKEN__/${GITHUB_TOKEN}/" $stack
+  sed -i "s/__GITHUB_USER__/${GITHUB_USER}/" $stack
+  sed -i "s/__GIT_USER_EMAIL__/${GIT_USER_EMAIL}/" $stack
+  sed -i "s/__GIT_USER_NAME__/${GIT_USER_NAME}/" $stack
+
+  sed -i "s/__ROOT_PASSWORD__/${ROOT_PASSWORD}/" $stack
+  sed -i "s/__ROOT_PRIVATE_KEY__/${ROOT_PRIVATE_KEY}/" $stack
+
   echo_run "docker pull nonfiction/workspace"
 
 

@@ -273,7 +273,7 @@ generate_password() {
 generate_key() {
   local key; key="/tmp/key-$(echo '('`date +"%s.%N"` ' * 1000000)/1' | bc)"
   ssh-keygen -b 4096 -t rsa -f $key -q -N ""
-  cat $key
+  cat $key | base64 | tr -d '\n'
   rm "${key}" "${key}.pub"
 }
 

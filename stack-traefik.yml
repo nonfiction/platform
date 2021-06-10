@@ -91,18 +91,16 @@ services:
         published: 443
         mode: host
 
+    environment:
+      DO_AUTH_TOKEN: "__DO_AUTH_TOKEN__"
+      ROOT_PRIVATE_KEY: "__ROOT_PRIVATE_KEY__"
+
     logging:
       options:
         max-size: "1m"
 
     volumes:
       - /data/traefik/acme.json:/acme.json
-
-secrets:
-  do_auth_token:
-    external: true
-  root_private_key:
-    external: true
 
 networks:
   proxy:
