@@ -134,6 +134,7 @@ elif defined $STACK && defined $NODES; then
   sed -i "s|__DOMAINS__|$(build_domains)|" $stack
   sed -i "s|__PRIMARY_IP__|$(cat /etc/primary_ip)|" $stack
   sed -i "s|__DO_AUTH_TOKEN__|${DO_AUTH_TOKEN}|" $stack
+  sed -i "s|__ROOT_PRIVATE_KEY__|${ROOT_PRIVATE_KEY}|" $stack
 
   # Create hello-world stack
   stack="/root/platform/hello-world.yml"
