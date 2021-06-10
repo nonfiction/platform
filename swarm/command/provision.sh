@@ -22,7 +22,7 @@ PRIMARY=$(get_swarm_primary)
 has_droplet $PRIMARY && HAS_PRIMARY=1
 
 # If primary exists, grab volume & droplet size
-if defined $HAS_PRIMARY; then
+if defined $HAS_PRIMARY && undefined $RESIZE; then
   VOLUME_SIZE=$(get_volume_size $PRIMARY)
   DROPLET_SIZE=$(get_droplet_size $PRIMARY)
 fi
