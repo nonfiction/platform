@@ -98,7 +98,7 @@ elif defined $JOIN && defined $NODE && defined $JOIN_TOKEN && defined $PRIVATE_I
 
 # STACK
 # ----------------------------------------
-elif defined $STACK && defined $NODES && defined $DO_AUTH_TOKEN; then
+elif defined $STACK && defined $NODES; then
 
   # Create a comma-separated list of hostnames for traefik configs
   build_hosts() {

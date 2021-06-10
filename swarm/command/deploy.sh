@@ -129,7 +129,7 @@ done
 
 # Build docker stack yaml files
 env="STACK=1"
-env="${env} NODE=\"$node\""
+env="${env} NODES=\"$NODES\""
 env="${env} DO_AUTH_TOKEN=\"$DO_AUTH_TOKEN\""
 env="${env} DROPLET_IMAGE=\"$DROPLET_IMAGE\""
 env="${env} REGION=\"$REGION\""
