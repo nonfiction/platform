@@ -20,7 +20,7 @@ if defined $DRAIN && defined $NODE; then
   echo_run "docker node update --availability=drain ${NODE}"
 
 
-# DRAIN DOCKER SWARM (run on manager)
+# ACTIVE DOCKER SWARM (run on manager)
 # ----------------------------------------
 elif defined $ACTIVE && defined $NODE; then
 

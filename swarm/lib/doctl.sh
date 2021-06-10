@@ -527,7 +527,7 @@ resize_droplet() {
     sleep 20
 
     # Restore the node to active after reboot 
-    env="DRAIN=1 NODE=${node}"
+    env="ACTIVE=1 NODE=${node}"
     echo_run $PRIMARY "${env} /root/platform/swarm/node/docker"
 
     echo_info "Droplet $droplet_name resized!"
