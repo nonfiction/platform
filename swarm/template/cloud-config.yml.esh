@@ -100,8 +100,6 @@ users:
     lock_passwd: false
     hashed_passwd: $1$SaltSalt$YhgRYajLPrYevs14poKBQ0
     homedir: /work
-    ssh-authorized-keys:
-      - <%= $ROOT_PUBLIC_KEY %>
 
 runcmd:
 
@@ -115,6 +113,7 @@ runcmd:
 
   # Generate ssh keys
   - cat /dev/zero | ssh-keygen -t rsa -q -N ""
+  - mkdir -p /work/.ssh
   
   # Install glusterfs
   - add-apt-repository --yes ppa:gluster/glusterfs-9

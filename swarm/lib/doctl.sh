@@ -431,21 +431,34 @@ create_droplet() {
   defined $ROOT_PASSWORD || return
   defined $ROOT_PUBLIC_KEY || return
   
+  # sed -i "s|__NODE__|${node}|" $config
+  # sed -i "s|__SWARM__|${SWARM}|" $config
+  # sed -i "s|__DOMAIN__|${DOMAIN}|" $config
+  # sed -i "s|__REGION__|${REGION}|" $config
+  # sed -i "s|__FS_TYPE__|${FS_TYPE}|" $config
+  # sed -i "s|__DROPLET_IMAGE__|${DROPLET_IMAGE}|" $config
+  # sed -i "s|__ROOT_PUBLIC_KEY__|${ROOT_PUBLIC_KEY}|" $config
+  # sed -i "s|__WEBHOOK__|${WEBHOOK}|" $config
+
+  # Download cloud-config.yml and fill out variables
+  curl -sL https://github.com/nonfiction/platform/raw/main/swarm/template/cloud-config.yml.esh > /tmp/cloud-config.yml.esh
+
+  export NODE="$1"
+  export SWARM
+  export DOMAIN
+  export REGION
+  export FS_TYPE
+  export DROPLET_IMAGE
+  export ROOT_PUBLIC_KEY
+  export WEBHOOK
+
+  # Generate the cloud-config.yml and save to where it belongs
+  esh /tmp/cloud-config.yml.esh > /tmp/cloud-config.yml
+
+
   local node=$1
   local role=$2
   local volume_id; volume_id="$(get_volume_id $1)"
-  
-  # Download cloud-config.yml and fill out variables
-  local config=/tmp/cloud-config.yml
-  curl -sL https://github.com/nonfiction/platform/raw/main/swarm/template/cloud-config.yml > $config
-  sed -i "s|__NODE__|${node}|" $config
-  sed -i "s|__SWARM__|${SWARM}|" $config
-  sed -i "s|__DOMAIN__|${DOMAIN}|" $config
-  sed -i "s|__REGION__|${REGION}|" $config
-  sed -i "s|__FS_TYPE__|${FS_TYPE}|" $config
-  sed -i "s|__DROPLET_IMAGE__|${DROPLET_IMAGE}|" $config
-  sed -i "s|__ROOT_PUBLIC_KEY__|${ROOT_PUBLIC_KEY}|" $config
-  sed -i "s|__WEBHOOK__|${WEBHOOK}|" $config
   
   echo_next "Creating droplet $(droplet_name ${node})"
   doctl compute droplet create "$(droplet_name ${node})" \
@@ -453,7 +466,7 @@ create_droplet() {
     --size="${DROPLET_SIZE}" \
     --image="${DROPLET_IMAGE}" \
     --tag-names="swarm,$(swarm_tag),$(role_tag $role),$(node_tag $node)" \
-    --user-data-file="$config" \
+    --user-data-file="/tmp/cloud-config.yml" \
     --volumes="$volume_id" \
     --enable-private-networking \
     --enable-monitoring \
@@ -461,9 +474,6 @@ create_droplet() {
     --format="ID,Name,PublicIPv4,PrivateIPv4,Memory,VCPUs,Tags" \
     --verbose \
     --wait
-
-  # Clean-up
-  rm -f $config
 
 }
 
