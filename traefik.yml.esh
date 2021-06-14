@@ -1,7 +1,11 @@
+<%
+APP=traefik
+DOMAIN=$(bin/domain)
+-%>
 version: '3.8'
 services:
 
-  traefik:
+  <%= $APP %>:
     image: nonfiction/traefik:latest
     command:
 
@@ -13,7 +17,7 @@ services:
 
       # Docker endpoint running on primary
       # - --providers.docker.endpoint=unix:///var/run/docker.sock
-      - --providers.docker.endPoint=ssh://root@__PRIMARY_IP__:22
+      - --providers.docker.endPoint=ssh://root@<%= $(bin/env PRIMARY_IP) %>:22
 
       # Do not expose all Docker services, only the ones explicitly exposed
       - --providers.docker.exposedbydefault=false
@@ -59,16 +63,20 @@ services:
         traefik.docker.lbswarm: "true"
 
         # Domains Certificates
-        traefik.http.routers.wildcard-certs.tls.certresolver: "digitalocean" # __DOMAINS__
-        # traefik.http.routers.wildcard-certs.tls.domains[0].main: "example.nfweb.ca"
-        # traefik.http.routers.wildcard-certs.tls.domains[0].sans: "*.example.nfweb.ca"
+        traefik.http.routers.wildcard-certs.tls.certresolver: "digitalocean" 
+        <% i=0; for node in $(bin/nodes); do %>
+        # <%= ${node}.${DOMAIN} %>
+        traefik.http.routers.wildcard-certs.tls.domains[<%= $i -%>].main: "<%= ${node}.${DOMAIN} -%>"
+        traefik.http.routers.wildcard-certs.tls.domains[<%= $i -%>].sans: "*.<%= ${node}.${DOMAIN} -%>"
+        <% i=$((i+1)) -%>
+        <% done -%>
 
         # Dashboards
-        traefik.http.routers.traefik.rule: "Host(__HOSTS__)"
-        traefik.http.routers.traefik.entrypoints: "websecure"
-        traefik.http.routers.traefik.tls: "true"
-        traefik.http.routers.traefik.service: "api@internal"
-        traefik.http.services.traefik.loadbalancer.server.port: "8080"
+        traefik.http.routers.<%= $APP %>.rule: "Host(<%= $(bin/hosts $APP $DOMAIN) %>)"
+        traefik.http.routers.<%= $APP %>.entrypoints: "websecure"
+        traefik.http.routers.<%= $APP %>.tls: "true"
+        traefik.http.routers.<%= $APP %>.service: "api@internal"
+        traefik.http.services.<%= $APP %>.loadbalancer.server.port: "8080"
 
         # Global redirect to https
         traefik.http.routers.http-catchall.rule: "hostregexp(`{host:.+}`)"
@@ -88,18 +96,18 @@ services:
         mode: host
 
     environment:
-      DO_AUTH_TOKEN: "__DO_AUTH_TOKEN__"
-      ROOT_PRIVATE_KEY: "__ROOT_PRIVATE_KEY__"
+      DO_AUTH_TOKEN: "<%= $(bin/env DO_AUTH_TOKEN) %>"
+      ROOT_PRIVATE_KEY: "<%= $(bin/env ROOT_PRIVATE_KEY) %>"
 
     logging:
       options:
         max-size: "1m"
 
     volumes:
-      - /data/traefik/acme.json:/acme.json
+      - /data/<%= $APP %>/acme.json:/acme.json
 
 networks:
   proxy:
     name: proxy
     driver: overlay
-    # external: true
+    attachable: true

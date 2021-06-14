@@ -1,6 +1,6 @@
 #cloud-config
-hostname: __NODE__
-fqdn: __NODE__.__DOMAIN__
+hostname: <%= $NODE %>
+fqdn: <%= ${NODE}.${DOMAIN} %>
 
 package_update: true
 package_upgrade: true
@@ -20,38 +20,39 @@ packages:
   - unzip
   - apache2-utils
   - sshpass
+  - asciidoctor 
 
 write_files:
 
   # Make note of the node's name
-  - path: /etc/node
+  - path: /usr/local/env/NODE
     content: | 
-       __NODE__
+       <%= $NODE %>
 
   # Make note of the domain this node belongs to
-  - path: /etc/domain
+  - path: /usr/local/env/DOMAIN
     content: | 
-       __DOMAIN__
+       <%= $DOMAIN %>
 
   # Make note of the swarm this node belongs to
-  - path: /etc/swarm
+  - path: /usr/local/env/SWARM
     content: | 
-       __SWARM__
+       <%= $SWARM %>
 
   # Make note of which droplet image
-  - path: /etc/droplet_image
+  - path: /usr/local/env/DROPLET_IMAGE
     content: | 
-       __DROPLET_IMAGE__
+       <%= $DROPLET_IMAGE %>
 
   # Make note of which file system
-  - path: /etc/fs_type
+  - path: /usr/local/env/FS_TYPE
     content: | 
-       __FS_TYPE__
+       <%= $FS_TYPE %>
 
   # Make note of which region
-  - path: /etc/region
+  - path: /usr/local/env/REGION
     content: | 
-       __REGION__
+       <%= $REGION %>
   
   # Optimize SSHD for docker
   - path: /etc/ssh/sshd_config
@@ -91,7 +92,7 @@ users:
     lock_passwd: false
     hashed_passwd: $1$SaltSalt$YhgRYajLPrYevs14poKBQ0
     ssh-authorized-keys:
-      - __ROOT_PUBLIC_KEY__
+      - <%= $ROOT_PUBLIC_KEY %>
 
   # Work user is mostly used in container, but create matching user on host
   # Authorized keys from root is copied to this user
@@ -100,12 +101,12 @@ users:
     hashed_passwd: $1$SaltSalt$YhgRYajLPrYevs14poKBQ0
     homedir: /work
     ssh-authorized-keys:
-      - __ROOT_PUBLIC_KEY__
+      - <%= $ROOT_PUBLIC_KEY %>
 
 runcmd:
 
   # Webhook
-  - echo "__WEBHOOK__" > /etc/webhook
+  - echo "<%= $WEBHOOK %>" > /usr/local/env/WEBHOOK
   - SAY="is now online, but still installing packages." /bin/bash -c "$(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/node/webhook)"
   
   # Keep server up-to-date

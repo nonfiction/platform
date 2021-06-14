@@ -4,75 +4,75 @@
 # -----------------------
 #
 # # Add two replicas:
-# swarm provision __NODE__.__DOMAIN__ +2
+# swarm provision <%= ${NODE}.${DOMAIN} %> +2
 #
 # # Remove specific replica:
-# swarm provision __NODE__.__DOMAIN__ -__NODE__02
+# swarm provision <%= ${NODE}.${DOMAIN} %> -<%= $NODE %>02
 #
 # # Promote replica to primary:
-# swarm provision __NODE__.__DOMAIN__ ^__NODE__01
+# swarm provision <%= ${NODE}.${DOMAIN} %> ^<%= $NODE %>01
 #
 # # Increase the volume size to 20GB:
-# swarm size __NODE__.__DOMAIN__ 20
+# swarm size <%= ${NODE}.${DOMAIN} %> 20
 #
 # # Run node configuration and deploy this swarm:
-# swarm deploy __NODE__.__DOMAIN__ 
+# swarm deploy <%= ${NODE}.${DOMAIN} %>
 #
 # # SSH into the first replica in this swarm:
-# swarm ssh __NODE__.__DOMAIN__ __NODE__01
+# swarm ssh <%= ${NODE}.${DOMAIN} %> <%= $NODE %>01
 
 
 # Workspace configuration
 # -----------------------
 
 # Identifies git commits on this workspace
-export GIT_USER_NAME="__GIT_USER_NAME__"
-export GIT_USER_EMAIL=__GIT_USER_EMAIL__
+export GIT_USER_NAME="<%= $GIT_USER_NAME %>"
+export GIT_USER_EMAIL=<%= $GIT_USER_EMAIL %>
 
 # Github account
 # https://github.com/settings/tokens
-export GITHUB_USER=__GITHUB_USER__
-export GITHUB_TOKEN=__GITHUB_TOKEN__
+export GITHUB_USER=<%= $GITHUB_USER %>
+export GITHUB_TOKEN=<%= $GITHUB_TOKEN %>
 
 # Login password for VS Code/code-server
-export CODE_PASSWORD=__CODE_PASSWORD__
+export CODE_PASSWORD=<%= $CODE_PASSWORD %>
 
 # sudo password for "work" user in workspace
-export SUDO_PASSWORD=__SUDO_PASSWORD__
+export SUDO_PASSWORD=<%= $SUDO_PASSWORD %>
 
 # External database cluster credentials
 # https://cloud.digitalocean.com/databases
-export DB_USER=__DB_USER__
-export DB_PASSWORD=__DB_PASSWORD__
-export DB_HOST=__DB_HOST__
-export DB_PORT=__DB_PORT__
+export DB_USER=<%= $DB_USER %>
+export DB_PASSWORD=<%= $DB_PASSWORD %>
+export DB_HOST=<%= $DB_HOST %>
+export DB_PORT=<%= $DB_PORT %>
 
 
 # Node configuration
 # -----------------------
 
 # Used by doctl for swarm management & traefik for certificate renewals
-export DO_AUTH_TOKEN=__DO_AUTH_TOKEN__
+export DO_AUTH_TOKEN=<%= $DO_AUTH_TOKEN %>
 
 # All nodes in the swarm are have this root password
-export ROOT_PASSWORD=__ROOT_PASSWORD__
+export ROOT_PASSWORD=<%= $ROOT_PASSWORD %>
 
 # Password-protected pages like traefik dashboard
-export BASICAUTH_USER=__BASICAUTH_USER__
-export BASICAUTH_PASSWORD=__BASICAUTH_PASSWORD__
+export BASICAUTH_USER=<%= $BASICAUTH_USER %>
+export BASICAUTH_PASSWORD=<%= $BASICAUTH_PASSWORD %>
 
 # This is called by the swarm manager to signal when nodes are ready
 # https://api.slack.com/messaging/webhooks
-export WEBHOOK=__WEBHOOK__
+export WEBHOOK=<%= $WEBHOOK %>
 
 
 # Swarm configuration
 # These settings cannot be modified after the swarm has been created
 # -----------------------
 
-export DROPLET_IMAGE=__DROPLET_IMAGE__
-export REGION=__REGION__
-export FS_TYPE=__FS_TYPE__
+export DROPLET_IMAGE=<%= $DROPLET_IMAGE %>
+export REGION=<%= $REGION %>
+export FS_TYPE=<%= $FS_TYPE %>
 
 # All nodes in the swarm are accesible via this private key
-export ROOT_PRIVATE_KEY=__ROOT_PRIVATE_KEY__
+export ROOT_PRIVATE_KEY=<%= $ROOT_PRIVATE_KEY %>

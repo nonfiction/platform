@@ -1,0 +1,97 @@
+<%
+APP=workspace
+DOMAIN=$(bin/domain)
+-%>
+version: '3.8'
+services:
+
+  <%= $APP %>:
+    image: nonfiction/workspace:latest
+    hostname: <%= $(bin/swarm) %>
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+
+      restart_policy:
+        condition: on-failure
+
+      labels:
+        traefik.enable: "true"
+        traefik.docker.network: "proxy"
+
+        traefik.http.services.<%= $APP %>.loadbalancer.server.port: "8443"
+        traefik.http.services.<%= $APP %>.loadbalancer.server.scheme: "https"
+
+        traefik.http.routers.<%= $APP %>.rule: "Host(<%= $(bin/hosts $APP $DOMAIN) %>)"
+        traefik.http.routers.<%= $APP %>.entrypoints: "websecure"
+        traefik.http.routers.<%= $APP %>.tls.certresolver: "digitalocean"
+
+    volumes:
+      - /work:/work
+      - /data:/data
+      - /root:/root
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    environment:
+      DO_AUTH_TOKEN: "<%= $(bin/env DO_AUTH_TOKEN) %>"
+      WEBHOOK: "<%= $(bin/env WEBHOOK) %>"
+      DROPLET_IMAGE: "<%= $(bin/env DROPLET_IMAGE) %>"
+      FS_TYPE: "<%= $(bin/env FS_TYPE) %>"
+      REGION: "<%= $(bin/env REGION) %>"
+      CODE_PASSWORD: "<%= $(bin/env CODE_PASSWORD) %>"
+      SUDO_PASSWORD: "<%= $(bin/env SUDO_PASSWORD) %>"
+      BASICAUTH_PASSWORD: "<%= $(bin/env BASICAUTH_PASSWORD) %>"
+      BASICAUTH_USER: "<%= $(bin/env BASICAUTH_USER) %>"
+      DB_HOST: "<%= $(bin/env DB_HOST) %>"
+      DB_PASSWORD: "<%= $(bin/env DB_PASSWORD) %>"
+      DB_PORT: "<%= $(bin/env DB_PORT) %>"
+      DB_USER: "<%= $(bin/env DB_USER) %>"
+      GITHUB_TOKEN: "<%= $(bin/env GITHUB_TOKEN) %>"
+      GITHUB_USER: "<%= $(bin/env GITHUB_USER) %>"
+      GIT_USER_EMAIL: "<%= $(bin/env GIT_USER_EMAIL) %>"
+      GIT_USER_NAME: "<%= $(bin/env GIT_USER_NAME) %>"
+      ROOT_PASSWORD: "<%= $(bin/env ROOT_PASSWORD) %>"
+      ROOT_PRIVATE_KEY: "<%= $(bin/env ROOT_PRIVATE_KEY) %>"
+
+    networks:
+      - proxy
+
+    ports:
+      - target: 2222
+        published: 2222
+        mode: host
+      - target: 60000
+        published: 60000
+        protocol: udp
+        mode: host
+      - target: 60001
+        published: 60001
+        protocol: udp
+        mode: host
+      - target: 60002
+        published: 60002
+        protocol: udp
+        mode: host
+      - target: 60003
+        published: 60003
+        protocol: udp
+        mode: host
+      - target: 60004
+        published: 60004
+        protocol: udp
+        mode: host
+
+    logging:
+      options:
+        max-size: "1m"
+
+networks:
+  proxy:
+    name: proxy
+    driver: overlay
+    external: true
+
+# : { } [ ] , & * ? | - < > = ! % @ \

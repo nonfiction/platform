@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Load dotenv if available
+[ -e .env ] && export $(cat .env)
+
+# If not set in dotenv, use folder name
+if [ -z "$APP" ]; then
+  APP=${PWD##*/}
+fi
+
+# Send back value
+echo "$APP"

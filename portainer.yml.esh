@@ -1,12 +1,16 @@
+<%
+APP=portainer
+DOMAIN=$(bin/domain)
+-%>
 version: '3.8'
 services:
   
-  portainer:
+  <%= $APP %>:
     image: portainer/portainer-ce:latest
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /data/portainer:/data
+      - /data/<%= $APP %>:/data
 
     deploy:
       mode: global
@@ -16,11 +20,11 @@ services:
         traefik.enable: "true"
         traefik.docker.network: "proxy"
 
-        traefik.http.services.portainer.loadbalancer.server.port: "9000"
+        traefik.http.services.<%= $APP %>.loadbalancer.server.port: "9000"
 
-        traefik.http.routers.portainer.rule: "Host(__HOSTS__)"
-        traefik.http.routers.portainer.entrypoints: "websecure"
-        traefik.http.routers.portainer.tls.certresolver: "digitalocean"
+        traefik.http.routers.<%= $APP %>.rule: "Host(<%= $(bin/hosts $APP $DOMAIN) %>)"
+        traefik.http.routers.<%= $APP %>.entrypoints: "websecure"
+        traefik.http.routers.<%= $APP %>.tls.certresolver: "digitalocean"
 
     networks:
       - proxy

@@ -12,7 +12,7 @@ volumes_env() {
 
   local node; node=$1
   defined $node || node=$(hostname)
-  local fqdn; fqdn="${node}.$(cat /etc/domain)"
+  local fqdn; fqdn="${node}.$(cat /usr/local/env/DOMAIN)"
 
   export DO_BLOCK_VOL="$(hyphenify $fqdn)"
   export DO_BLOCK_DEV="/dev/disk/by-id/scsi-0DO_Volume_$(hyphenify $fqdn)"

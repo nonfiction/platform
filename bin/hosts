@@ -1,0 +1,14 @@
+#!/bin/bash
+
+app=$1
+domain=$2
+public=$3
+
+hosts=""; 
+[ ! -z "$public" ] && hosts="\`${public}\`"
+
+for node in $(docker node ls --format "{{lower .Hostname}}" | xargs); do
+  hosts="${hosts} \`${app}.${node}.${domain}\`"
+done
+
+echo $hosts | xargs | tr ' ' ',' 

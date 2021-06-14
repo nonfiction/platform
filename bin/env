@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# env DO_AUTH_TOKEN my-secret-token
+# > attempts to load DO_AUTH_TOKEN from .env and environment
+# > falls back on named file in CWD or /usr/local/env
+# > falls back on my-secret-token as default value
+
+# Exit if no arguments passed
+[ -z "$1" ] && exit 1
+
+# Load dotenv if available
+[ -e .env ] && export $(cat .env)
+
+# Set value from environment
+var="${!1}"
+
+# If this is null, load from file
+if [ -z "$var" ]; then
+
+  # Try to load filename as-is
+  if [ -e "${1}" ]; then
+    var="$(cat ${1})"
+
+  # If that doesn't exist, try to load it under /usr/local/env/
+  elif [ -e "/usr/local/env/${1}" ]; then
+    var="$(cat /usr/local/env/${1})"
+
+  # Default value from second parameter if nothing else
+  else
+    var="${2}"
+  fi
+
+fi
+
+# Send back value
+echo "$var"

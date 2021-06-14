@@ -12,7 +12,7 @@ include() {
 include "lib/helpers.sh"
 
 
-url=$(cat /etc/webhook)
+url=$(cat /usr/local/env/WEBHOOK)
 val="[$(hostname -f)] "
 
 if defined $SAY; then

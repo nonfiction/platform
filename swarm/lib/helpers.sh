@@ -195,6 +195,107 @@ ask_env_file_default() {
   echo "$variable"
 }
 
+
+# env DO_AUTH_TOKEN my-secret-token
+# > attempts to load DO_AUTH_TOKEN from .env and environment
+# > falls back on named file in CWD or /usr/local/env
+# > falls back on my-secret-token as default value
+
+env() {
+
+  # Exit if no arguments passed
+  [ -z "$1" ] && return 1
+
+  # Load dotenv if available
+  [ -e .env ] && export $(cat .env)
+
+  # Set value from environment
+  local var="${!1}"
+
+  # If this is null, load from file
+  if [ -z "$var" ]; then
+
+    # Try to load filename as-is
+    if [ -e "${1}" ]; then
+      var="$(cat ${1})"
+
+    # If that doesn't exist, try to load it under /usr/local/env/
+    elif [ -e "/usr/local/env/${1}" ]; then
+      var="$(cat /usr/local/env/${1})"
+
+    # Default value from second parameter if nothing else
+    else
+      var="${2}"
+    fi
+
+  fi
+
+  # Send back value
+  echo "$var"
+
+}
+
+# Ask for input, using environment variable or file as suggested value
+ask_env() {
+
+  # Exit if no arguments passed
+  [ -z "$1" ] && return 1
+
+  # Load dotenv if available
+  [ -e .env ] && export $(cat .env)
+
+  # Set value from environment
+  local var="${!1}"
+
+  # If this is null, load from file
+  if [ -z "$var" ]; then
+
+    # Try to load filename as-is
+    if [ -e "${1}" ]; then
+      var="$(cat ${1})"
+
+    # If that doesn't exist, try to load it under /usr/local/env/
+    elif [ -e "/usr/local/env/${1}" ]; then
+      var="$(cat /usr/local/env/${1})"
+
+    # Default value from second parameter if nothing else
+    else
+      var="${2}"
+    fi
+
+  fi
+
+  # Read input with suggestion
+  if [ ! -z "$var" ]; then
+    read -e -i "${var}" var
+  else
+    read var
+  fi
+
+  # Send back value
+  echo "$var"
+
+}
+
+# Save env variable to /usr/local/env
+set_env() {
+
+  # Exit if no arguments passed
+  [ -z "$1" ] && return 1
+
+  local base="/usr/local/env"
+  local file="${base}/${1}"
+  local val="${!1}"
+
+  # If this is null, load from file
+  [ -z "$val" ] && return 1
+
+  mkdir -p $base
+  echo_next "Writing $file"
+  echo "$val" | tee "$file"
+
+}
+
 # Append line to end of file if it doesn't exist
 append() {
   if [ $# -lt 2 ] || [ ! -r "$2" ]; then
@@ -286,6 +387,32 @@ generate_key() {
 }
 
 
+verify_esh() {
+
+  # Install esh (if it isn't already)
+  if hasnt esh; then
+    
+    echo_next "Installing esh..."
+    
+    # https://github.com/jirutka/esh/releases
+    local version="0.3.1"
+    curl -sL https://github.com/jirutka/esh/archive/v${version}/esh-${version}.tar.gz | tar -xz
+    mv esh-${version} .esh
+    if error "mv ./.esh/esh /usr/local/bin/esh"; then
+      rm -rf ./.esh
+      echo_stop "Missing permissions to move esh to /usr/local/bin"
+      echo "chown that directory so your user can write to it."
+      exit 1
+
+    else
+      rm -rf ./.esh
+      echo "...ok!"
+      echo
+    fi
+
+  fi
+  
+}
 
 # Mark this as loaded
 export HELPERS_LOADED=1

@@ -14,16 +14,55 @@ include "lib/helpers.sh"
 # Volume helper functions
 include "lib/volumes.sh"
 
+# Update env variables with latest
 
-# Update primary in case it has changed
-if defined $PRIMARY_IP; then
-  echo "$PRIMARY_IP" > /etc/primary_ip
-fi
+# Used by traefik
+set_env PRIMARY_IP
+set_env DO_AUTH_TOKEN
 
-# Update webhook in case it has changed
-if defined $WEBHOOK; then
-  echo "$WEBHOOK" > /etc/webhook
-fi
+# Used by traefik and others
+set_env BASICAUTH_PASSWORD
+set_env BASICAUTH_USER
+
+# Used by workspace
+set_env GITHUB_TOKEN
+set_env GITHUB_USER
+set_env GIT_USER_EMAIL
+set_env GIT_USER_NAME
+
+# VS Code password
+set_env CODE_PASSWORD
+
+# sudo for work user on workspace
+set_env SUDO_PASSWORD
+
+# Used by services on this swarm
+set_env DB_HOST
+set_env DB_PASSWORD
+set_env DB_PORT
+set_env DB_USER
+
+# These shouldn't change on an existing swarm
+set_env ROOT_PRIVATE_KEY
+set_env ROOT_PUBLIC_KEY
+set_env DROPLET_IMAGE
+set_env FS_TYPE
+set_env REGION
+
+# Probably won't change, but can
+set_env ROOT_PASSWORD
+set_env WEBHOOK
+
+# # Update primary in case it has changed
+# if defined $PRIMARY_IP; then
+#   echo "$PRIMARY_IP" > /usr/local/env/PRIMARY_IP
+# fi
+#
+# # Update webhook in case it has changed
+# if defined $WEBHOOK; then
+#   set_env WEBHOOK
+#   echo "$WEBHOOK" > /usr/local/env/WEBHOOK
+# fi
 
 # Ensure all these volumes directories exist
 if defined $NODE; then
@@ -53,11 +92,13 @@ fi
 
 # Update /etc/hosts file
 if defined $HOSTS_FILE && defined $NODE; then
-  DOMAIN=$(cat /etc/domain)
+  DOMAIN=$(cat /usr/local/env/DOMAIN)
   echo_next "Setting /etc/hosts on $NODE"
   hosts_self="127.0.1.1 ${NODE}.${DOMAIN} $NODE"
   echo -e "${hosts_self}\n${HOSTS_FILE}" | tee /etc/hosts
 fi
+
+
                                                                               
 # Self-manage /etc/hosts file
 if undefined "$(cat /etc/cloud/cloud.cfg | grep manage_etc_hosts)"; then
@@ -69,7 +110,7 @@ fi
 # Add block storage to fstab
 if defined $DO_BLOCK_DEV && defined $DO_BLOCK_MNT; then
 
-  FS_TYPE=$(cat /etc/fs_type)
+  FS_TYPE=$(cat /usr/local/env/FS_TYPE)
   entry="${DO_BLOCK_DEV} ${DO_BLOCK_MNT} ${FS_TYPE} defaults,nofail,discard 0 0"
   if undefined "$(cat /etc/fstab | grep "${entry}")"; then
     echo_next "Appending /etc/fstab"

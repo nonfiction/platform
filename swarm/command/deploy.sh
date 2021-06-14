@@ -2,6 +2,7 @@
 
 # Bash helper functions
 include "lib/helpers.sh"
+verify_esh
 
 # Digital Ocean API
 include "lib/doctl.sh"
@@ -78,9 +79,30 @@ for node in $NODES; do
   env="${env} NODE=\"$node\""
   env="${env} PRIMARY_IP=\"$(get_droplet_private_ip $PRIMARY)\""
   env="${env} HOSTS_FILE=\"$hosts\""
+  env="${env} DO_AUTH_TOKEN=\"$DO_AUTH_TOKEN\""
   env="${env} WEBHOOK=\"$WEBHOOK\""
+
+  env="${env} BASICAUTH_USER=\"$BASICAUTH_USER\""
+  env="${env} BASICAUTH_PASSWORD=\"$BASICAUTH_PASSWORD\""
+
+  env="${env} GIT_USER_NAME=\"$GIT_USER_NAME\""
+  env="${env} GIT_USER_EMAIL=\"$GIT_USER_EMAIL\""
+  env="${env} GITHUB_USER=\"$GITHUB_USER\""
+  env="${env} GITHUB_TOKEN=\"$GITHUB_TOKEN\""
+
+  env="${env} CODE_PASSWORD=\"$CODE_PASSWORD\""
+  env="${env} SUDO_PASSWORD=\"$SUDO_PASSWORD\""
   env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
-  env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""
+
+  env="${env} DB_USER=\"$DB_USER\""
+  env="${env} DB_HOST=\"$DB_HOST\""
+  env="${env} DB_PASSWORD=\"$DB_PASSWORD\""
+  env="${env} DB_PORT=\"$DB_PORT\""
+
+  env="${env} ROOT_PRIVATE_KEY=\"$ROOT_PRIVATE_KEY\""
+  env="${env} DROPLET_IMAGE=\"$DROPLET_IMAGE\""
+  env="${env} REGION=\"$REGION\""
+  env="${env} FS_TYPE=\"$FS_TYPE\""
 
   # Run script on node
   run $node "${env} /root/platform/swarm/node/node"
@@ -107,7 +129,7 @@ for node in $NODES; do
 
   # Else, get join token from primary node
   else
-    join_token="$(run $PRIMARY "cat /etc/docker-join-token")"
+    join_token="$(run $PRIMARY "cat /usr/local/env/DOCKER_JOIN_TOKEN")"
   fi
   
   # Prepare environment variables for run command
@@ -125,32 +147,31 @@ for node in $NODES; do
   [ "$node" = "$PRIMARY" ] && env="${env} IS_PRIMARY=1"
   run $node "${env} /root/platform/swarm/node/docker"
 
-
-  # Build docker stack yaml files
-  env="STACK=1"
-  env="${env} NODES=\"$NODES\""
-  env="${env} DO_AUTH_TOKEN=\"$DO_AUTH_TOKEN\""
-  env="${env} DROPLET_IMAGE=\"$DROPLET_IMAGE\""
-  env="${env} REGION=\"$REGION\""
-  env="${env} FS_TYPE=\"$FS_TYPE\""
-  env="${env} ROOT_PRIVATE_KEY=\"$ROOT_PRIVATE_KEY\""
-  env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
-  env="${env} CODE_PASSWORD=\"$CODE_PASSWORD\""
-  env="${env} SUDO_PASSWORD=\"$SUDO_PASSWORD\""
-  env="${env} BASICAUTH_USER=\"$BASICAUTH_USER\""
-  env="${env} BASICAUTH_PASSWORD=\"$BASICAUTH_PASSWORD\""
-  env="${env} GIT_USER_NAME=\"$GIT_USER_NAME\""
-  env="${env} GIT_USER_EMAIL=\"$GIT_USER_EMAIL\""
-  env="${env} GITHUB_USER=\"$GITHUB_USER\""
-  env="${env} GITHUB_TOKEN=\"$GITHUB_TOKEN\""
-  env="${env} WEBHOOK=\"$WEBHOOK\""
-  env="${env} DB_USER=\"$DB_USER\""
-  env="${env} DB_HOST=\"$DB_HOST\""
-  env="${env} DB_PASSWORD=\"$DB_PASSWORD\""
-  env="${env} DB_PORT=\"$DB_PORT\""
-
-  # Run script on node
-  run $node "${env} /root/platform/swarm/node/docker"
+  # # Build docker stack yaml files
+  # env="STACK=1"
+  # env="${env} NODES=\"$NODES\""
+  # env="${env} DO_AUTH_TOKEN=\"$DO_AUTH_TOKEN\""
+  # env="${env} DROPLET_IMAGE=\"$DROPLET_IMAGE\""
+  # env="${env} REGION=\"$REGION\""
+  # env="${env} FS_TYPE=\"$FS_TYPE\""
+  # env="${env} ROOT_PRIVATE_KEY=\"$ROOT_PRIVATE_KEY\""
+  # env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
+  # env="${env} CODE_PASSWORD=\"$CODE_PASSWORD\""
+  # env="${env} SUDO_PASSWORD=\"$SUDO_PASSWORD\""
+  # env="${env} BASICAUTH_USER=\"$BASICAUTH_USER\""
+  # env="${env} BASICAUTH_PASSWORD=\"$BASICAUTH_PASSWORD\""
+  # env="${env} GIT_USER_NAME=\"$GIT_USER_NAME\""
+  # env="${env} GIT_USER_EMAIL=\"$GIT_USER_EMAIL\""
+  # env="${env} GITHUB_USER=\"$GITHUB_USER\""
+  # env="${env} GITHUB_TOKEN=\"$GITHUB_TOKEN\""
+  # env="${env} WEBHOOK=\"$WEBHOOK\""
+  # env="${env} DB_USER=\"$DB_USER\""
+  # env="${env} DB_HOST=\"$DB_HOST\""
+  # env="${env} DB_PASSWORD=\"$DB_PASSWORD\""
+  # env="${env} DB_PORT=\"$DB_PORT\""
+  #
+  # # Run script on node
+  # run $node "${env} /root/platform/swarm/node/docker"
 
 done
 

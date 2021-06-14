@@ -1,5 +1,6 @@
 #!/bin/bash # Bash helper functions
 include "lib/helpers.sh"
+verify_esh
 
 # Digital Ocean API
 include "lib/doctl.sh"

@@ -2,6 +2,7 @@
 
 # Bash helper functions
 include "lib/helpers.sh"
+verify_esh
 
 if undefined $SWARM; then
   echo

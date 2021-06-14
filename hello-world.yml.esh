@@ -1,0 +1,31 @@
+<%
+APP=hello-world
+DOMAIN=$(bin/domain)
+-%>
+version: '3.8'
+services:
+  
+  <%= $APP %>:
+    image: nonfiction/hello-world:latest
+
+    deploy:
+      mode: global
+      labels:
+        traefik.enable: "true"
+        traefik.docker.network: "proxy"
+
+        traefik.http.services.<%= $APP %>.loadbalancer.server.port: "80"
+        traefik.http.services.<%= $APP %>.loadbalancer.server.scheme: "http"
+        
+        traefik.http.routers.<%= $APP %>.rule: "Host(<%= $(bin/hosts $APP $DOMAIN) %>)"
+        traefik.http.routers.<%= $APP %>.entrypoints: "websecure"
+        traefik.http.routers.<%= $APP %>.tls.certresolver: "digitalocean"
+
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    name: proxy
+    driver: overlay
+    external: true

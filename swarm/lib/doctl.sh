@@ -14,7 +14,7 @@ verify_doctl() {
     echo_next "Installing doctl..."
     
     # https://github.com/digitalocean/doctl/releases
-    version="1.61.0"
+    local version="1.61.0"
     curl -sL https://github.com/digitalocean/doctl/releases/download/v${version}/doctl-${version}-linux-amd64.tar.gz | tar -xzv
     mv doctl .doctl
     if error "mv ./.doctl /usr/local/bin/doctl"; then
@@ -35,7 +35,7 @@ verify_doctl() {
     echo_info "doctl unauthorized, checking for token..."
     
     #  https://cloud.digitalocean.com/account/api/tokens
-    DO_AUTH_TOKEN=$(env_file_default DO_AUTH_TOKEN /usr/local/env/DO_AUTH_TOKEN)
+    DO_AUTH_TOKEN=$(env DO_AUTH_TOKEN)
     if undefined "$DO_AUTH_TOKEN"; then
       echo_stop "Missing DO_AUTH_TOKEN!"
       echo "https://cloud.digitalocean.com/account/api/tokens"
