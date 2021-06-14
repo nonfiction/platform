@@ -44,7 +44,6 @@ set_env DB_USER
 
 # These shouldn't change on an existing swarm
 set_env ROOT_PRIVATE_KEY
-set_env ROOT_PUBLIC_KEY
 set_env DROPLET_IMAGE
 set_env FS_TYPE
 set_env REGION
