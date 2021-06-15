@@ -53,6 +53,16 @@ write_files:
   - path: /usr/local/env/REGION
     content: | 
        <%= $REGION %>
+
+  # Message of the Day
+  - path: /etc/motd
+    content: | 
+       NODE: <%= $NODE %>
+       DOMAIN: <%= $DOMAIN %>
+       SWARM: <%= $SWARM %>
+       REGION: <%= $REGION %>
+       FS_TYPE: <%= $FS_TYPE %>
+       DROPLET_IMAGE: <%= $DROPLET_IMAGE %>
   
   # Optimize SSHD for docker
   - path: /etc/ssh/sshd_config
