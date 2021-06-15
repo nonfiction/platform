@@ -6,8 +6,7 @@ version: '3.8'
 services:
 
   <%= $APP %>:
-    # image: nonfiction/traefik:latest
-    image: traefik:v2.4.8
+    image: nonfiction/traefik:latest
     command:
 
       # Enable Docker in Traefik, so that it reads labels from Docker services
@@ -99,12 +98,6 @@ services:
         published: 443
         mode: host
 
-    configs:
-      - source: entrypoint.sh
-        target: /entrypoint.sh
-      - source: ssh_config
-        target: /etc/ssh/ssh_config
-
     environment:
       DO_AUTH_TOKEN: "<%= $(bin/env DO_AUTH_TOKEN) %>"
       ROOT_PRIVATE_KEY: "<%= $(bin/env ROOT_PRIVATE_KEY) %>"
@@ -121,9 +114,3 @@ networks:
     name: proxy
     driver: overlay
     attachable: true
-
-configs:
-  entrypoint.sh:
-    file: traefik/entrypoint.sh
-  ssh_config:
-    file: traefik/ssh_config
