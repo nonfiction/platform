@@ -509,8 +509,8 @@ resize_droplet() {
     echo_run $PRIMARY "${env} /root/platform/swarm/node/docker"
 
     # Wait...
-    echo "Waiting 20 seconds for node to drain..."
-    sleep 20
+    echo "Waiting 30 seconds for node to drain..."
+    sleep 30
 
     # Turn off & resize
     echo_next "Turning OFF and RESIZING droplet $droplet_name"
@@ -521,8 +521,8 @@ resize_droplet() {
     echo_run "doctl compute droplet-action power-on $droplet_id --verbose --wait"
 
     # Wait...
-    echo "Waiting 20 seconds for node to boot..."
-    sleep 20
+    echo "Waiting 30 seconds for node to boot..."
+    sleep 30
 
     # Restore the node to active after reboot 
     env="ACTIVE=1 NODE=${node}"
