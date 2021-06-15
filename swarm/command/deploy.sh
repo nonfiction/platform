@@ -142,12 +142,6 @@ for node in $NODES; do
   # Run script on node
   run $node "${env} /root/platform/swarm/node/docker"
 
-
-  # Pull latest images on nodes
-  env="PULL=1"
-  [ "$node" = "$PRIMARY" ] && env="${env} IS_PRIMARY=1"
-  run $node "${env} /root/platform/swarm/node/docker"
-
 done
 
 

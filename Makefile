@@ -6,7 +6,7 @@ init:
 	touch /data/traefik/acme.json
 	chmod 600 /data/traefik/acme.json
 
-deploy: stack 
+deploy: stack pull
 	docker stack deploy -c traefik.yml platform
 	docker stack deploy -c hello-world.yml platform
 	docker stack deploy -c portainer.yml platform
@@ -17,3 +17,9 @@ stack:
 	esh hello-world.yml.esh > hello-world.yml
 	esh portainer.yml.esh > portainer.yml
 	esh workspace.yml.esh > workspace.yml
+
+pull:
+	docker pull nonfiction/traefik
+	docker pull nonfiction/hello-world
+	docker pull portainer/portainer-ce
+	docker pull nonfiction/workspace

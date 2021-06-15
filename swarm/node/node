@@ -71,6 +71,17 @@ if defined $ROOT_PASSWORD; then
 fi
 
 
+# Set root keys
+if defined $ROOT_PRIVATE_KEY; then
+  key="/root/.ssh/id_rsa"
+  echo_next "Writing ${key}"
+  echo "$ROOT_PRIVATE_KEY" | base64 -d > $key
+  chmod 400 $key
+  echo_next "Writing ${key}.pub"
+  echo "$(ssh-keygen -y -f $key) root@${NODE}" > $key.pub
+fi
+
+
 # Settings authorized_keys
 if defined $ROOT_PUBLIC_KEY; then
   keys="$(curl -sL https://github.com/nonfiction/workspace/raw/main/etc/ssh/authorized_keys)"

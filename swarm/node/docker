@@ -94,25 +94,4 @@ elif defined $JOIN && defined $NODE && defined $JOIN_TOKEN && defined $PRIVATE_I
 
   fi
 
-
-# PULL
-# ----------------------------------------
-elif defined $PULL; then
-
-  echo_next "Pulling traefik..."
-  echo_run "docker pull nonfiction/traefik"
-
-  echo_next "Pulling hello-world..."
-  echo_run "docker pull nonfiction/hello-world"
-
-  if defined $IS_PRIMARY; then
-    echo_next "Pulling portainer..."
-    echo_run "docker pull portainer/portainer-ce"
-  fi
-
-  if defined $IS_PRIMARY; then
-    echo_next "Pulling workspace..."
-    echo_run "docker pull nonfiction/workspace"
-  fi
-
 fi
