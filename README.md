@@ -45,8 +45,11 @@ These are to be run on a separate server not involved in the swarm being managed
 # Promote replica to primary:
 swarm provision abc.example.com ^abc01
 
-# Increase the volume size to 20GB:
+# Increase each node's volume size to 20GB:
 swarm size abc.example.com 20
+
+# Increase each node's droplet memory to 2GB:
+swarm size abc.example.com s-1vcpu-2gb
 
 # Remove a swarm
 swarm remove abc.example.com
