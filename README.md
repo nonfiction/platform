@@ -18,7 +18,7 @@ swarm create abc.example.com
 # Provision resources:
 swarm provision abc.example.com
 
-# After 5-0 minutes, deploy swarm:
+# After 5-10 minutes, deploy swarm:
 swarm deploy abc.example.com
 ```
 
@@ -36,19 +36,31 @@ bash <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/swarm) p
 bash <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/swarm) deploy abc.example.com
 ```
 
-## Setup [WiP]
+## Digital Ocean Setup
 
-- Create domain
-- Create firewall
-- Create "swarm" tag
+- Create new tag `swarm` by adding it to an arbitrary [droplet](https://cloud.digitalocean.com/droplets)
+- APIs -> Tokens/Keys -> [Generate New Token](https://cloud.digitalocean.com/account/api/tokens)
+- Networking -> Domains -> [Add Domain](https://cloud.digitalocean.com/networking/domains/)
+- Networking -> Firewalls -> [Create Firewall](https://cloud.digitalocean.com/networking/firewalls)
+
+![11EB4F4A-2562-4860-A4CA-4798C4866996](https://user-images.githubusercontent.com/12491/122124309-552e3680-cdec-11eb-8cd9-abe1613992fa.jpeg)
 
 ## Usage:
 
 Create and manage swarms from the command line:
 
 ```
+# Create new swarmfile:
+swarm create abc.example.com
+
 # Edit swarmfile:
 swarm edit abc.example.com
+
+# Provision resources:
+swarm provision abc.example.com
+
+# After 5-10 minutes, deploy swarm:
+swarm deploy abc.example.com
 
 # Provision three replicas:
 swarm provision abc.example.com +3
