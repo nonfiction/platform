@@ -428,35 +428,25 @@ create_droplet() {
   defined $FS_TYPE || return
   defined $DROPLET_SIZE || return
   defined $DROPLET_IMAGE || return
-  defined $ROOT_PASSWORD || return
   defined $ROOT_PUBLIC_KEY || return
   
   local node=$1
   local role=$2
   local volume_id; volume_id="$(get_volume_id $1)"
 
-  # sed -i "s|__NODE__|${node}|" $config
-  # sed -i "s|__SWARM__|${SWARM}|" $config
-  # sed -i "s|__DOMAIN__|${DOMAIN}|" $config
-  # sed -i "s|__REGION__|${REGION}|" $config
-  # sed -i "s|__FS_TYPE__|${FS_TYPE}|" $config
-  # sed -i "s|__DROPLET_IMAGE__|${DROPLET_IMAGE}|" $config
-  # sed -i "s|__ROOT_PUBLIC_KEY__|${ROOT_PUBLIC_KEY}|" $config
-  # sed -i "s|__WEBHOOK__|${WEBHOOK}|" $config
-
   # Download cloud-config.yml and fill out variables
   curl -sL https://github.com/nonfiction/platform/raw/main/swarm/template/cloud-config.yml.esh > /tmp/cloud-config.yml.esh
 
-  # export SWARM
-  # export DOMAIN
-  # export REGION
-  # export FS_TYPE
-  # export DROPLET_IMAGE
-  # export ROOT_PUBLIC_KEY
-  # export WEBHOOK
-
   # Generate the cloud-config.yml and save to where it belongs
-  NODE=$node esh /tmp/cloud-config.yml.esh > /tmp/cloud-config.yml
+  NODE=$node                                          \
+  DOMAIN=$DOMAIN                                      \
+  SWARM=$SWARM                                        \
+  DROPLET_IMAGE=$DROPLET_IMAGE                        \
+  FS_TYPE=$FS_TYPE                                    \
+  REGION=$REGION                                      \
+  ROOT_PUBLIC_KEY=$ROOT_PUBLIC_KEY                    \
+  WEBHOOK=$WEBHOOK                                    \
+  esh /tmp/cloud-config.yml.esh > /tmp/cloud-config.yml
   
   echo_next "Creating droplet $(droplet_name ${node})"
   doctl compute droplet create "$(droplet_name ${node})" \
