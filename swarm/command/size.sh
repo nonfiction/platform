@@ -15,8 +15,15 @@ if undefined $SWARM; then
   exit 1
 fi
 
+# Check if swarmfile exists
 if hasnt $SWARMFILE; then
   echo_stop "Swarm named $SWARM not found in $SWARMFILE"
+  exit 1
+fi
+
+# Ensure we're on a different machine
+if [ $SWARMFILE = $(hostname -f) ]; then
+  echo_stop "Cannot SIZE swarm from a node within this same swarm. Perform this command on a separate computer."
   exit 1
 fi
 

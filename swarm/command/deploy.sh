@@ -21,6 +21,12 @@ if hasnt $SWARMFILE; then
   exit 1
 fi
 
+# Ensure we're on a different machine
+if [ $SWARMFILE = $(hostname -f) ]; then
+  echo_stop "Cannot REMOVE swarm from a node within this same swarm. Perform this command on a separate computer."
+  exit 1
+fi
+
 # Skip this if provision is called from "swarm size"
 if undefined $RESIZE; then
 

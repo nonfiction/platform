@@ -43,6 +43,11 @@ if defined $PROMOTED; then
   # Add old primary to replicas, remove new primary from replicas
   REPLICAS=$(get_swarm_replicas $DEMOTED $PROMOTED)
 
+  # Ensure we're on a different machine
+  if [ $SWARMFILE = $(hostname -f) ]; then
+    echo_stop "Cannot promote new PRIMARY from a node within this same swarm. Perform this command on a separate computer."
+    exit 1
+  fi
 
 # Add or remove replicas
 else
