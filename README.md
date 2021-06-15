@@ -3,7 +3,6 @@
 Configuration for [Docker Swarm](https://docs.docker.com/engine/swarm/) with
 [GlusterFS](https://docs.gluster.org/) distributed file system, provisioned
 from [Digital Ocean](https://github.com/digitalocean/doctl) via command-line. 
-
 Deployed swarms will run [Traefik](https://doc.traefik.io/traefik/) as reverse 
 proxy for Docker services, as well as [VS Code](https://github.com/cdr/code-server) 
 in an [Alpine](https://www.alpinelinux.org) environment for development.
