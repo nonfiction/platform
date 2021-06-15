@@ -9,7 +9,6 @@ includes a `swarm` CLI tool which provisions a cluster of servers from Digital
 Ocean and installs itself there. 
 
 ```
-
 # Create new swarmfile:
 swarm create abc.example.com
 
@@ -18,14 +17,12 @@ swarm provision abc.example.com
 
 # After 5-0 minutes, deploy swarm:
 swarm deploy abc.example.com
-
 ```
 
 Since `swarm` is just a bash script, any cluster can be bootstrapped from any
 terminal like so:
 
 ```
-
 # Create new swarmfile:
 bash <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/swarm) create abc.example.com
 
@@ -34,7 +31,6 @@ bash <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/swarm) p
 
 # After 5-0 minutes, deploy swarm:
 bash <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/swarm) deploy abc.example.com
-
 ```
 
 ## Setup
@@ -48,15 +44,8 @@ bash <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/swarm) d
 Create and manage swarms from the command line:
 
 ```
-
-# Create new swarmfile:
-swarm create abc.example.com
-
-# Edit this swarmfile:
+# Edit swarmfile:
 swarm edit abc.example.com
-
-# Provision resources on Digital Ocean:
-swarm provision abc.example.com
 
 # Provision three replicas:
 swarm provision abc.example.com +3
@@ -64,21 +53,16 @@ swarm provision abc.example.com +3
 # Remove specific replica:
 swarm provision abc.example.com -abc02
 
-# Run node configuration and deploy this swarm:
-swarm deploy abc.example.com
-
 # SSH into the first replica of this swarm:
 swarm ssh abc.nfweb.ca abc01
 
 # List these commands:
 swarm help
-
 ```
 
 These are to be run on a separate server not involved in the swarm being managed: 
 
 ```
-
 # Promote replica to primary:
 swarm provision abc.example.com ^abc01
 
@@ -90,7 +74,6 @@ swarm size abc.example.com s-1vcpu-2gb
 
 # Remove a swarm
 swarm remove abc.example.com
-
 ```
 
 ## Makefile commands:  
@@ -109,5 +92,5 @@ make deploy
 - [nonfiction/traefik](https://github.com/nonfiction/traefik)
 - [nonfiction/workspace](https://github.com/nonfiction/workspace)
 - [nonfiction/hello-world](https://github.com/nonfiction/hello-world)
-- [nonfiction/wordpress](https://github.com/nonfiction/workpress)
+- [nonfiction/wordpress](https://github.com/nonfiction/wordpress)
 
