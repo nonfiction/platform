@@ -14,8 +14,13 @@ services:
 
     deploy:
       mode: global
+
       placement:
         constraints: [node.role == manager]
+
+      restart_policy:
+        condition: on-failure
+
       labels:
         traefik.enable: "true"
         traefik.docker.network: "proxy"

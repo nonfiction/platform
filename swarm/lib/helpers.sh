@@ -154,53 +154,10 @@ echo_run() {
 }
 
 
-# Check for environment variable, or fall back on up to 2 files
-env_file() {
-  local variable="${!1}"
-  if undefined "$variable"; then
-    defined "$2" && has "$2" && variable="$(cat $2)"
-    if undefined "$variable"; then
-      defined "$3" && has "$3" && variable="$(cat $3)"
-    fi
-  fi
-  echo "$variable"
-}
-
-# Check for environment variable, fall back on file, or use default
-env_file_default() {
-  local variable="${!1}"
-  if undefined "$variable"; then
-    defined "$2" && has "$2" && variable="$(cat $2)"
-    if undefined "$variable"; then
-      defined "$3" && variable="$3"
-    fi
-  fi
-  echo "$variable"
-}
-
-# Ask for input, using environment variable or file as suggested value
-ask_env_file_default() {
-  local variable="${!1}"
-  if undefined "$variable"; then
-    defined "$2" && has "$2" && variable="$(cat $2)"
-    if undefined "$variable"; then
-      defined "$3" && variable="$3"
-    fi
-  fi
-  if defined "${variable}"; then
-    read -e -i "${variable}" variable
-  else
-    read variable
-  fi
-  echo "$variable"
-}
-
-
 # env DO_AUTH_TOKEN my-secret-token
 # > attempts to load DO_AUTH_TOKEN from .env and environment
 # > falls back on named file in CWD or /usr/local/env
 # > falls back on my-secret-token as default value
-
 env() {
 
   # Exit if no arguments passed
@@ -337,30 +294,18 @@ domain_from_slug() {
 }
 
 args() {
-  # local args
-  # args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)
-  # echo "$args" | tr ' ' '\n' | sort | uniq | xargs
   echo "$(input $1)" | tr ' ' '\n' | sort | uniq | xargs
 }
 
 rargs() {
-  # local args
-  # args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)
-  # echo "$args" | tr ' ' '\n' | sort | uniq | tac | xargs
   echo "$(input $1)" | tr ' ' '\n' | sort | uniq | tac | xargs
 }
 
 first() {
-  # local args
-  # args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)
-  # echo "$args" | awk '{print $1}'
   echo "$(input $1)" | awk '{print $1}'
 }
 
 after_first() {
-  # local args
-  # args=$(test -p /dev/stdin && awk '{print}' /dev/stdin && return 0 || return 1)
-  # echo "$args" | awk '{$1=""}1' | xargs
   echo "$(input $1)" | awk '{$1=""}1' | xargs
 }
 

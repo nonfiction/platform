@@ -11,7 +11,6 @@ include() {
 # Bash helper functions
 include "lib/helpers.sh"
 
-
 # Update repo
 echo_next "Updating platform repo from git"
 cd /root/platform && git pull

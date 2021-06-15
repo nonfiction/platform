@@ -57,6 +57,9 @@ services:
     deploy:
       mode: global
 
+      restart_policy:
+        condition: on-failure
+
       labels:
         traefik.enable: "true"
         traefik.docker.network: "proxy"

@@ -36,27 +36,6 @@ services:
       - /usr/local/env:/usr/local/env
       - /var/run/docker.sock:/var/run/docker.sock
 
-    environment:
-      DO_AUTH_TOKEN: "<%= $(bin/env DO_AUTH_TOKEN) %>"
-      WEBHOOK: "<%= $(bin/env WEBHOOK) %>"
-      DROPLET_IMAGE: "<%= $(bin/env DROPLET_IMAGE) %>"
-      FS_TYPE: "<%= $(bin/env FS_TYPE) %>"
-      REGION: "<%= $(bin/env REGION) %>"
-      CODE_PASSWORD: "<%= $(bin/env CODE_PASSWORD) %>"
-      SUDO_PASSWORD: "<%= $(bin/env SUDO_PASSWORD) %>"
-      BASICAUTH_PASSWORD: "<%= $(bin/env BASICAUTH_PASSWORD) %>"
-      BASICAUTH_USER: "<%= $(bin/env BASICAUTH_USER) %>"
-      DB_HOST: "<%= $(bin/env DB_HOST) %>"
-      DB_PASSWORD: "<%= $(bin/env DB_PASSWORD) %>"
-      DB_PORT: "<%= $(bin/env DB_PORT) %>"
-      DB_USER: "<%= $(bin/env DB_USER) %>"
-      GITHUB_TOKEN: "<%= $(bin/env GITHUB_TOKEN) %>"
-      GITHUB_USER: "<%= $(bin/env GITHUB_USER) %>"
-      GIT_USER_EMAIL: "<%= $(bin/env GIT_USER_EMAIL) %>"
-      GIT_USER_NAME: "<%= $(bin/env GIT_USER_NAME) %>"
-      ROOT_PASSWORD: "<%= $(bin/env ROOT_PASSWORD) %>"
-      ROOT_PRIVATE_KEY: "<%= $(bin/env ROOT_PRIVATE_KEY) %>"
-
     networks:
       - proxy
 
@@ -94,5 +73,3 @@ networks:
     name: proxy
     driver: overlay
     external: true
-
-# : { } [ ] , & * ? | - < > = ! % @ \

@@ -14,6 +14,7 @@ include "lib/helpers.sh"
 # Volume helper functions
 include "lib/volumes.sh"
 
+
 # Set from cloud-config, not changable:
 # SWARM NODE DOMAIN DROPLET_IMAGE FS_TYPE REGION
 
@@ -50,16 +51,6 @@ set_env DB_USER
 # Probably won't change, but can
 set_env WEBHOOK
 
-# # Update primary in case it has changed
-# if defined $PRIMARY_IP; then
-#   echo "$PRIMARY_IP" > /usr/local/env/PRIMARY_IP
-# fi
-#
-# # Update webhook in case it has changed
-# if defined $WEBHOOK; then
-#   set_env WEBHOOK
-#   echo "$WEBHOOK" > /usr/local/env/WEBHOOK
-# fi
 
 # Ensure all these volumes directories exist
 if defined $NODE; then
@@ -68,6 +59,7 @@ if defined $NODE; then
   mkdir -p $GFS_WORK_MNT $(dev_dir $GFS_WORK_DEV)
   mkdir -p $DO_BLOCK_MNT
 fi
+
 
 # Set root password
 if defined $ROOT_PASSWORD; then
@@ -78,6 +70,7 @@ if defined $ROOT_PASSWORD; then
   done
 fi
 
+
 # Settings authorized_keys
 if defined $ROOT_PUBLIC_KEY; then
   keys="$(curl -sL https://github.com/nonfiction/workspace/raw/main/etc/ssh/authorized_keys)"
@@ -86,6 +79,7 @@ if defined $ROOT_PUBLIC_KEY; then
   echo "$keys" | tee /root/.ssh/authorized_keys
   echo_run "cp -f /root/.ssh/authorized_keys /work/.ssh/authorized_keys"
 fi
+
 
 # Update /etc/hosts file
 if defined $HOSTS_FILE && defined $NODE; then
@@ -96,7 +90,6 @@ if defined $HOSTS_FILE && defined $NODE; then
 fi
 
 
-                                                                              
 # Self-manage /etc/hosts file
 if undefined "$(cat /etc/cloud/cloud.cfg | grep manage_etc_hosts)"; then
   echo_next "Appending /etc/cloud/cloud.cfg"
