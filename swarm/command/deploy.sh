@@ -107,6 +107,8 @@ for node in $NODES; do
   env="${env} REGION=\"$REGION\""
   env="${env} FS_TYPE=\"$FS_TYPE\""
 
+  env="${env} SWARMFILE_CONTENTS=\"$(cat $SWARMFILE | base64 | tr -d '\n')\""
+
   # Run script on node
   run $node "${env} /root/platform/swarm/node/node"
 

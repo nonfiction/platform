@@ -17,6 +17,7 @@ include "lib/volumes.sh"
 
 # Set from cloud-config, not changable:
 # SWARM NODE DOMAIN DROPLET_IMAGE FS_TYPE REGION
+set_env SWARMFILE_CONTENTS
 
 # These shouldn't change on an existing swarm
 set_env ROOT_PRIVATE_KEY
