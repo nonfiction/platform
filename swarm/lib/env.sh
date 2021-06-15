@@ -23,10 +23,10 @@ export ROOT_PASSWORD=$(env ROOT_PASSWORD "secret")
 
 export ROOT_PRIVATE_KEY="$(env ROOT_PRIVATE_KEY)"
 if defined $ROOT_PRIVATE_KEY; then
-  echo "$ROOT_PRIVATE_KEY" | base64 -d > root_private_key.tmp
-  chmod 400 root_private_key.tmp
-  export ROOT_PUBLIC_KEY="$(ssh-keygen -y -f root_private_key.tmp) root"
-  rm -f root_private_key.tmp
+  echo "$ROOT_PRIVATE_KEY" | base64 -d > /tmp/root_private_key
+  chmod 400 /tmp/root_private_key
+  export ROOT_PUBLIC_KEY="$(ssh-keygen -y -f /tmp/root_private_key) root"
+  rm -f /tmp/root_private_key
 fi
 
 export WEBHOOK="$(env WEBHOOK)"
