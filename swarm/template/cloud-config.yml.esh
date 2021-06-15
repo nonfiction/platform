@@ -63,7 +63,7 @@ write_files:
        REGION: <%= $REGION %>
        FS_TYPE: <%= $FS_TYPE %>
        DROPLET_IMAGE: <%= $DROPLET_IMAGE %>
-  
+
   # Optimize SSHD for docker
   - path: /etc/ssh/sshd_config
     content: | 
@@ -79,7 +79,7 @@ write_files:
        ControlPath ~/.ssh/control-%C
        ControlPersist yes
     append: true
-    
+
   # Auto-prune docker once in a while
   - path: /etc/crontab
     content: | 
@@ -96,7 +96,7 @@ disable_root: false
 ssh_pwauth: false
 
 users:
-  
+
   # Password is "secret", but gets changed immediately
   - name: root
     lock_passwd: false
@@ -116,7 +116,7 @@ runcmd:
   # Webhook
   - echo "<%= $WEBHOOK %>" > /usr/local/env/WEBHOOK
   - SAY="is now online, but still installing packages." /bin/bash -c "$(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/node/webhook)"
-  
+
   # Keep server up-to-date
   - apt-get --yes install unattended-upgrades
   - dpkg-reconfigure --priority=low unattended-upgrades
@@ -128,24 +128,24 @@ runcmd:
   # Install esh
   - curl -fsSL https://github.com/jirutka/esh/raw/master/esh > /usr/local/bin/esh
   - chmod +x /usr/local/bin/esh
-  
+
   # Install glusterfs
   - add-apt-repository --yes ppa:gluster/glusterfs-9
   - apt-get update && apt-get --yes install glusterfs-server 
   - systemctl start glusterd
   - systemctl enable glusterd
-  
+
   # Install docker
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
   - apt-get update && apt-get --yes install docker-ce docker-ce-cli containerd.io
 
   # Pull docker images
-	- docker pull nonfiction/traefik
-	- docker pull nonfiction/hello-world
-	- docker pull portainer/portainer-ce
-	- docker pull nonfiction/workspace
-  
+  - docker pull nonfiction/traefik
+  - docker pull nonfiction/hello-world
+  - docker pull portainer/portainer-ce
+  - docker pull nonfiction/workspace
+
   # Install platform git repo
   - apt-get update && apt-get --yes install make
   - git clone https://github.com/nonfiction/platform.git /root/platform
