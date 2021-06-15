@@ -14,11 +14,16 @@ include "lib/helpers.sh"
 # Volume helper functions
 include "lib/volumes.sh"
 
-# Update env variables with latest
+# Set from cloud-config, not changable:
+# SWARM NODE DOMAIN DROPLET_IMAGE FS_TYPE REGION
 
-# Used by traefik
-set_env PRIMARY_IP
+# These shouldn't change on an existing swarm
+set_env ROOT_PRIVATE_KEY
+set_env ROOT_PASSWORD
+
+# Update env variables with latest
 set_env DO_AUTH_TOKEN
+set_env PRIMARY_IP
 
 # Used by traefik and others
 set_env BASICAUTH_PASSWORD
@@ -42,14 +47,7 @@ set_env DB_PASSWORD
 set_env DB_PORT
 set_env DB_USER
 
-# These shouldn't change on an existing swarm
-set_env ROOT_PRIVATE_KEY
-set_env DROPLET_IMAGE
-set_env FS_TYPE
-set_env REGION
-
 # Probably won't change, but can
-set_env ROOT_PASSWORD
 set_env WEBHOOK
 
 # # Update primary in case it has changed

@@ -114,6 +114,10 @@ runcmd:
   # Generate ssh keys
   - cat /dev/zero | ssh-keygen -t rsa -q -N ""
   - mkdir -p /work/.ssh
+
+  # Install esh
+  - curl -fsSL https://github.com/jirutka/esh/raw/master/esh > /usr/local/bin/esh
+  - chmod +x /usr/local/bin/esh
   
   # Install glusterfs
   - add-apt-repository --yes ppa:gluster/glusterfs-9

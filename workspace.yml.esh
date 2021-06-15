@@ -33,6 +33,7 @@ services:
       - /work:/work
       - /data:/data
       - /root:/root
+      - /usr/local/env:/usr/local/env
       - /var/run/docker.sock:/var/run/docker.sock
 
     environment:
