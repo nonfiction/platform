@@ -15,8 +15,19 @@ fi
 include "lib/doctl.sh"
 verify_doctl
 
+# Check if swarmfile exists
 if hasnt $SWARMFILE; then
-  echo_stop "Swarm named $SWARM not found at $SWARMFILE"
+  echo_stop "Swarm named \"${SWARM}\" not found:"
+  echo $SWARMFILE
+  echo
+  exit 1
+fi
+
+# Ensure we're on a different machine
+if [ $SWARM = $(hostname -f) ]; then
+  echo_stop "Cannot REMOVE swarm from a node within this same swarm."
+  echo "Perform this command on a separate computer."
+  echo
   exit 1
 fi
 

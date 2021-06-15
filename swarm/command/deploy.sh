@@ -17,13 +17,9 @@ fi
 
 # Check if swarmfile exists
 if hasnt $SWARMFILE; then
-  echo_stop "This SWARMFILE doesn't exist in your library: $SWARMFILE"
-  exit 1
-fi
-
-# Ensure we're on a different machine
-if [ $SWARMFILE = $(hostname -f) ]; then
-  echo_stop "Cannot REMOVE swarm from a node within this same swarm. Perform this command on a separate computer."
+  echo_stop "Swarm named \"${SWARM}\" not found:"
+  echo $SWARMFILE
+  echo
   exit 1
 fi
 
