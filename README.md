@@ -4,6 +4,10 @@ Configuration for [Docker Swarm](https://docs.docker.com/engine/swarm/) with
 [GlusterFS](https://docs.gluster.org/) distributed file system, provisioned
 from [Digital Ocean](https://github.com/digitalocean/doctl) via command-line. 
 
+Deployed swarms will run [Traefik](https://doc.traefik.io/traefik/) as reverse 
+proxy for Docker services, as well as [VS Code](https://github.com/cdr/code-server) 
+in an [Alpine](https://www.alpinelinux.org) environment for development.
+
 This platform isn't intended to be installed on an existing system. Instead, it
 includes a `swarm` CLI tool which provisions a cluster of servers from Digital
 Ocean and installs itself there. 
@@ -19,7 +23,7 @@ swarm provision abc.example.com
 swarm deploy abc.example.com
 ```
 
-Since `swarm` is just a bash script, any cluster can be bootstrapped from any
+Since `swarm` is just a bash script, a new cluster can be bootstrapped from any
 terminal like so:
 
 ```
@@ -29,7 +33,7 @@ bash <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/swarm) c
 # Provision resources:
 bash <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/swarm) provision abc.example.com
 
-# After 5-0 minutes, deploy swarm:
+# After 5-10 minutes, deploy swarm:
 bash <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/swarm) deploy abc.example.com
 ```
 
