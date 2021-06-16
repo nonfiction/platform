@@ -57,7 +57,7 @@ swarm create abc.example.com
 swarm edit abc.example.com
 
 # Import swarmfile:
-swarm import xyz.example.com
+swarm import ~/xyz_example_com.txt
 
 # Export swarmfile:
 swarm export xyz.example.com
