@@ -97,10 +97,10 @@ for node in $NODES; do
   env="${env} ROOT_PASSWORD=\"$ROOT_PASSWORD\""
   env="${env} ROOT_PUBLIC_KEY=\"$ROOT_PUBLIC_KEY\""
 
-  env="${env} DB_USER=\"$DB_USER\""
   env="${env} DB_HOST=\"$DB_HOST\""
+  env="${env} DB_PORT=\"$DB_PORT\""
+  env="${env} DB_ROOT_USER=\"$DB_ROOT_USER\""
   env="${env} DB_ROOT_PASSWORD=\"$DB_ROOT_PASSWORD\""
-  env="${env} DB_ROOT_PORT=\"$DB_ROOT_PORT\""
 
   env="${env} ROOT_PRIVATE_KEY=\"$ROOT_PRIVATE_KEY\""
   env="${env} DROPLET_IMAGE=\"$DROPLET_IMAGE\""
