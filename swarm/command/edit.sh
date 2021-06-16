@@ -10,9 +10,15 @@ if undefined $SWARM; then
   exit 1
 fi
 
+
+# Check if swarmfile exists
 if hasnt $SWARMFILE; then
-  echo_stop "Swarm named $SWARM not found in $SWARMFILE"
+  echo_stop "Swarm named \"${SWARM}\" not found:"
+  echo $SWARMFILE
+  echo
   exit 1
+
+# Launch editor
 else
   $EDITOR $SWARMFILE
 fi

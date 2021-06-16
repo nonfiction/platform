@@ -168,12 +168,17 @@ else
     if ask "Save?"; then  
 
       # Download the template
-      rm -rf /tmp/swarmfile.esh
       curl -sL https://github.com/nonfiction/platform/raw/main/swarm/template/swarmfile.esh > /tmp/swarmfile.esh
 
       # Generate the swarmfile and save to where it belongs
       esh /tmp/swarmfile.esh > $SWARMFILE
-      rm -f /tmp/swarmfile
+      rm -rf /tmp/swarmfile.esh
+
+      # Add created swarm as docker context
+      if has docker; then
+        echo_next "Creating DOCKER CONTEXT: ${SWARM}"
+        echo_run "docker context create $NODE --default-stack-orchestrator=swarm --docker host=ssh://root@${SWARM}"
+      fi
 
     else
       echo_stop "Cancelled."  

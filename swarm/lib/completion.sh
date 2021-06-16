@@ -18,7 +18,7 @@ function _swarm () {
   defined $XDG_CONFIG_HOME || XDG_CONFIG_HOME=$HOME/.config
   defined $XDG_DATA_HOME || XDG_DATA_HOME=$HOME/.local/share
 
-  local commands="create deploy edit inspect list provision remove ssh size help"
+  local commands="create deploy edit export import inspect list provision remove ssh size help"
   local word="${COMP_WORDS[COMP_CWORD]}";
 
   # List commands
@@ -26,8 +26,10 @@ function _swarm () {
 
       if [[ $word = c*   ]]; then commands="create"
     elif [[ $word = d*   ]]; then commands="deploy"
+    elif [[ $word = ex*  ]]; then commands="export"
     elif [[ $word = e*   ]]; then commands="edit"
     elif [[ $word = h*   ]]; then commands="help"
+    elif [[ $word = im*  ]]; then commands="import"
     elif [[ $word = i*   ]]; then commands="inspect"
     elif [[ $word = l*   ]]; then commands="list"
     elif [[ $word = p*   ]]; then commands="provision"

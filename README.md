@@ -56,6 +56,12 @@ swarm create abc.example.com
 # Edit swarmfile:
 swarm edit abc.example.com
 
+# Import swarmfile:
+swarm import xyz.example.com
+
+# Export swarmfile:
+swarm export xyz.example.com
+
 # Provision resources:
 swarm provision abc.example.com
 

@@ -43,6 +43,14 @@ case $COMMAND in
     include "command/edit.sh"
     ;;
 
+  export | ex)
+    include "command/export.sh"
+    ;;
+
+  import | im)
+    include "command/import.sh"
+    ;;
+
   inspect | i)
     include "command/inspect.sh"
     ;;
@@ -72,6 +80,8 @@ case $COMMAND in
     echo "  create"
     echo "  deploy"
     echo "  edit"
+    echo "  export"
+    echo "  import"
     echo "  inspect"
     echo "  list"
     echo "  provision"

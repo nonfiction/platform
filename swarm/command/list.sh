@@ -8,8 +8,11 @@ verify_esh
 include "lib/doctl.sh"
 verify_doctl
 
+# Check if swarmfile exists
 if hasnt $SWARMFILE; then
-  echo_stop "Swarm named $SWARM not found in $SWARMFILE"
+  echo_stop "Swarm named \"${SWARM}\" not found:"
+  echo $SWARMFILE
+  echo
   exit 1
 fi
 

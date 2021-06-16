@@ -80,3 +80,11 @@ else
     echo_info "DELETED: ${SWARMFILE}"
   fi
 fi
+
+# Remove docker context
+if has docker; then
+  if defined "$(docker context ls | grep root@$SWARM)"; then
+    echo_next "Removing DOCKER CONTEXT: ${SWARM}"
+    echo_run "docker context remove $NODE"
+  fi
+fi
