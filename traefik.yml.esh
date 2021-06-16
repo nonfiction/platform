@@ -1,5 +1,6 @@
 <%
 APP=traefik
+METRICS=metrics
 DOMAIN=$(bin/domain)
 -%>
 version: '3.8'
@@ -51,6 +52,15 @@ services:
       - --certificatesResolvers.digitalocean.acme.dnsChallenge.resolvers=1.1.1.1:53,8.8.8.8:53
       - --certificatesresolvers.digitalocean.acme.dnschallenge.delaybeforecheck=0
 
+      # Support metrics for prometheus
+      - --metrics
+      - --metrics.prometheus=true
+      - --metrics.prometheus.buckets=0.100000, 0.300000, 1.200000, 5.000000
+      - --metrics.prometheus.entryPoint=metrics
+      - --metrics.prometheus.addServicesLabels=true
+      - --metrics.prometheus.addEntryPointsLabels=true
+      - --entryPoints.metrics.address=:8082
+
       # Watch configuration file
       - --providers.file.directory=/data/traefik
       - --providers.file.watch=true
@@ -83,6 +93,11 @@ services:
         traefik.http.services.<%= $APP %>.loadbalancer.server.port: "8080"
         traefik.http.routers.<%= $APP %>.middlewares: "basicauth@docker"
         traefik.http.middlewares.basicauth.basicauth.users: '<%= $(bin/pass BASICAUTH_USER BASICAUTH_PASSWORD) %>'
+
+        # Metrics
+        # traefik.http.routers.<%= $METRICS %>.entrypoints: "websecure"
+        # traefik.http.routers.<%= $METRICS %>.rule: "Host(<%= $(bin/hosts $METRICS $DOMAIN) %>)"
+        # traefik.http.services.<%= $APP %>.loadbalancer.server.port: 8082
 
         # Global redirect to https
         traefik.http.routers.http-catchall.rule: "hostregexp(`{host:.+}`)"
