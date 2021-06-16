@@ -54,6 +54,9 @@ export DB_ROOT_PASSWORD=<%= $DB_ROOT_PASSWORD %>
 # Used by doctl for swarm management & traefik for certificate renewals
 export DO_AUTH_TOKEN=<%= $DO_AUTH_TOKEN %>
 
+# Private images are pushed/pulled from here
+export DOCKER_REGISTRY=<%= $DOCKER_REGISTRY %>
+
 # All nodes in the swarm are have this root password
 export ROOT_PASSWORD=<%= $ROOT_PASSWORD %>
 

@@ -82,6 +82,7 @@ for node in $NODES; do
   env="${env} PRIMARY_IP=\"$(get_droplet_private_ip $PRIMARY)\""
   env="${env} HOSTS_FILE=\"$hosts\""
   env="${env} DO_AUTH_TOKEN=\"$DO_AUTH_TOKEN\""
+  env="${env} DOCKER_REGISTRY=\"$DOCKER_REGISTRY\""
   env="${env} WEBHOOK=\"$WEBHOOK\""
 
   env="${env} BASICAUTH_USER=\"$BASICAUTH_USER\""

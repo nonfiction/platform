@@ -87,6 +87,10 @@ else
     export DO_AUTH_TOKEN=$(ask_env DO_AUTH_TOKEN)
     echo_env DO_AUTH_TOKEN
 
+    ask_input DOCKER_REGISTRY
+    export DOCKER_REGISTRY=$(ask_env DOCKER_REGISTRY registry.digitalocean.com/nonfiction)
+    echo_env DOCKER_REGISTRY
+
 
     echo_main_alt "Webhook is called by the swarm manager to signal when nodes are ready"
     echo "https://api.slack.com/messaging/webhooks"

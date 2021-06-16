@@ -25,6 +25,7 @@ set_env ROOT_PASSWORD
 
 # Update env variables with latest
 set_env DO_AUTH_TOKEN
+set_env DOCKER_REGISTRY
 set_env PRIMARY_IP
 
 # Used by traefik and others
@@ -123,4 +124,11 @@ if defined $DO_BLOCK_DEV && defined $DO_BLOCK_MNT; then
   echo_next "Mount block storage"
   echo_run "mount -o discard,defaults,noatime ${DO_BLOCK_DEV} ${DO_BLOCK_MNT}"
 
+fi
+
+
+# Ensure this node has access to our private images 
+if defined $DO_AUTH_TOKEN && defined $DOCKER_REGISTRY; then
+  echo_next "Logging into Docker Registry at Digital Ocean"
+  docker login -u $DO_AUTH_TOKEN -p $DO_AUTH_TOKEN $DOCKER_REGISTRY
 fi

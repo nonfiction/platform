@@ -39,6 +39,8 @@ export GITHUB_TOKEN=$(env GITHUB_TOKEN)
 export CODE_PASSWORD=$(env CODE_PASSWORD)
 export SUDO_PASSWORD=$(env SUDO_PASSWORD)
 
+export DOCKER_REGISTRY=$(env DOCKER_REGISTRY registry.digitalocean.com/nonfiction)
+
 export DB_HOST=$(env DB_HOST)
 export DB_PORT=$(env DB_PORT "25060")
 export DB_ROOT_USER=$(env DB_ROOT_USER "doadmin")

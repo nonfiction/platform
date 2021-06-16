@@ -112,6 +112,7 @@ echo_env DB_ROOT_PASSWORD
 echo_next "Node Config"
 echo_line green
 echo_env DO_AUTH_TOKEN 21
+echo_env DOCKER_REGISTRY
 echo_env ROOT_PASSWORD
 echo_env BASICAUTH_USER
 echo_env BASICAUTH_PASSWORD
