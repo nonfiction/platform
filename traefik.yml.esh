@@ -33,7 +33,7 @@ services:
 
       # Enable the Dashboard and API
       - --api
-      - --api.insecure
+      # - --api.insecure
       - --pilot.dashboard=false
 
       # Allow backend services to serve https with self-signed certs
@@ -51,8 +51,9 @@ services:
       - --certificatesResolvers.digitalocean.acme.dnsChallenge.resolvers=1.1.1.1:53,8.8.8.8:53
       - --certificatesresolvers.digitalocean.acme.dnschallenge.delaybeforecheck=0
 
-      # - --providers.file.directory=/root/docker-host/config
-      # - --providers.file.watch=true
+      # Watch configuration file
+      - --providers.file.directory=/data/traefik
+      - --providers.file.watch=true
 
     deploy:
       mode: global
@@ -80,6 +81,8 @@ services:
         traefik.http.routers.<%= $APP %>.tls: "true"
         traefik.http.routers.<%= $APP %>.service: "api@internal"
         traefik.http.services.<%= $APP %>.loadbalancer.server.port: "8080"
+        traefik.http.routers.<%= $APP %>.middlewares: "basicauth@docker"
+        traefik.http.middlewares.basicauth.basicauth.users: '<%= $(bin/pass BASICAUTH_USER BASICAUTH_PASSWORD) %>'
 
         # Global redirect to https
         traefik.http.routers.http-catchall.rule: "hostregexp(`{host:.+}`)"
