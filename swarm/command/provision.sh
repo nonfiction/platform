@@ -104,10 +104,10 @@ echo_env GITHUB_USER
 echo_env GITHUB_TOKEN
 echo_env CODE_PASSWORD
 echo_env SUDO_PASSWORD
-echo_env DB_USER
-echo_env DB_PASSWORD
 echo_env DB_HOST
 echo_env DB_PORT
+echo_env DB_ROOT_USER
+echo_env DB_ROOT_PASSWORD
 
 echo_next "Node Config"
 echo_line green

@@ -144,13 +144,13 @@ else
     export DB_PORT=$(ask_env DB_PORT "25060")
     echo_env DB_PORT
 
-    ask_input DB_USER
-    export DB_USER=$(ask_env DB_USER "doadmin")
-    echo_env DB_USER
+    ask_input DB_ROOT_USER
+    export DB_ROOT_USER=$(ask_env DB_ROOT_USER "doadmin")
+    echo_env DB_ROOT_USER
 
-    ask_input DB_PASSWORD
-    export DB_PASSWORD=$(ask_env DB_PASSWORD)
-    echo_env DB_PASSWORD
+    ask_input DB_ROOT_PASSWORD
+    export DB_ROOT_PASSWORD=$(ask_env DB_ROOT_PASSWORD)
+    echo_env DB_ROOT_PASSWORD
 
     echo_main_alt "BasicAuth login"
     echo "This may need to be shared with clients occasionally"

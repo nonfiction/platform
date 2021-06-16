@@ -42,10 +42,10 @@ export SUDO_PASSWORD=<%= $SUDO_PASSWORD %>
 
 # External database cluster credentials
 # https://cloud.digitalocean.com/databases
-export DB_USER=<%= $DB_USER %>
-export DB_PASSWORD=<%= $DB_PASSWORD %>
 export DB_HOST=<%= $DB_HOST %>
 export DB_PORT=<%= $DB_PORT %>
+export DB_ROOT_USER=<%= $DB_ROOT_USER %>
+export DB_ROOT_PASSWORD=<%= $DB_ROOT_PASSWORD %>
 
 
 # Node configuration

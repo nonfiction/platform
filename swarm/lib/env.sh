@@ -41,8 +41,8 @@ export SUDO_PASSWORD=$(env SUDO_PASSWORD)
 
 export DB_HOST=$(env DB_HOST)
 export DB_PORT=$(env DB_PORT "25060")
-export DB_USER=$(env DB_USER "doadmin")
-export DB_PASSWORD=$(env DB_PASSWORD)
+export DB_ROOT_USER=$(env DB_ROOT_USER "doadmin")
+export DB_ROOT_PASSWORD=$(env DB_ROOT_PASSWORD)
 
 export BASICAUTH_USER=$(env BASICAUTH_USER "nonfiction")
 export BASICAUTH_PASSWORD=$(env BASICAUTH_PASSWORD "secret")

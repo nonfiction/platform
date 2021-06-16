@@ -46,8 +46,8 @@ set_env SUDO_PASSWORD
 # Used by services on this swarm
 set_env DB_HOST
 set_env DB_PASSWORD
-set_env DB_PORT
-set_env DB_USER
+set_env DB_ROOT_PORT
+set_env DB_ROOT_USER
 
 # Probably won't change, but can
 set_env WEBHOOK
