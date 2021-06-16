@@ -56,7 +56,6 @@ services:
       - --metrics
       - --metrics.prometheus=true
       - --metrics.prometheus.buckets=0.100000, 0.300000, 1.200000, 5.000000
-      - --metrics.prometheus.entryPoint=metrics
       - --metrics.prometheus.addServicesLabels=true
       - --metrics.prometheus.addEntryPointsLabels=true
       - --entryPoints.metrics.address=:8082
@@ -95,9 +94,11 @@ services:
         traefik.http.middlewares.basicauth.basicauth.users: '<%= $(bin/pass BASICAUTH_USER BASICAUTH_PASSWORD) %>'
 
         # Metrics
-        # traefik.http.routers.<%= $METRICS %>.entrypoints: "websecure"
-        # traefik.http.routers.<%= $METRICS %>.rule: "Host(<%= $(bin/hosts $METRICS $DOMAIN) %>)"
-        # traefik.http.services.<%= $APP %>.loadbalancer.server.port: 8082
+        traefik.http.routers.<%= $METRICS %>.rule: "Host(<%= $(bin/hosts $METRICS $DOMAIN) %>)"
+        traefik.http.routers.<%= $METRICS %>.entrypoints: "websecure"
+        traefik.http.routers.<%= $METRICS %>.tls: "true"
+        traefik.http.routers.<%= $METRICS %>.service: "prometheus@internal"
+        traefik.http.routers.<%= $METRICS %>.middlewares: "basicauth@docker"
 
         # Global redirect to https
         traefik.http.routers.http-catchall.rule: "hostregexp(`{host:.+}`)"
