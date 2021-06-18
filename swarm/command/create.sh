@@ -112,73 +112,91 @@ else
     export WEBHOOK=$(ask_env WEBHOOK)
     echo_env WEBHOOK
 
+    if [ "$ROLE" = "dev" ]; then
 
-    echo_main_alt "Git config info"
-    echo "If this swarm is used for development, who is writing these commits?"
+      echo_main_alt "Git config info"
+      echo "If this swarm is used for development, who is writing these commits?"
 
-    ask_input GIT_USER_NAME
-    export GIT_USER_NAME=$(ask_env GIT_USER_NAME)
-    echo_env GIT_USER_NAME
+      ask_input GIT_USER_NAME
+      export GIT_USER_NAME=$(ask_env GIT_USER_NAME)
+      echo_env GIT_USER_NAME
 
-    ask_input GIT_USER_EMAIL
-    export GIT_USER_EMAIL=$(ask_env GIT_USER_EMAIL)
-    echo_env GIT_USER_EMAIL
+      ask_input GIT_USER_EMAIL
+      export GIT_USER_EMAIL=$(ask_env GIT_USER_EMAIL)
+      echo_env GIT_USER_EMAIL
 
-    echo_main_alt "Github account"
-    echo "https://github.com/settings/tokens"
+      echo_main_alt "Github account"
+      echo "https://github.com/settings/tokens"
 
-    ask_input GITHUB_USER
-    export GITHUB_USER=$(ask_env GITHUB_USER)
-    echo_env GITHUB_USER
+      ask_input GITHUB_USER
+      export GITHUB_USER=$(ask_env GITHUB_USER)
+      echo_env GITHUB_USER
 
-    ask_input GITHUB_TOKEN
-    export GITHUB_TOKEN=$(ask_env GITHUB_TOKEN)
-    echo_env GITHUB_TOKEN
-
-
-    echo_main_alt "VS Code password"
-    echo "This really ought to be a complicated password"
-
-    ask_input CODE_PASSWORD
-    export CODE_PASSWORD=$(ask_env CODE_PASSWORD $(generate_password))
+      ask_input GITHUB_TOKEN
+      export GITHUB_TOKEN=$(ask_env GITHUB_TOKEN)
+      echo_env GITHUB_TOKEN
 
 
-    echo_main_alt "Sudo password"
-    echo "Choose something you don't mind typing regularily"
+      echo_main_alt "VS Code password"
+      echo "This really ought to be a complicated password"
 
-    ask_input SUDO_PASSWORD
-    export SUDO_PASSWORD=$(ask_env SUDO_PASSWORD $(generate_password))
+      ask_input CODE_PASSWORD
+      export CODE_PASSWORD=$(ask_env CODE_PASSWORD $(generate_password))
 
 
-    echo_main_alt "Digital Ocean: database cluster"
-    echo "https://cloud.digitalocean.com/databases"
+      echo_main_alt "Sudo password"
+      echo "Choose something you don't mind typing regularily"
 
-    ask_input DB_HOST
-    export DB_HOST=$(ask_env DB_HOST)
-    echo_env DB_HOST
+      ask_input SUDO_PASSWORD
+      export SUDO_PASSWORD=$(ask_env SUDO_PASSWORD $(generate_password))
 
-    ask_input DB_PORT
-    export DB_PORT=$(ask_env DB_PORT "25060")
-    echo_env DB_PORT
 
-    ask_input DB_ROOT_USER
-    export DB_ROOT_USER=$(ask_env DB_ROOT_USER "doadmin")
-    echo_env DB_ROOT_USER
+      echo_main_alt "Digital Ocean: database cluster"
+      echo "https://cloud.digitalocean.com/databases"
 
-    ask_input DB_ROOT_PASSWORD
-    export DB_ROOT_PASSWORD=$(ask_env DB_ROOT_PASSWORD)
-    echo_env DB_ROOT_PASSWORD
+      ask_input DB_HOST
+      export DB_HOST=$(ask_env DB_HOST)
+      echo_env DB_HOST
 
-    echo_main_alt "BasicAuth login"
-    echo "This may need to be shared with clients occasionally"
+      ask_input DB_PORT
+      export DB_PORT=$(ask_env DB_PORT "25060")
+      echo_env DB_PORT
 
-    ask_input BASICAUTH_USER
-    export BASICAUTH_USER=$(ask_env BASICAUTH_USER "nonfiction")
-    echo_env BASICAUTH_USER
+      ask_input DB_ROOT_USER
+      export DB_ROOT_USER=$(ask_env DB_ROOT_USER "doadmin")
+      echo_env DB_ROOT_USER
 
-    ask_input BASICAUTH_PASSWORD
-    export BASICAUTH_PASSWORD=$(ask_env BASICAUTH_PASSWORD $(generate_password))
-    echo_env BASICAUTH_PASSWORD
+      ask_input DB_ROOT_PASSWORD
+      export DB_ROOT_PASSWORD=$(ask_env DB_ROOT_PASSWORD)
+      echo_env DB_ROOT_PASSWORD
+
+      echo_main_alt "BasicAuth login"
+      echo "This may need to be shared with clients occasionally"
+
+      ask_input BASICAUTH_USER
+      export BASICAUTH_USER=$(ask_env BASICAUTH_USER "nonfiction")
+      echo_env BASICAUTH_USER
+
+      ask_input BASICAUTH_PASSWORD
+      export BASICAUTH_PASSWORD=$(ask_env BASICAUTH_PASSWORD $(generate_password))
+      echo_env BASICAUTH_PASSWORD
+
+
+    # Default values - these only matter for development servers
+    else
+      export GIT_USER_NAME="nonfiction"
+      export GIT_USER_EMAIL="web@nonfiction.ca"
+      export GITHUB_USER="nonfiction-studios"
+      export GITHUB_TOKEN=""
+      export CODE_PASSWORD=$(generate_password)
+      export SUDO_PASSWORD=$(generate_password)
+      export DB_HOST="127.0.0.1"
+      export DB_PORT="25060"
+      export DB_ROOT_USER="doadmin"
+      export DB_ROOT_PASSWORD=""
+      export BASICAUTH_USER="nonfiction"
+      export BASICAUTH_PASSWORD=$(generate_password)
+    fi
 
 
     # Confirm
