@@ -50,6 +50,9 @@ set_env DB_PORT
 set_env DB_ROOT_USER
 set_env DB_ROOT_PASSWORD
 
+# dev/app/proxy
+set_env ROLE
+
 # Probably won't change, but can
 set_env WEBHOOK
 

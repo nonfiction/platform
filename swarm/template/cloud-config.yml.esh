@@ -69,8 +69,6 @@ write_files:
   - path: /etc/ssh/sshd_config
     content: | 
        MaxSessions 500
-       Match User work
-       ForceCommand ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -p 2222 work@127.0.0.1
     append: true
 
   # Optimize SSH for docker
@@ -81,6 +79,10 @@ write_files:
        ControlMaster auto
        ControlPath ~/.ssh/control-%C
        ControlPersist yes
+       Host work
+       HostName 127.0.0.1
+       User work
+       Port 2222
     append: true
 
   # Auto-prune docker once in a while

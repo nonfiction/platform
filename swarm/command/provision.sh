@@ -120,6 +120,7 @@ echo_env WEBHOOK 24
 
 echo_next "Swarm Config"
 echo_line green
+echo_env ROLE
 echo_env DROPLET_IMAGE
 echo_env REGION
 echo_env FS_TYPE

@@ -61,6 +61,19 @@ else
     export NODE
     export DOMAIN
 
+    echo_main_alt "Server Role"
+
+    if ask "Is this a development server?"; then
+      export ROLE="dev"
+    elif ask "Is this a proxy server?"; then
+      export ROLE="proxy"
+    else
+      export ROLE="app"
+    fi
+    echo
+    echo_env ROLE
+
+
     echo_main_alt "Droplet Details"
 
     ask_input DROPLET_IMAGE
@@ -70,7 +83,7 @@ else
     ask_input REGION
     export REGION=$(ask_env REGION "tor1")
     echo_env REGION
-    
+
     ask_input FS_TYPE
     export FS_TYPE=$(ask_env FS_TYPE "ext4")
     echo_env FS_TYPE

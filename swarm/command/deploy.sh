@@ -108,6 +108,7 @@ for node in $NODES; do
   env="${env} REGION=\"$REGION\""
   env="${env} FS_TYPE=\"$FS_TYPE\""
 
+  env="${env} ROLE=\"$ROLE\""
   env="${env} SWARMFILE_CONTENTS=\"$(cat $SWARMFILE | base64 | tr -d '\n')\""
 
   # Run script on node
@@ -180,8 +181,16 @@ done
 # Deploy Swarm
 # ---------------------------------------------------------
 echo_main "4. Deploy Swarm..."
-run $PRIMARY "cd /root/platform && make init"
-run $PRIMARY "cd /root/platform && make deploy"
+
+if [ "$ROLE" = "dev" ]; then
+  run $PRIMARY "cd /root/platform && make workspace"
+
+elif [ "$ROLE" = "proxy" ]; then
+  run $PRIMARY "cd /root/platform && make proxy"
+
+else
+  run $PRIMARY "cd /root/platform && make deploy"
+fi
 
 
 # ---------------------------------------------------------

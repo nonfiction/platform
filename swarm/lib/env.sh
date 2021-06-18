@@ -13,6 +13,7 @@ if defined $SWARM; then
   fi
 fi
 
+export ROLE="$(env ROLE)"
 
 export DROPLET_IMAGE=$(env DROPLET_IMAGE "ubuntu-20-04-x64")
 export REGION=$(env REGION "tor1")
