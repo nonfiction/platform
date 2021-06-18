@@ -96,18 +96,20 @@ defined $ADDITIONS && echo_env ADDITIONS
 echo_env VOLUME_SIZE
 echo_env DROPLET_SIZE
 
-echo_next "Workspace Config"
-echo_line green
-echo_env GIT_USER_NAME
-echo_env GIT_USER_EMAIL
-echo_env GITHUB_USER
-echo_env GITHUB_TOKEN
-echo_env CODE_PASSWORD
-echo_env SUDO_PASSWORD
-echo_env DB_HOST
-echo_env DB_PORT
-echo_env DB_ROOT_USER
-echo_env DB_ROOT_PASSWORD
+if [ "$ROLE" = "dev" ]; then
+  echo_next "Workspace Config"
+  echo_line green
+  echo_env GIT_USER_NAME
+  echo_env GIT_USER_EMAIL
+  echo_env GITHUB_USER
+  echo_env GITHUB_TOKEN
+  echo_env CODE_PASSWORD
+  echo_env SUDO_PASSWORD
+  echo_env DB_HOST
+  echo_env DB_PORT
+  echo_env DB_ROOT_USER
+  echo_env DB_ROOT_PASSWORD
+fi
 
 echo_next "Node Config"
 echo_line green
