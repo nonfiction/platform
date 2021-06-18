@@ -678,6 +678,14 @@ resize_volume() {
     local volume_id; volume_id="$(get_volume_id $1)"
     local droplet_id; droplet_id="$(get_droplet_id $1)"
 
+    # Drain the node before detaching volume
+    env="DRAIN=1 NODE=${node}"
+    echo_run $PRIMARY "${env} /root/platform/swarm/node/docker"
+
+    # Wait...
+    echo "Waiting 30 seconds for node to drain..."
+    sleep 30
+
     # Stop the brick before resizing 
     env="BEFORE_RESIZE=1 NODE=${node}"
     echo_run $node "${env} /root/platform/swarm/node/gluster"
@@ -699,6 +707,10 @@ resize_volume() {
     echo_run $node "${env} /root/platform/swarm/node/gluster"
 
     echo_info "Volume $volume_name expanded!"
+
+    # Restore the node to active after volume reattached 
+    env="ACTIVE=1 NODE=${node}"
+    echo_run $PRIMARY "${env} /root/platform/swarm/node/docker"
 
   else
     echo_info "Volume $volume_name unchanged"
