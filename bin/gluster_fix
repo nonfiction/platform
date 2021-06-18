@@ -1,0 +1,36 @@
+#!/bin/bash
+
+for name in work data; do
+
+  dir="/${name}"
+  vol="${name}-gfs"
+
+  # Test for error reading this dir
+  if [ -z "$(ls $dir 2>&1 > /dev/null)" ]; then
+    echo "$dir is OK"
+
+  else
+    echo "$dir is broken. Attempting to fix..."
+
+    echo "umount $dir"
+    umount $dir
+
+    echo "gluster volume stop $vol"
+    yes | gluster volume stop $vol
+
+    echo "gluster volume start $vol"
+    gluster volume start $vol
+
+    echo "mount.glusterfs localhost:/$vol $dir"
+    mount.glusterfs localhost:/$vol $dir
+
+    for id in $(docker service ls -q); do 
+      echo "docker service update $id"
+      docker service update $id 
+    done;
+
+    echo "...hope that worked!"
+
+  fi
+
+done
