@@ -22,9 +22,9 @@ volumes_env() {
   export GFS_DATA_DEV="${node}:/mnt/$(slugify $fqdn)/data-gfs"
   export GFS_DATA_MNT="/data"
 
-  export GFS_WORK_VOL="work-gfs"
-  export GFS_WORK_DEV="${node}:/mnt/work/work-gfs"
-  export GFS_WORK_MNT="/work"
+  # export GFS_WORK_VOL="work-gfs"
+  # export GFS_WORK_DEV="${node}:/mnt/work/work-gfs"
+  # export GFS_WORK_MNT="/work"
 
 }
 

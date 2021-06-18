@@ -58,7 +58,7 @@ set_env WEBHOOK
 if defined $NODE; then
   volumes_env $NODE
   mkdir -p $GFS_DATA_MNT $(dev_dir $GFS_DATA_DEV) 
-  mkdir -p $GFS_WORK_MNT $(dev_dir $GFS_WORK_DEV)
+  # mkdir -p $GFS_WORK_MNT $(dev_dir $GFS_WORK_DEV)
   mkdir -p $DO_BLOCK_MNT
 fi
 
