@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Load dotenv if available
-[ -e .env ] && export $(cat .env)
+[ -e .env ] && dotenv="$(egrep -v '^#' .env | xargs)"
+[ -z "$dotenv" ] || export "$dotenv"
 
 # If not set in dotenv, use folder name
 if [ -z "$APP" ]; then
