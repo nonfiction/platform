@@ -126,7 +126,7 @@ services:
         max-size: "1m"
 
     volumes:
-      - /data/<%= $APP %>/acme.json:/acme.json
+      - /data/platform/<%= $APP %>/acme.json:/acme.json
 
 networks:
   proxy:

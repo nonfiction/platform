@@ -126,6 +126,8 @@ if defined $DO_BLOCK_DEV && defined $DO_BLOCK_MNT; then
   # Mount it right now
   echo_next "Mount block storage"
   echo_run "mount -o discard,defaults,noatime ${DO_BLOCK_DEV} ${DO_BLOCK_MNT}"
+  mkdir -p $DO_BLOCK_MNT/snapshots 
+  chown -R work:work $DO_BLOCK_MNT/snapshots 
 
 fi
 

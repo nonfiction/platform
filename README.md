@@ -115,3 +115,12 @@ make deploy
 - [nonfiction/hello-world](https://github.com/nonfiction/hello-world)
 - [nonfiction/wordpress](https://github.com/nonfiction/wordpress)
 
+
+```
+# m  h  dom mon dow user      command
+  0  4  *   *   *   work      /usr/bin/rsnapshot -c /etc/rsnapshot.conf today
+  0  12 *   *   *   work      /usr/bin/rsnapshot -c /etc/rsnapshot.conf today
+  0  5  *   *   *   work      /usr/bin/rsnapshot -c /etc/rsnapshot.conf daily
+  15 5  *   *   1   work      /usr/bin/rsnapshot -c /etc/rsnapshot.conf weekly
+  30 5  1   *   *   work      /usr/bin/rsnapshot -c /etc/rsnapshot.conf monthly
+```

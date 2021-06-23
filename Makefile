@@ -1,10 +1,10 @@
 init:
 	mkdir -p /work
-	mkdir -p /data/traefik
-	mkdir -p /data/portainer
-	touch /data/traefik/traefik.yml
-	touch /data/traefik/acme.json
-	chmod 600 /data/traefik/acme.json
+	mkdir -p /data/platform/traefik
+	mkdir -p /data/platform/portainer
+	touch /data/platform/traefik/traefik.yml
+	touch /data/platform/traefik/acme.json
+	chmod 600 /data/platform/traefik/acme.json
 
 stack:
 	esh traefik.yml.esh > traefik.yml

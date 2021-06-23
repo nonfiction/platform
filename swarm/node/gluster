@@ -122,5 +122,6 @@ elif defined $JOIN && defined $NODE && defined $PRIMARY; then
   mount_gluster_volume $GFS_DATA_VOL $GFS_DATA_MNT
   # mount_gluster_volume $GFS_WORK_VOL $GFS_WORK_MNT
   # mkdir -p $GFS_WORK_MNT/.ssh
+  chown -R work:work /data
 
 fi
