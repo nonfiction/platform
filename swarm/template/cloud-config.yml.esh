@@ -94,7 +94,7 @@ write_files:
        cmd_rm	/bin/rm
        cmd_rsync	/usr/bin/rsync
        cmd_logger	/usr/bin/logger
-       retain	today	6
+       retain	today	2
        retain	daily	7
        retain	weekly	4
        retain	monthly	3
