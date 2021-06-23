@@ -88,21 +88,21 @@ write_files:
   # Regular Backups
   - path: /etc/rsnapshot.conf
     content: | 
-       config_version		/1.2
-       snapshot_root		/mnt/<%= $NODE.$DOMAIN | tr . _ -%>/snapshots/
-       cmd_cp						/bin/cp
-       cmd_rm						/bin/rm
-       cmd_rsync				/usr/bin/rsync
-       cmd_logger				/usr/bin/logger
-       retain	today			6
-       retain	daily			7
-       retain	weekly		4
-       retain	monthly		3
-       verbose					2
-       loglevel					3
-       lockfile					/work/rsnapshot.pid
-       exclude					/data/platform/
-       backup						/data/	localhost/
+       config_version	1.2
+       snapshot_root	/mnt/<%= $NODE.$DOMAIN | tr . _ -%>/snapshots/
+       cmd_cp	/bin/cp
+       cmd_rm	/bin/rm
+       cmd_rsync	/usr/bin/rsync
+       cmd_logger	/usr/bin/logger
+       retain	today	6
+       retain	daily	7
+       retain	weekly	4
+       retain	monthly	3
+       verbose	2
+       loglevel	3
+       lockfile	/work/rsnapshot.pid
+       exclude	/data/platform/
+       backup	/data/	localhost/
 
   # Run rsnapshot to sync and rotate backups
   - path: /etc/crontab
