@@ -7,12 +7,12 @@ init:
 	chmod 600 /data/platform/traefik/acme.json
 
 stack:
-	esh traefik.yml.esh > traefik.yml
-	esh traefik.yml.esh > caddy.yml
-	esh hello-world.yml.esh > hello-world.yml
-	esh portainer-agent.yml.esh > portainer-agent.yml
-	esh portainer.yml.esh > portainer.yml
-	esh workspace.yml.esh > workspace.yml
+	APP=traefik esh traefik.yml.esh > traefik.yml
+	APP=caddy esh traefik.yml.esh > caddy.yml
+	APP=hello-world esh hello-world.yml.esh > hello-world.yml
+	APP=portainer esh portainer-agent.yml.esh > portainer-agent.yml
+	APP=portainer esh portainer.yml.esh > portainer.yml
+	APP=workspace esh workspace.yml.esh > workspace.yml
 
 pull:
 	docker pull nonfiction/traefik
@@ -33,4 +33,4 @@ proxy: init stack pull
 
 workspace: deploy
 	docker stack deploy -c portainer.yml platform
-	docker stack deploy -c --resolve-image never workspace.yml platform
+	docker stack deploy --resolve-image never -c workspace.yml platform

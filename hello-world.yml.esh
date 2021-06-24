@@ -1,6 +1,3 @@
-<%
-APP=hello-world
--%>
 version: '3.8'
 services:
   

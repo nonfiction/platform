@@ -1,6 +1,3 @@
-<%
-APP=workspace
--%>
 version: '3.8'
 services:
 
