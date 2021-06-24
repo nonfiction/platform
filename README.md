@@ -1,10 +1,12 @@
 # nonfiction Platform
 
-Configuration for [Docker Swarm](https://docs.docker.com/engine/swarm/) with
-[GlusterFS](https://docs.gluster.org/) distributed file system, provisioned
-by Digital Ocean's [doctl](https://github.com/digitalocean/doctl). Deployed swarms 
-will run [Traefik](https://doc.traefik.io/traefik/) as reverse proxy for Docker 
-services, as well as [VS Code](https://github.com/cdr/code-server) in an 
+Configuration for [Docker Swarm](https://docs.docker.com/engine/swarm/) and
+[GlusterFS](https://docs.gluster.org/) distributed file system mounted on 
+an expandable block volume with daily [rsnapshot](https://rsnapshot.org) backups, 
+provisioned by Digital Ocean's [doctl](https://github.com/digitalocean/doctl).
+Deployed swarms will run [Traefik](https://doc.traefik.io/traefik/) as reverse 
+proxy for Docker services, [Portainer](https://www.portainer.io) for stack 
+management, as well as [VS Code](https://github.com/cdr/code-server) in an 
 [Alpine](https://www.alpinelinux.org) environment for development.
 
 This platform isn't intended to be installed on an existing system. Instead, it
@@ -40,10 +42,12 @@ bash <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/swarm) d
 
 - Create new tag `swarm` by adding it to an arbitrary [droplet](https://cloud.digitalocean.com/droplets)
 - APIs -> Tokens/Keys -> [Generate New Token](https://cloud.digitalocean.com/account/api/tokens)
+- Container Registry -> [Create Registry](https://cloud.digitalocean.com/registry)
+- Databases -> [Create MySQL Database Cluster](https://cloud.digitalocean.com/databases/new?engine=mysql)
 - Networking -> Domains -> [Add Domain](https://cloud.digitalocean.com/networking/domains/)
 - Networking -> Firewalls -> [Create Firewall](https://cloud.digitalocean.com/networking/firewalls)
 
-![11EB4F4A-2562-4860-A4CA-4798C4866996](https://user-images.githubusercontent.com/12491/122124309-552e3680-cdec-11eb-8cd9-abe1613992fa.jpeg)
+![IMG_6384](https://user-images.githubusercontent.com/12491/123299127-6eaf3c80-d4d6-11eb-9933-26407a4e0daf.jpeg)
 
 ## Usage:
 
@@ -102,10 +106,9 @@ swarm remove abc.example.com
 These are to be run on the primary node in the swarm:
 
 ```
-make init
-make stack
-make pull
 make deploy
+make proxy
+make workspace
 ```
 
 ## Related Repositories
@@ -114,13 +117,3 @@ make deploy
 - [nonfiction/workspace](https://github.com/nonfiction/workspace)
 - [nonfiction/hello-world](https://github.com/nonfiction/hello-world)
 - [nonfiction/wordpress](https://github.com/nonfiction/wordpress)
-
-
-```
-# m  h  dom mon dow user      command
-  0  4  *   *   *   work      /usr/bin/rsnapshot -c /etc/rsnapshot.conf today
-  0  12 *   *   *   work      /usr/bin/rsnapshot -c /etc/rsnapshot.conf today
-  0  5  *   *   *   work      /usr/bin/rsnapshot -c /etc/rsnapshot.conf daily
-  15 5  *   *   1   work      /usr/bin/rsnapshot -c /etc/rsnapshot.conf weekly
-  30 5  1   *   *   work      /usr/bin/rsnapshot -c /etc/rsnapshot.conf monthly
-```
