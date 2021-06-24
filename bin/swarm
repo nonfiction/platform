@@ -1,7 +1,0 @@
-#!/bin/bash
-# Swarm (abc.example.com) from current docker context or hostname
-
-SWARM=$(docker context inspect --format "{{lower .Endpoints.docker.Host}}" | awk -F @ '{print $2}')
-[ -z "$SWARM" ] && SWARM=$(hostname -f)
-
-echo $SWARM

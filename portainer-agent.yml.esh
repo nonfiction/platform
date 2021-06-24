@@ -1,0 +1,38 @@
+<%
+APP=portainer
+-%>
+version: '3.8'
+services:
+
+  <%= $(bin/get app) %>_agent:
+    image: portainer/agent:latest
+
+    deploy:
+      mode: global
+
+    environment:
+      AGENT_CLUSTER_ADDR: "tasks.<%= $(bin/get app) %>_agent" 
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+      - /:/host
+
+    networks:
+      - portainer
+
+    ports:
+      - target: 9001
+        published: 9001
+        mode: host
+        protocol: tcp
+
+    logging:
+      options:
+        max-size: "1m"
+
+networks:
+  portainer:
+    name: portainer
+    driver: overlay
+    attachable: true

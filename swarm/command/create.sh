@@ -13,7 +13,8 @@ include "lib/env.sh"
 
 if undefined $SWARM; then
   echo
-  echo "Usage:  swarm create SWARM [VOLUME_SIZE: $VOLUME_SIZE] [DROPLET_SIZE: $DROPLET_SIZE]"
+  # echo "Usage:  swarm create SWARM [VOLUME_SIZE: $VOLUME_SIZE] [DROPLET_SIZE: $DROPLET_SIZE]"
+  echo "Usage:  swarm create SWARM"
   echo
   exit 1
 fi

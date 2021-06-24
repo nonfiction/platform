@@ -1,20 +1,16 @@
 <%
 APP=portainer
-DOMAIN=$(bin/domain)
 -%>
 version: '3.8'
 services:
-  
-  <%= $APP %>:
-    image: portainer/portainer-ce:latest
 
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /data/platform/<%= $APP %>:/data
+  <%= $(bin/get app) %>:
+    image: portainer/portainer-ce:latest
+    command: -H tcp://tasks.<%= $(bin/get app) %>:9001 --tlsskipverify
 
     deploy:
-      mode: global
-
+      mode: replicated
+      replicas: 1
       placement:
         constraints: [node.role == manager]
 
@@ -25,16 +21,31 @@ services:
         traefik.enable: "true"
         traefik.docker.network: "proxy"
 
-        traefik.http.services.<%= $APP %>.loadbalancer.server.port: "9000"
+        traefik.http.services.<%= $(bin/get app) %>.loadbalancer.server.port: "9000"
+        traefik.http.routers.<%=  $(bin/get app) %>.rule: "Host(<%= $(bin/get csv $(bin/get hosts)) %>)"
+        traefik.http.routers.<%=  $(bin/get app) %>.entrypoints: "websecure"
+        traefik.http.routers.<%=  $(bin/get app) %>.tls.certresolver: "digitalocean"
 
-        traefik.http.routers.<%= $APP %>.rule: "Host(<%= $(bin/hosts $APP $DOMAIN) %>)"
-        traefik.http.routers.<%= $APP %>.entrypoints: "websecure"
-        traefik.http.routers.<%= $APP %>.tls.certresolver: "digitalocean"
+    volumes:
+      - /data/platform/<%= $APP %>:/data
+
+    logging:
+      options:
+        max-size: "1m"
 
     networks:
       - proxy
+      - portainer
+
+    logging:
+      options:
+        max-size: "1m"
 
 networks:
+  portainer:
+    name: portainer
+    driver: overlay
+    external: true
   proxy:
     name: proxy
     driver: overlay

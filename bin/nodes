@@ -1,4 +1,0 @@
-#!/bin/bash
-# List of nodes in swarm
-
-docker node ls --format "{{lower .Hostname}}" | xargs

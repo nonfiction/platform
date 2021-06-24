@@ -1,12 +1,10 @@
 <%
 APP=traefik
-METRICS=metrics
-DOMAIN=$(bin/domain)
 -%>
 version: '3.8'
 services:
 
-  <%= $APP %>:
+  <%=  $(bin/get app) %>:
     image: nonfiction/traefik:latest
     command:
 
@@ -18,7 +16,7 @@ services:
 
       # Docker endpoint running on primary
       # - --providers.docker.endpoint=unix:///var/run/docker.sock
-      - --providers.docker.endPoint=ssh://root@<%= $(bin/env PRIMARY_IP) %>:22
+      - --providers.docker.endPoint=ssh://root@<%= $(bin/get PRIMARY_IP) %>:22
 
       # Do not expose all Docker services, only the ones explicitly exposed
       - --providers.docker.exposedbydefault=false
@@ -77,28 +75,28 @@ services:
 
         # Domains Certificates
         traefik.http.routers.wildcard-certs.tls.certresolver: "digitalocean" 
-        <% i=0; for node in $(bin/nodes); do %>
-        # <%= ${node}.${DOMAIN} %>
-        traefik.http.routers.wildcard-certs.tls.domains[<%= $i -%>].main: "<%= ${node}.${DOMAIN} -%>"
-        traefik.http.routers.wildcard-certs.tls.domains[<%= $i -%>].sans: "*.<%= ${node}.${DOMAIN} -%>"
+        <% i=0; for node in $(bin/get nodes); do %>
+        # <%= ${node}.$(bin/get domain) %>
+        traefik.http.routers.wildcard-certs.tls.domains[<%= $i -%>].main: "<%= ${node}.$(bin/get domain) -%>"
+        traefik.http.routers.wildcard-certs.tls.domains[<%= $i -%>].sans: "*.<%= ${node}.$(bin/get domain) -%>"
         <% i=$((i+1)) -%>
         <% done -%>
 
         # Dashboards
-        traefik.http.routers.<%= $APP %>.rule: "Host(<%= $(bin/hosts $APP $DOMAIN) %>)"
-        traefik.http.routers.<%= $APP %>.entrypoints: "websecure"
-        traefik.http.routers.<%= $APP %>.tls: "true"
-        traefik.http.routers.<%= $APP %>.service: "api@internal"
-        traefik.http.services.<%= $APP %>.loadbalancer.server.port: "8080"
-        traefik.http.routers.<%= $APP %>.middlewares: "basicauth@docker"
-        traefik.http.middlewares.basicauth.basicauth.users: '<%= $(bin/pass BASICAUTH_USER BASICAUTH_PASSWORD) %>'
+        traefik.http.routers.<%=  $(bin/get app) %>.rule: "Host(<%= $(bin/get csv $(bin/get hosts)) %>)"
+        traefik.http.routers.<%=  $(bin/get app) %>.entrypoints: "websecure"
+        traefik.http.routers.<%=  $(bin/get app) %>.tls: "true"
+        traefik.http.routers.<%=  $(bin/get app) %>.service: "api@internal"
+        traefik.http.services.<%= $(bin/get app) %>.loadbalancer.server.port: "8080"
+        traefik.http.routers.<%=  $(bin/get app) %>.middlewares: "basicauth@docker"
+        traefik.http.middlewares.basicauth.basicauth.users: '<%= $(bin/get basic_auth BASICAUTH_USER BASICAUTH_PASSWORD) %>'
 
         # Metrics
-        traefik.http.routers.<%= $METRICS %>.rule: "Host(<%= $(bin/hosts $METRICS $DOMAIN) %>)"
-        traefik.http.routers.<%= $METRICS %>.entrypoints: "websecure"
-        traefik.http.routers.<%= $METRICS %>.tls: "true"
-        traefik.http.routers.<%= $METRICS %>.service: "prometheus@internal"
-        traefik.http.routers.<%= $METRICS %>.middlewares: "basicauth@docker"
+        traefik.http.routers.<%= $(APP=metrics bin/get app) %>.rule: "Host(<%= $(bin/get csv $(APP=metrics bin/get hosts)) %>)"
+        traefik.http.routers.<%= $(APP=metrics bin/get app) %>.entrypoints: "websecure"
+        traefik.http.routers.<%= $(APP=metrics bin/get app) %>.tls: "true"
+        traefik.http.routers.<%= $(APP=metrics bin/get app) %>.service: "prometheus@internal"
+        traefik.http.routers.<%= $(APP=metrics bin/get app) %>.middlewares: "basicauth@docker"
 
         # Global redirect to https
         traefik.http.routers.http-catchall.rule: "hostregexp(`{host:.+}`)"
@@ -118,15 +116,15 @@ services:
         mode: host
 
     environment:
-      DO_AUTH_TOKEN: "<%= $(bin/env DO_AUTH_TOKEN) %>"
-      ROOT_PRIVATE_KEY: "<%= $(bin/env ROOT_PRIVATE_KEY) %>"
+      DO_AUTH_TOKEN: "<%= $(bin/get DO_AUTH_TOKEN) %>"
+      ROOT_PRIVATE_KEY: "<%= $(bin/get ROOT_PRIVATE_KEY) %>"
 
     logging:
       options:
         max-size: "1m"
 
     volumes:
-      - /data/platform/<%= $APP %>/acme.json:/acme.json
+      - /data/platform/<%= $(bin/get app) %>/acme.json:/acme.json
 
 networks:
   proxy:
