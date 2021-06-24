@@ -123,7 +123,7 @@ write_files:
   # Run script on reboot
   - path: /etc/crontab
     content: | 
-       @reboot /root/platform/swarm/node/reboot
+       @reboot root /root/platform/swarm/node/reboot
     append: true
 
 disable_root: false
