@@ -2,7 +2,7 @@
 
 Configuration for [Docker Swarm](https://docs.docker.com/engine/swarm/) and
 [GlusterFS](https://docs.gluster.org/) distributed file system mounted on 
-an expandable block volumes with daily [rsnapshot](https://rsnapshot.org) backups, 
+an expandable block volume with daily [rsnapshot](https://rsnapshot.org) backups, 
 provisioned by Digital Ocean's [doctl](https://github.com/digitalocean/doctl).
 Deployed swarms will run [Traefik](https://doc.traefik.io/traefik/) as reverse 
 proxy for Docker services, [Portainer](https://www.portainer.io) for stack 
