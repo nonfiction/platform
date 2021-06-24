@@ -33,4 +33,4 @@ proxy: init stack pull
 
 workspace: deploy
 	docker stack deploy -c portainer.yml platform
-	docker stack deploy -c workspace.yml platform
+	docker stack deploy -c --resolve-image never workspace.yml platform
