@@ -28,6 +28,7 @@ services:
     volumes:
       - /work:/work
       - /data:/data
+      - /mnt/<%= $(bin/get swarm) | tr . _ -%>/snapshots:/snapshots
       - /root:/root
       - share:/usr/local/share
       - cache:/usr/local/cache
@@ -40,26 +41,6 @@ services:
     ports:
       - target: 2222
         published: 2222
-        mode: host
-      - target: 60000
-        published: 60000
-        protocol: udp
-        mode: host
-      - target: 60001
-        published: 60001
-        protocol: udp
-        mode: host
-      - target: 60002
-        published: 60002
-        protocol: udp
-        mode: host
-      - target: 60003
-        published: 60003
-        protocol: udp
-        mode: host
-      - target: 60004
-        published: 60004
-        protocol: udp
         mode: host
 
     logging:
