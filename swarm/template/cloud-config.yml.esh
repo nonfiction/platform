@@ -94,7 +94,7 @@ write_files:
        cmd_rm	/bin/rm
        cmd_rsync	/usr/bin/rsync
        cmd_logger	/usr/bin/logger
-       retain	today	2
+       retain	hourly	12
        retain	daily	7
        retain	weekly	4
        retain	monthly	3
@@ -107,11 +107,10 @@ write_files:
   # Run rsnapshot to sync and rotate backups
   - path: /etc/crontab
     content: | 
-      0 4 * * * work /usr/bin/rsnapshot -c /etc/rsnapshot.conf today
-      0 12 * * * work /usr/bin/rsnapshot -c /etc/rsnapshot.conf today
-      0 5 * * * work /usr/bin/rsnapshot -c /etc/rsnapshot.conf daily
-      15 5 * * 1 work /usr/bin/rsnapshot -c /etc/rsnapshot.conf weekly
-      30 5 1 * * work /usr/bin/rsnapshot -c /etc/rsnapshot.conf monthly
+      0 * * * * work /usr/bin/rsnapshot -c /etc/rsnapshot.conf hourly
+      30 5 * * * work /usr/bin/rsnapshot -c /etc/rsnapshot.conf daily
+      40 5 * * 1 work /usr/bin/rsnapshot -c /etc/rsnapshot.conf weekly
+      50 5 1 * * work /usr/bin/rsnapshot -c /etc/rsnapshot.conf monthly
     append: true
 
   # Auto-prune docker once in a while
@@ -158,6 +157,7 @@ runcmd:
   # Generate ssh keys
   - cat /dev/zero | ssh-keygen -t rsa -q -N ""
   - mkdir -p /work/.ssh
+  - ln -s /mnt/<%= $NODE.$DOMAIN | tr . _ -%>/snapshots /snapshots
 
   # Install esh
   - curl -fsSL https://github.com/jirutka/esh/raw/master/esh > /usr/local/bin/esh
@@ -178,6 +178,7 @@ runcmd:
   - docker pull nonfiction/traefik
   - docker pull nonfiction/hello-world
   - docker pull portainer/portainer-ce
+  - docker pull portainer/agent
   - docker pull nonfiction/workspace
 
   # Install platform git repo
