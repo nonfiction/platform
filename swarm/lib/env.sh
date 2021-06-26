@@ -47,6 +47,11 @@ export DB_PORT=$(env DB_PORT "25060")
 export DB_ROOT_USER=$(env DB_ROOT_USER "doadmin")
 export DB_ROOT_PASSWORD=$(env DB_ROOT_PASSWORD)
 
+export SMTP_HOST=$(env SMTP_HOST "smtp.sendgrid.net")
+export SMTP_PORT=$(env SMTP_PORT "587")
+export SMTP_USER=$(env SMTP_USER "apikey")
+export SMTP_PASSWORD=$(env SMTP_PASSWORD)
+
 export BASICAUTH_USER=$(env BASICAUTH_USER "nonfiction")
 export BASICAUTH_PASSWORD=$(env BASICAUTH_PASSWORD "secret")
 

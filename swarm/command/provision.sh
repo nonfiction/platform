@@ -26,9 +26,34 @@ PRIMARY=$(get_swarm_primary)
 has_droplet $PRIMARY && HAS_PRIMARY=1
 
 # If primary exists, grab volume & droplet size
-if defined $HAS_PRIMARY && undefined $RESIZE; then
-  VOLUME_SIZE=$(get_volume_size $PRIMARY)
-  DROPLET_SIZE=$(get_droplet_size $PRIMARY)
+if undefined $RESIZE; then
+
+  # Existing swarm gets sizes from primary
+  if defined $HAS_PRIMARY; then
+    VOLUME_SIZE=$(get_volume_size $PRIMARY)
+    DROPLET_SIZE=$(get_droplet_size $PRIMARY)
+
+
+  # New swarm needs a starting size
+  else
+    echo_main_alt "Provisioning NEW swarm..."
+    echo_droplet_prices
+
+    ask_input DROPLET_SIZE
+    DROPLET_SIZE=$(ask_env DROPLET_SIZE s-1vcpu-1gb)
+    echo_env DROPLET_SIZE
+
+    ask_input VOLUME_SIZE
+    VOLUME_SIZE=$(ask_env VOLUME_SIZE 10)
+    echo_env VOLUME_SIZE
+
+    if undefined "$DROPLET_SIZE" || undefined "$VOLUME_SIZE"; then
+      echo_stop "Invalid size selection"
+      echo
+      exit 1
+    fi
+  fi
+
 fi
 
 # Environment Variables
@@ -109,6 +134,10 @@ if [ "$ROLE" = "dev" ]; then
   echo_env DB_PORT
   echo_env DB_ROOT_USER
   echo_env DB_ROOT_PASSWORD
+  echo_env SMTP_HOST
+  echo_env SMTP_PORT
+  echo_env SMTP_USER
+  echo_env SMTP_PASSWORD
 fi
 
 echo_next "Node Config"

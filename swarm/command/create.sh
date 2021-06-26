@@ -171,6 +171,27 @@ else
       export DB_ROOT_PASSWORD=$(ask_env DB_ROOT_PASSWORD)
       echo_env DB_ROOT_PASSWORD
 
+
+      echo_main_alt "SMTP Server"
+      echo "https://app.sendgrid.com/settings/api_keys"
+
+      ask_input SMTP_HOST
+      export SMTP_HOST=$(ask_env SMTP_HOST "smtp.sendgrid.net")
+      echo_env SMTP_HOST
+
+      ask_input SMTP_PORT
+      export SMTP_PORT=$(ask_env SMTP_PORT "587")
+      echo_env SMTP_PORT
+      
+      ask_input SMTP_USER
+      export SMTP_USER=$(ask_env SMTP_USER "apikey")
+      echo_env SMTP_USER
+
+      ask_input SMTP_PASSWORD
+      export SMTP_PASSWORD=$(ask_env SMTP_PASSWORD)
+      echo_env SMTP_PASSWORD
+
+
       echo_main_alt "BasicAuth login"
       echo "This may need to be shared with clients occasionally"
 
@@ -195,6 +216,10 @@ else
       export DB_PORT="25060"
       export DB_ROOT_USER="doadmin"
       export DB_ROOT_PASSWORD=""
+      export SMTP_HOST="smtp.sendgrid.net"
+      export SMTP_PORT="587"
+      export SMTP_USER="apikey"
+      export SMTP_PASSWORD=""
       export BASICAUTH_USER="nonfiction"
       export BASICAUTH_PASSWORD=$(generate_password)
     fi

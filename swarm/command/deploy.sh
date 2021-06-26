@@ -103,6 +103,11 @@ for node in $NODES; do
   env="${env} DB_ROOT_USER=\"$DB_ROOT_USER\""
   env="${env} DB_ROOT_PASSWORD=\"$DB_ROOT_PASSWORD\""
 
+  env="${env} SMTP_HOST=\"$SMTP_HOST\""
+  env="${env} SMTP_PORT=\"$SMTP_PORT\""
+  env="${env} SMTP_USER=\"$SMTP_USER\""
+  env="${env} SMTP_PASSWORD=\"$SMTP_PASSWORD\""
+
   env="${env} ROOT_PRIVATE_KEY=\"$ROOT_PRIVATE_KEY\""
   env="${env} DROPLET_IMAGE=\"$DROPLET_IMAGE\""
   env="${env} REGION=\"$REGION\""
