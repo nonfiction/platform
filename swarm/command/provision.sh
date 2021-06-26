@@ -137,7 +137,7 @@ if [ "$ROLE" = "dev" ]; then
   echo_env SMTP_HOST
   echo_env SMTP_PORT
   echo_env SMTP_USER
-  echo_env SMTP_PASSWORD
+  echo_env SMTP_PASSWORD 21
 fi
 
 echo_next "Node Config"
