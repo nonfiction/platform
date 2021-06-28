@@ -34,4 +34,4 @@ networks:
   proxy:
     name: proxy
     driver: overlay
-    attacha
+    attachable: true
