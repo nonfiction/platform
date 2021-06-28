@@ -9,11 +9,3 @@
 }
 
 import /config/*/Caddyfile
-
-:443 {
-  reverse_proxy https://skynet.nonfiction.ca
-}
-
-:80 {
-  reverse_proxy https://skynet.nonfiction.ca
-}
