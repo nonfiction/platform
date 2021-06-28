@@ -360,7 +360,7 @@ get_nodes() {
 get_node_multiplier() {
 
   local multiplier=$1
-  [ -z "$multiplier" ] multiplier=1 
+  [ -z "$multiplier" ] && multiplier=1 
   
   echo $(($(bin/get nodes | wc -w) * $multiplier))
 
