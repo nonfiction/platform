@@ -191,7 +191,7 @@ if [ "$ROLE" = "dev" ]; then
   run $PRIMARY "cd /root/platform && make workspace"
 
 elif [ "$ROLE" = "proxy" ]; then
-  run $PRIMARY "cd /root/platform && make proxy"
+  run $PRIMARY "cd /root/platform && make load-balancer"
 
 else
   run $PRIMARY "cd /root/platform && make deploy"
