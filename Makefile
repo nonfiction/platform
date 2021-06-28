@@ -2,13 +2,16 @@ init:
 	mkdir -p /work
 	mkdir -p /data/platform/traefik
 	mkdir -p /data/platform/portainer
+	mkdir -p /data/platform/caddy/data
+	mkdir -p /data/platform/caddy/config
+	#[ -e /data/platform/caddy/config/caddy/autosave.json ] || cp caddy/autosave.json /data/platform/caddy/config/caddy/autosave.json 
 	touch /data/platform/traefik/traefik.yml
 	touch /data/platform/traefik/acme.json
 	chmod 600 /data/platform/traefik/acme.json
 
 stack:
 	APP=traefik esh traefik.yml.esh > traefik.yml
-	APP=caddy esh traefik.yml.esh > caddy.yml
+	APP=caddy esh caddy.yml.esh > caddy.yml
 	APP=hello-world esh hello-world.yml.esh > hello-world.yml
 	APP=portainer esh portainer-agent.yml.esh > portainer-agent.yml
 	APP=portainer esh portainer.yml.esh > portainer.yml
@@ -19,6 +22,7 @@ pull:
 	docker pull nonfiction/hello-world
 	docker pull portainer/portainer-ce
 	docker pull portainer/agent
+	docker pull caddy
 	docker pull nonfiction/workspace
 
 deploy: init stack pull
@@ -26,7 +30,7 @@ deploy: init stack pull
 	docker stack deploy -c hello-world.yml platform
 	docker stack deploy -c portainer-agent.yml platform
 
-proxy: init stack pull
+load-balancer: init pull
 	docker stack deploy -c caddy.yml platform
 	docker stack deploy -c hello-world.yml platform
 	docker stack deploy -c portainer-agent.yml platform

@@ -1,0 +1,13 @@
+# 
+# Caddyfile
+#
+
+{
+	email dns@nonfiction.ca 
+        on_demand_tls {
+             interval 5s
+             burst 1
+         }
+}
+
+import /config/*/Caddyfile
