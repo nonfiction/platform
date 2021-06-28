@@ -6,7 +6,7 @@ services:
 
     deploy:
       mode: replicated
-      replicas: $(bin/get node_multiplier 2)
+      replicas: <%= $(bin/get node_multiplier 2) %>
       placement:
         constraints: [node.role == manager]
       # mode: global
