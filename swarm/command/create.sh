@@ -66,8 +66,8 @@ else
 
     if ask "Is this a development server?"; then
       export ROLE="dev"
-    elif ask "Is this a proxy server?"; then
-      export ROLE="proxy"
+    elif ask "Is this a load balancer?"; then
+      export ROLE="lb"
     else
       export ROLE="app"
     fi
@@ -229,11 +229,11 @@ else
     if ask "Save?"; then  
 
       # Download the template
-      curl -sL https://github.com/nonfiction/platform/raw/main/swarm/template/swarmfile.esh > /tmp/swarmfile.esh
+      curl -sL https://github.com/nonfiction/platform/raw/main/swarm/template/swarmfile.sh > /tmp/swarmfile.sh
 
       # Generate the swarmfile and save to where it belongs
-      esh /tmp/swarmfile.esh > $SWARMFILE
-      rm -rf /tmp/swarmfile.esh
+      esh /tmp/swarmfile.sh > $SWARMFILE
+      rm -rf /tmp/swarmfile.sh
 
       # Add created swarm as docker context
       if has docker; then

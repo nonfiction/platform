@@ -190,11 +190,11 @@ echo_main "4. Deploy Swarm..."
 if [ "$ROLE" = "dev" ]; then
   run $PRIMARY "cd /root/platform && make workspace"
 
-elif [ "$ROLE" = "proxy" ]; then
-  run $PRIMARY "cd /root/platform && make load-balancer"
+elif [ "$ROLE" = "lb" ]; then
+  run $PRIMARY "cd /root/platform && make caddy"
 
 else
-  run $PRIMARY "cd /root/platform && make deploy"
+  run $PRIMARY "cd /root/platform && make traefik"
 fi
 
 

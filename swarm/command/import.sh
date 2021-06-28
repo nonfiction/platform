@@ -12,7 +12,7 @@ fi
 
 # Redefine these in case imported swarmfile is not in the current directory
 SWARMPATH=$SWARM
-SWARM=$(basename $SWARM | awk '{sub(/\.txt$/,"")}1' | tr '[:upper:]' '[:lower:]' | tr '_' '.' )
+SWARM=$(basename $SWARM | awk '{sub(/\.sh$/,"")}1' | tr '[:upper:]' '[:lower:]' | tr '_' '.' )
 NODE=$(node_from_fqdn $SWARM);
 SWARMFILE="${XDG_DATA_HOME}/swarms/${SWARM}"
 

@@ -1,3 +1,14 @@
+.PHONY: deploy
+
+all:
+	@echo init
+	@echo stack
+	@echo pull
+	@echo caddy
+	@echo traefik
+	@echo workspace
+	@echo ""
+
 init:
 	mkdir -p /work
 	mkdir -p /data/platform/traefik
@@ -9,12 +20,12 @@ init:
 	chmod 600 /data/platform/traefik/acme.json
 
 stack:
-	APP=traefik esh traefik.yml.esh > traefik.yml
-	APP=caddy esh caddy.yml.esh > caddy.yml
-	APP=hello-world esh hello-world.yml.esh > hello-world.yml
-	APP=portainer esh portainer-agent.yml.esh > portainer-agent.yml
-	APP=portainer esh portainer.yml.esh > portainer.yml
-	APP=workspace esh workspace.yml.esh > workspace.yml
+	APP=traefik esh stack-traefik.yml > deploy/traefik.yml
+	APP=caddy esh stack-caddy.yml > deploy/caddy.yml
+	APP=hello-world esh stack-hello-world.yml > deploy/hello-world.yml
+	APP=portainer esh stack-portainer-agent.yml > deploy/portainer-agent.yml
+	APP=portainer esh stack-portainer.yml > deploy/portainer.yml
+	APP=workspace esh stack-workspace.yml > deploy/workspace.yml
 
 pull:
 	docker pull nonfiction/traefik
@@ -24,16 +35,16 @@ pull:
 	docker pull caddy
 	docker pull nonfiction/workspace
 
-deploy: init stack pull
-	docker stack deploy -c traefik.yml platform
-	docker stack deploy -c hello-world.yml platform
-	docker stack deploy -c portainer-agent.yml platform
+caddy: init stack pull
+	docker stack deploy -c deploy/caddy.yml platform
+	docker stack deploy -c deploy/hello-world.yml platform
+	docker stack deploy -c deploy/portainer-agent.yml platform
 
-load-balancer: init stack pull
-	docker stack deploy -c caddy.yml platform
-	docker stack deploy -c hello-world.yml platform
-	docker stack deploy -c portainer-agent.yml platform
+traefik: init stack pull
+	docker stack deploy -c deploy/traefik.yml platform
+	docker stack deploy -c deploy/hello-world.yml platform
+	docker stack deploy -c deploy/portainer-agent.yml platform
 
-workspace: deploy
-	docker stack deploy -c portainer.yml platform
-	docker stack deploy --resolve-image never -c workspace.yml platform
+workspace: traefik
+	docker stack deploy -c deploy/portainer.yml platform
+	docker stack deploy --resolve-image never -c deploy/workspace.yml platform

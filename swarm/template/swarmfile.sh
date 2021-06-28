@@ -84,7 +84,7 @@ export DROPLET_IMAGE=<%= $DROPLET_IMAGE %>
 export REGION=<%= $REGION %>
 export FS_TYPE=<%= $FS_TYPE %>
 
-# dev/app/proxy
+# dev/app/lb
 export ROLE=<%= $ROLE %>
 
 # All nodes in the swarm are accesible via this private key

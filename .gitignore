@@ -1,11 +1,7 @@
 data
 scratch
 .env
-traefik.yml
-caddy.yml
-hello-world.yml
-portainer.yml
-portainer-agent.yml
-workspace.yml
+deploy/
+!deploy/.gitkeep
 root_private_key
 root_private_key.tmp

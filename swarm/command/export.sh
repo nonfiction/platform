@@ -25,7 +25,7 @@ else
   ask_input EXPORT_DIR
   EXPORT_DIR=$(ask_env EXPORT_DIR)
   mkdir -p $EXPORT_DIR
-  EXPORT_FILE="${EXPORT_DIR}/$(echo $SWARM | tr '.' '_').txt"
+  EXPORT_FILE="${EXPORT_DIR}/$(echo $SWARM | tr '.' '_').sh"
   echo_run "cp ${SWARMFILE} ${EXPORT_FILE}" 
   echo_info "...done!"
   echo_next "Exported SWARMFILE to ${EXPORT_FILE}"
