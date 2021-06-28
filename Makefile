@@ -4,7 +4,6 @@ init:
 	mkdir -p /data/platform/portainer
 	mkdir -p /data/platform/caddy/data
 	mkdir -p /data/platform/caddy/config
-	#[ -e /data/platform/caddy/config/caddy/autosave.json ] || cp caddy/autosave.json /data/platform/caddy/config/caddy/autosave.json 
 	touch /data/platform/traefik/traefik.yml
 	touch /data/platform/traefik/acme.json
 	chmod 600 /data/platform/traefik/acme.json
@@ -30,7 +29,7 @@ deploy: init stack pull
 	docker stack deploy -c hello-world.yml platform
 	docker stack deploy -c portainer-agent.yml platform
 
-load-balancer: init pull
+load-balancer: init stack pull
 	docker stack deploy -c caddy.yml platform
 	docker stack deploy -c hello-world.yml platform
 	docker stack deploy -c portainer-agent.yml platform

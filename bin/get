@@ -354,6 +354,20 @@ get_nodes() {
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# get_node_multiplier
+# List number of nodes multiplied by argument
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+get_node_multiplier() {
+
+  local multiplier=$1
+  [ -z "$multiplier" ] multiplier=1 
+  
+  echo $(($(bin/get nodes | wc -w) * $multiplier))
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # get_remote
 # > root@$(get_swarm)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -566,6 +580,7 @@ case $KEY in
     echo "  login"
     echo "  node [--local]"
     echo "  nodes"
+    echo "  node multiplier [MULTIPLIER]"
     echo "  remote [--local]"
     echo "  remotes"
     echo "  swarm [--local]"
@@ -575,33 +590,34 @@ case $KEY in
     echo "  help"
     echo ;;
 
-  app)            get_app ;;
-  basic_auth)     get_basic_auth $ARGS;;
-  container_id)   get_container_id $ARGS ;;
-  context)        get_context ;;
-  contexts)       get_contexts ;;
-  csv)            get_csv $ARGS ;;
-  db_host)        get_db_host ;;
-  db_name)        get_db_name $ARGS ;;
-  db_password)    get_db_password ;;
-  db_user)        get_db_user ;;
-  dump)           get_dump ;;
-  domain)         get_domain ;;
-  env)            get_env $ARGS ;;
-  host)           get_host $ARGS ;;
-  hosts)          get_hosts $ARGS ;;
-  image)          get_image $ARGS ;;
-  login)          get_login $ARGS ;;
-  node)           get_node $ARGS ;;
-  nodes)          get_nodes ;;
-  remote)         get_remote $ARGS ;;
-  remotes)        get_remotes ;;
-  swarm)          get_swarm $ARGS ;;
-  tag)            get_tag $ARGS ;;
-  tags)           get_tags $ARGS ;;
-  uploads)        get_uploads ;;
+  app)             get_app ;;
+  basic_auth)      get_basic_auth $ARGS;;
+  container_id)    get_container_id $ARGS ;;
+  context)         get_context ;;
+  contexts)        get_contexts ;;
+  csv)             get_csv $ARGS ;;
+  db_host)         get_db_host ;;
+  db_name)         get_db_name $ARGS ;;
+  db_password)     get_db_password ;;
+  db_user)         get_db_user ;;
+  dump)            get_dump ;;
+  domain)          get_domain ;;
+  env)             get_env $ARGS ;;
+  host)            get_host $ARGS ;;
+  hosts)           get_hosts $ARGS ;;
+  image)           get_image $ARGS ;;
+  login)           get_login $ARGS ;;
+  node)            get_node $ARGS ;;
+  nodes)           get_nodes ;;
+  node_multiplier) get_node_multiplier $ARGS ;;
+  remote)          get_remote $ARGS ;;
+  remotes)         get_remotes ;;
+  swarm)           get_swarm $ARGS ;;
+  tag)             get_tag $ARGS ;;
+  tags)            get_tags $ARGS ;;
+  uploads)         get_uploads ;;
 
-  *)              get_env $KEY $ARGS ;;
+  *)               get_env $KEY $ARGS ;;
 
 esac
 exit

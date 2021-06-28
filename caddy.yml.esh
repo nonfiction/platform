@@ -1,11 +1,15 @@
 version: '3.8'
 services:
 
-  caddy:
+  <%= $(bin/get app) %>:
     image: caddy:2.4.3-alpine
 
     deploy:
-      mode: global
+      mode: replicated
+      replicas: $(bin/get node_multiplier 2)
+      placement:
+        constraints: [node.role == manager]
+      # mode: global
 
       restart_policy:
         condition: on-failure
@@ -26,9 +30,9 @@ services:
         max-size: "1m"
 
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - /data/platform/caddy/data:/data
-      - /data/platform/caddy/config:/config
+      - <%= $(pwd) %>/Caddyfile:/etc/caddy/Caddyfile
+      - /data/platform/<%= $(bin/get app) %>/data:/data
+      - /data/platform/<%= $(bin/get app) %>/config:/config
 
 networks:
   proxy:
