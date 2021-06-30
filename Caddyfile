@@ -1,6 +1,7 @@
 # Caddyfile
 
 {
+
   email dns@nonfiction.ca 
   on_demand_tls {
     interval 5s
@@ -11,11 +12,12 @@
   #  listener_wrappers {
   #    proxy_protocol {
   #      timeout 5s
-  #      allow 0.0.0.0\0 
+  #      #allow 0.0.0.0\0 
   #    }
   #    tls
   #  }
   #}
+
 
 }
 
