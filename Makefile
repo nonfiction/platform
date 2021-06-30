@@ -20,12 +20,12 @@ init:
 	chmod 600 /data/platform/traefik/acme.json
 
 stack:
-	APP=traefik esh stack-traefik.yml > deploy/traefik.yml
-	APP=caddy esh stack-caddy.yml > deploy/caddy.yml
-	APP=hello-world esh stack-hello-world.yml > deploy/hello-world.yml
-	APP=portainer esh stack-portainer-agent.yml > deploy/portainer-agent.yml
-	APP=portainer esh stack-portainer.yml > deploy/portainer.yml
-	APP=workspace esh stack-workspace.yml > deploy/workspace.yml
+	APP=traefik esh stack-traefik.yml > deploy/stack-traefik.yml
+	APP=caddy esh stack-caddy.yml > deploy/stack-caddy.yml
+	APP=hello-world esh stack-hello-world.yml > deploy/stack-hello-world.yml
+	APP=portainer esh stack-portainer-agent.yml > deploy/stack-portainer-agent.yml
+	APP=portainer esh stack-portainer.yml > deploy/stack-portainer.yml
+	APP=workspace esh stack-workspace.yml > deploy/stack-workspace.yml
 
 pull:
 	docker pull nonfiction/traefik
@@ -36,15 +36,15 @@ pull:
 	docker pull nonfiction/workspace
 
 caddy: init stack pull
-	docker stack deploy -c deploy/caddy.yml platform
-	docker stack deploy -c deploy/hello-world.yml platform
-	docker stack deploy -c deploy/portainer-agent.yml platform
+	docker stack deploy -c deploy/stack-caddy.yml platform
+	docker stack deploy -c deploy/stack-hello-world.yml platform
+	docker stack deploy -c deploy/stack-portainer-agent.yml platform
 
 traefik: init stack pull
-	docker stack deploy -c deploy/traefik.yml platform
-	docker stack deploy -c deploy/hello-world.yml platform
-	docker stack deploy -c deploy/portainer-agent.yml platform
+	docker stack deploy -c deploy/stack-traefik.yml platform
+	docker stack deploy -c deploy/stack-hello-world.yml platform
+	docker stack deploy -c deploy/stack-portainer-agent.yml platform
 
 workspace: traefik
-	docker stack deploy -c deploy/portainer.yml platform
-	docker stack deploy --resolve-image never -c deploy/workspace.yml platform
+	docker stack deploy -c deploy/stack-portainer.yml platform
+	docker stack deploy --resolve-image never -c deploy/stack-workspace.yml platform

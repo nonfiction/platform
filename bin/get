@@ -11,8 +11,7 @@ done
 
 # Load dotenv if available
 [ -e .env ] && dotenv="$(grep -Ev '^#' .env | xargs)"
-[ -z "$dotenv" ] || export "$dotenv"
-
+[ -z "$dotenv" ] || export $dotenv
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # get_app
@@ -38,15 +37,15 @@ get_basic_auth() {
   [ -z "$2" ] && exit 1
 
   # Get username from environment, or fall back on literal value
-  local username=$(get_env $1)
+  local username=$(get_env $(echo $1 | tr - _))
   [ -z $username ] && username="$1"
 
   # Get password from environment, or fall back on literal value
-  local password=$(get_env $2)
+  local password=$(get_env $(echo $2 | tr - _))
   [ -z $password ] && password="$2"
 
   # Returns name:password hashed with $ doubled for escaping: 
-  echo $(htpasswd -nb $username $password) | sed -e s/\\$/\\$\\$/g
+  echo $(htpasswd -nbB $username $password) | sed -e s/\\$/\\$\\$/g
 
 }
 
@@ -126,7 +125,7 @@ get_db_host() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 get_db_name() {
 
-  local app=$(get_app)
+  local app=$(get_app | tr - _)
   local swarm=$(get_swarm $@)
 
   [ -z "$app" ] && exit 1 
@@ -178,7 +177,7 @@ get_db_user() {
   if [ -z "$DB_USER" ]; then
     DB_USER=$(get_env DB_USER)
     if [ -z "$DB_USER" ]; then
-      DB_USER=$(get_app)
+      DB_USER=$(get_app | tr - _)
     fi
   fi
 
@@ -210,7 +209,7 @@ get_env() {
   [ -z "$1" ] && exit 1
 
   # Set value from environment
-  local var=${!1}
+  local var="${!1}"
 
   # If this is null, load from file
   if [ -z "$var" ]; then
@@ -245,10 +244,10 @@ get_host() {
 
   local host=""
   
-  # If --public, attempt to get host from first line of Caddyfile
+  # If --public, attempt to get host from first block in Caddyfile
   if [[ "$@" == *"--public"* ]] || [[ "$@" == *"-p"* ]]; then
     [ -e Caddyfile ] || exit 1
-    host=$(head -n1 Caddyfile | awk '{print $1}')
+    host=$(grep -Ev '^#' Caddyfile | xargs | awk '{print $1}')
   fi
 
   # Otherwise, get host from app and swarm (based on docker context)
@@ -349,20 +348,6 @@ get_node() {
 get_nodes() {
 
   docker node ls --format '{{lower .Hostname}}' | xargs
-
-}
-
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# get_node_multiplier
-# List number of nodes multiplied by argument
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-get_node_multiplier() {
-
-  local multiplier=$1
-  [ -z "$multiplier" ] && multiplier=1 
-  
-  echo $(($(bin/get nodes | wc -w) * $multiplier))
 
 }
 
@@ -518,6 +503,64 @@ get_uploads() {
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# get_upstream_user
+# Try to load UPSTREAM_USER from .env or environment, otherwise use get_app
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+get_upstream_user() {
+
+  if [ -z "$UPSTREAM_USER" ]; then
+    UPSTREAM_USER="$(get_env UPSTREAM_USER)"
+    if [ -z "$UPSTREAM_USER" ]; then
+      UPSTREAM_USER="$(get_app)"
+    fi
+  fi
+
+  echo $UPSTREAM_USER
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# get_upstream_password
+# Try to load UPSTREAM_PASSWORD from .env or environment, otherwise use get_app
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+get_upstream_password() {
+
+  if [ -z "$UPSTREAM_PASSWORD" ]; then
+    UPSTREAM_PASSWORD=$(get_env UPSTREAM_PASSWORD)
+    if [ -z "$UPSTREAM_PASSWORD" ]; then
+      UPSTREAM_PASSWORD=$(get_app)
+    fi
+  fi
+
+  echo $UPSTREAM_PASSWORD
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# get_upstreams
+# list of upstreams for caddy
+# ie: https://website.abc.example.com https://website.abc01.example.com
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+get_upstreams() {
+  
+  local app=$(get_app)
+  local domain=$(get_domain)
+  local upstreams="" 
+
+  [ -z "$domain" ] && exit 1 
+
+  for node in $(get_nodes); do
+    upstreams="$upstreams https://$app.$node.$domain"
+  done
+
+  echo $upstreams | xargs 
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # get_dump
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 get_dump() {
@@ -574,50 +617,54 @@ case $KEY in
     echo "  db_user"
     echo "  domain"
     echo "  env [NAME]"
+    echo "  help"
     echo "  host [--public] [--local]"
     echo "  hosts [--public]"
     echo "  image [TAG]"
     echo "  login"
     echo "  node [--local]"
     echo "  nodes"
-    echo "  node multiplier [MULTIPLIER]"
     echo "  remote [--local]"
     echo "  remotes"
     echo "  swarm [--local]"
     echo "  tag"
     echo "  tags [--local]"
     echo "  uploads"
-    echo "  help"
+    echo "  upstream_password"
+    echo "  upstream_user"
+    echo "  upstreams"
     echo ;;
 
-  app)             get_app ;;
-  basic_auth)      get_basic_auth $ARGS;;
-  container_id)    get_container_id $ARGS ;;
-  context)         get_context ;;
-  contexts)        get_contexts ;;
-  csv)             get_csv $ARGS ;;
-  db_host)         get_db_host ;;
-  db_name)         get_db_name $ARGS ;;
-  db_password)     get_db_password ;;
-  db_user)         get_db_user ;;
-  dump)            get_dump ;;
-  domain)          get_domain ;;
-  env)             get_env $ARGS ;;
-  host)            get_host $ARGS ;;
-  hosts)           get_hosts $ARGS ;;
-  image)           get_image $ARGS ;;
-  login)           get_login $ARGS ;;
-  node)            get_node $ARGS ;;
-  nodes)           get_nodes ;;
-  node_multiplier) get_node_multiplier $ARGS ;;
-  remote)          get_remote $ARGS ;;
-  remotes)         get_remotes ;;
-  swarm)           get_swarm $ARGS ;;
-  tag)             get_tag $ARGS ;;
-  tags)            get_tags $ARGS ;;
-  uploads)         get_uploads ;;
+  app)                get_app ;;
+  basic_auth)         get_basic_auth $ARGS;;
+  container_id)       get_container_id $ARGS ;;
+  context)            get_context ;;
+  contexts)           get_contexts ;;
+  csv)                get_csv $ARGS ;;
+  db_host)            get_db_host ;;
+  db_name)            get_db_name $ARGS ;;
+  db_password)        get_db_password ;;
+  db_user)            get_db_user ;;
+  domain)             get_domain ;;
+  dump)               get_dump ;;
+  env)                get_env $ARGS ;;
+  host)               get_host $ARGS ;;
+  hosts)              get_hosts $ARGS ;;
+  image)              get_image $ARGS ;;
+  login)              get_login $ARGS ;;
+  node)               get_node $ARGS ;;
+  nodes)              get_nodes ;;
+  remote)             get_remote $ARGS ;;
+  remotes)            get_remotes ;;
+  swarm)              get_swarm $ARGS ;;
+  tag)                get_tag $ARGS ;;
+  tags)               get_tags $ARGS ;;
+  uploads)            get_uploads ;;
+  upstream_password)  get_upstream_password ;;
+  upstream_user)      get_upstream_user ;;
+  upstreams)          get_upstreams ;;
 
-  *)               get_env $KEY $ARGS ;;
+  *)                  get_env $KEY $ARGS ;;
 
 esac
 exit

@@ -165,7 +165,7 @@ env() {
 
   # Load dotenv if available
   [ -e .env ] && dotenv="$(egrep -v '^#' .env | xargs)"
-  [ -z "$dotenv" ] || export "$dotenv"
+  [ -z "$dotenv" ] || export $dotenv
 
   # Set value from environment
   local var="${!1}"
@@ -201,7 +201,7 @@ ask_env() {
 
   # Load dotenv if available
   [ -e .env ] && dotenv="$(egrep -v '^#' .env | xargs)"
-  [ -z "$dotenv" ] || export "$dotenv"
+  [ -z "$dotenv" ] || export $dotenv
 
   # Set value from environment
   local var="${!1}"
