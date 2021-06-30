@@ -5,11 +5,9 @@ services:
     image: caddy:2.4.3-alpine
 
     deploy:
-      mode: replicated
-      replicas: <%= $(bin/get node_multiplier 3) %>
-      placement:
-        constraints: [node.role == manager]
       # mode: global
+      mode: replicated
+      replicas: <%= $(bin/get node_multiplier 2) %>
 
       restart_policy:
         condition: on-failure
