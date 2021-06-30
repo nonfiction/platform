@@ -2,7 +2,7 @@ version: '3.8'
 services:
 
   <%= $(bin/get app) %>:
-    image: caddy:2.4.3-alpine
+    image: nonfiction/caddy:v1
 
     deploy:
       # mode: global

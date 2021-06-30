@@ -6,6 +6,17 @@
     interval 5s
     burst 1
   }
+
+  #servers :443 {
+  #  listener_wrappers {
+  #    proxy_protocol {
+  #      timeout 5s
+  #      allow 0.0.0.0\0 
+  #    }
+  #    tls
+  #  }
+  #}
+
 }
 
 import /config/*/Caddyfile
