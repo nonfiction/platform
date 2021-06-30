@@ -28,11 +28,11 @@ stack:
 	APP=workspace esh stack-workspace.yml > deploy/stack-workspace.yml
 
 pull:
-	docker pull nonfiction/traefik
+	docker pull nonfiction/traefik:v1
 	docker pull nonfiction/hello-world
 	docker pull portainer/portainer-ce
 	docker pull portainer/agent
-	docker pull caddy
+	docker pull nonfiction/caddy:v1
 	docker pull nonfiction/workspace
 
 caddy: init stack pull
