@@ -597,8 +597,7 @@ create_load_balancer() {
     --redirect-http-to-https \
     --forwarding-rules "entry_protocol:http2,entry_port:443,target_protocol:http2,target_port:443,tls_passthrough:true entry_protocol:http,entry_port:80,target_protocol:http,target_port:80" \
     --sticky-sessions type:cookies,cookie_name:DO-LB,cookie_ttl_seconds:5 \
-    --health-check protocol:http,port:80,path:/,check_interval_seconds:10,response_timeout_seconds:5,healthy_threshold:5,unhealthy_threshold:3 \
-    --format="ID,Name,Status,IP" 
+    --health-check protocol:http,port:80,path:/,check_interval_seconds:10,response_timeout_seconds:5,healthy_threshold:5,unhealthy_threshold:3 
 
 }
 
