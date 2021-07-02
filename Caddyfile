@@ -1,10 +1,10 @@
 {
 
   email dns@nonfiction.ca 
-  on_demand_tls {
-    interval 5s
-    burst 1
-  }
+  # on_demand_tls {
+  #   interval 5s
+  #   burst 1
+  # }
 
   servers {
     listener_wrappers {
