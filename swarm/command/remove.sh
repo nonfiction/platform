@@ -23,6 +23,25 @@ if hasnt $SWARMFILE; then
   exit 1
 fi
 
+# Only delete swarmfile by passing -f
+if [ "$ARGS" = "-f" ]; then
+  if ask "Skipping droplet. Delete ${SWARMFILE}?"; then
+    rm $SWARMFILE
+    echo_info "DELETED: ${SWARMFILE}"
+
+    # Remove docker context
+    if has docker; then
+      if defined "$(docker context ls | grep root@$SWARM)"; then
+        echo_next "Removing DOCKER CONTEXT: ${SWARM}"
+        echo_run "docker context use default"
+        echo_run "docker context remove $NODE"
+      fi
+    fi
+
+    exit 1
+  fi
+fi
+
 # Ensure we're on a different machine
 if [ $SWARM = $(hostname -f) ]; then
   echo_stop "Cannot REMOVE swarm from a node within this same swarm."
@@ -103,6 +122,7 @@ fi
 if has docker; then
   if defined "$(docker context ls | grep root@$SWARM)"; then
     echo_next "Removing DOCKER CONTEXT: ${SWARM}"
+    echo_run "docker context use default"
     echo_run "docker context remove $NODE"
   fi
 fi

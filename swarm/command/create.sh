@@ -238,7 +238,7 @@ else
       # Add created swarm as docker context
       if has docker; then
         echo_next "Creating DOCKER CONTEXT: ${SWARM}"
-        echo_run "docker context create $NODE --default-stack-orchestrator=swarm --docker host=ssh://root@${SWARM}"
+        echo_run "docker context create $NODE --default-stack-orchestrator=swarm --docker host=ssh://root@${SWARM} --description $ROLE"
       fi
 
     else
