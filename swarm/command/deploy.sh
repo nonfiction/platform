@@ -55,7 +55,9 @@ sum=$(echo $NODES | wc -w)
 # ---------------------------------------------------------
 # System configuration for each node
 # ---------------------------------------------------------
-echo_main "1. Node Config..."
+step=0
+((step++))
+echo_main "$step. Node Config..."
 count=1
 
 # Build hosts file
@@ -125,7 +127,8 @@ done
 # ---------------------------------------------------------
 # Create Docker Swarm and join workers
 # ---------------------------------------------------------
-echo_main "2. Docker Config..."
+((step++))
+echo_main "$step. Docker Config..."
 count=1
 
 # Loop all nodes in swarm
@@ -160,7 +163,8 @@ done
 # ---------------------------------------------------------
 # Create Gluster Volume
 # ---------------------------------------------------------
-echo_main "3. Gluster Config..."
+((step++))
+echo_main "$step. Gluster Config..."
 count=1
 
 # Loop all nodes in swarm
@@ -183,9 +187,28 @@ done
 
 
 # ---------------------------------------------------------
+# Point DNS to load balancer if applicable
+# ---------------------------------------------------------
+if [ "$ROLE" = "lb" ]; then
+  ((step++))
+  echo_main "$step. Load Balancer Config..."
+
+    lb_node="$(load_balancer_node)"
+    lb_ip="$(get_load_balancer_ip)"
+
+    if defined "$lb_node" && defined "$lb_ip"; then
+      create_or_update_record $lb_node $lb_ip
+      create_or_update_record "*.$lb_node" $lb_ip
+    fi
+
+fi
+
+
+# ---------------------------------------------------------
 # Deploy Swarm
 # ---------------------------------------------------------
-echo_main "4. Deploy Swarm..."
+((step++))
+echo_main "$step. Deploy Swarm..."
 
 if [ "$ROLE" = "dev" ]; then
   run $PRIMARY "cd /root/platform && make workspace"

@@ -309,6 +309,15 @@ get_image() {
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# get_lb
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+get_lb() {
+
+  echo lb.$(get_swarm)
+
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # get_login [--public --local]
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 get_login() {
@@ -621,6 +630,7 @@ case $KEY in
     echo "  host [--public] [--local]"
     echo "  hosts [--public]"
     echo "  image [TAG]"
+    echo "  lb"
     echo "  login"
     echo "  node [--local]"
     echo "  nodes"
@@ -651,6 +661,7 @@ case $KEY in
   host)               get_host $ARGS ;;
   hosts)              get_hosts $ARGS ;;
   image)              get_image $ARGS ;;
+  lb)                 get_lb ;;
   login)              get_login $ARGS ;;
   node)               get_node $ARGS ;;
   nodes)              get_nodes ;;

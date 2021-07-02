@@ -26,7 +26,7 @@ services:
         max-size: "1m"
 
     volumes:
-      - <%= $(pwd) %>/Caddyfile:/etc/caddy/Caddyfile
+      - <%= $(pwd) %>/deploy/Caddyfile:/etc/caddy/Caddyfile
       - /data/platform/<%= $(bin/get app) %>/data:/data
       - /data/platform/<%= $(bin/get app) %>/config:/config
 

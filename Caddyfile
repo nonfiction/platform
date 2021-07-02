@@ -1,5 +1,3 @@
-# Caddyfile
-
 {
 
   email dns@nonfiction.ca 
@@ -8,17 +6,17 @@
     burst 1
   }
 
-  # # This doesn't work yet
-  # servers {
-  #   listener_wrappers {
-  #     proxy_protocol {
-  #       timeout 5s
-  #       # allow 0.0.0.0\0 
-  #     }
-  #     tls
-  #   }
-  # }
+  servers {
+    listener_wrappers {
+      proxy_protocol
+      tls
+    }
+  }
 
 }
 
+:80, :443, localhost, <%= $(bin/get lb) %> {
+  respond "<%= $(bin/get lb) %>"
+}
+ 
 import /config/*/Caddyfile

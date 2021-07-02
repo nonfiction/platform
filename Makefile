@@ -26,6 +26,7 @@ stack:
 	APP=portainer esh stack-portainer-agent.yml > deploy/stack-portainer-agent.yml
 	APP=portainer esh stack-portainer.yml > deploy/stack-portainer.yml
 	APP=workspace esh stack-workspace.yml > deploy/stack-workspace.yml
+	esh Caddyfile > deploy/Caddyfile
 
 pull:
 	docker pull nonfiction/traefik:v1
