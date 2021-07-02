@@ -275,13 +275,7 @@ for node_name in $NODES; do
 
       # Create a load balancer for this swarm's primary
       if [ "$ROLE" = "lb" ] && [ "$role" = "primary" ]; then
-
         create_load_balancer
-
-        # public_ip="$(get_load_balancer_public_ip $node_name)"
-        # create_or_update_record "lb.${node_name}" $public_ip
-        # create_or_update_record "*.lb.${node_name}" $public_ip
-
       fi
       
     fi
