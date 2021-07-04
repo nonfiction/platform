@@ -1,22 +1,17 @@
 .PHONY: deploy
 
 all:
-	@echo init
-	@echo stack
-	@echo pull
-	@echo caddy
-	@echo traefik
-	@echo workspace
-	@echo ""
+	@echo -e "Make commands:"
+	@echo -e "\tinit \t\t -- Create data directories & files"
+	@echo -e "\tstack \t\t -- Generate compose stacks & Caddyfile in deploy directory"
+	@echo -e "\tpull \t\t -- Pull docker images"
+	@echo -e "\tcaddy \t\t -- Deploy caddy stack (lb role)"
+	@echo -e "\ttraefik \t -- Deploy traefik stack (app role)"
+	@echo -e "\tworkspace \t -- Deploy workspace stack (dev role)"
 
 init:
-	mkdir -p /work
-	mkdir -p /data/platform/traefik
-	mkdir -p /data/platform/portainer
-	mkdir -p /data/platform/caddy/data
-	mkdir -p /data/platform/caddy/config
-	touch /data/platform/traefik/traefik.yml
-	touch /data/platform/traefik/acme.json
+	mkdir -p /work /data/platform/{traefik,portainer,caddy/{data,config}}
+	touch /data/platform/traefik/{traefik.yml,acme.json}
 	chmod 600 /data/platform/traefik/acme.json
 
 stack:

@@ -8,6 +8,9 @@ for cmd in git docker mysql; do
   fi
 done
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Helpers
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 toggle_context() {
   local current_context=$(bin/get context)
@@ -74,7 +77,6 @@ ask_suggestion() {
   fi
   echo "$answer"
 }
-
 
 # options=( "one" "two" "three" )
 # menu_select "${options[@]}"

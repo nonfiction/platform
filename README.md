@@ -106,9 +106,12 @@ nf swarm remove abc.example.com
 These are to be run on the primary node in the swarm:
 
 ```
-make caddy
-make traefik
-make workspace
+init        -- Create data directories & files"
+stack       -- Generate compose stacks & Caddyfile in deploy directory"
+pull        -- Pull docker images"
+caddy       -- Deploy caddy stack (lb role)"
+traefik     -- Deploy traefik stack (app role)"
+workspace   -- Deploy workspace stack (dev role)"
 ```
 
 ## Related Repositories
