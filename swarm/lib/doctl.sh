@@ -611,6 +611,13 @@ remove_load_balancer() {
 
 }
 
+get_trusted_ips() {
+
+  local lb_ips; lb_ips="$(doctl compute load-balancer list --no-header --format 'IP,Tag' | awk '/swarm:/ { print $1 }' | xargs)"
+  local node_ips; node_ips="$(doctl compute droplet list --no-header --format 'PublicIPv4,Tags' | awk '/swarm:/ { print $1 }' | xargs)"
+  echo "$lb_ips $node_ips" | xargs 
+
+}
 
 
 # ---------------------------------------------------------

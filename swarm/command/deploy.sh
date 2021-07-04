@@ -212,7 +212,7 @@ echo_main "$step. Deploy Swarm..."
 
 # Prepare environment variables for run command
 env="DEPLOY=1"
-env="${env} LB_IPS=\"$(doctl compute load-balancer list --no-header --format IP | xargs)\""
+env="${env} TRUSTED_IPS=\"$(get_trusted_ips)\""
 
 if [ "$ROLE" = "dev" ]; then
   run $PRIMARY "${env} cd /root/platform && make workspace"
