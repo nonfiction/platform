@@ -184,7 +184,7 @@ runcmd:
   # Install platform git repo
   - apt-get update && apt-get --yes install make
   - git clone https://github.com/nonfiction/platform.git /root/platform
-  - ln -sf /root/platform/swarm/swarm /usr/local/bin/swarm
+  - ln -sf /root/platform/cli/nf /usr/local/bin/nf
 
   # It's ready!
   - SAY="is ready!" /root/platform/swarm/node/webhook

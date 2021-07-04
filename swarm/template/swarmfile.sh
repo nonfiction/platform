@@ -4,22 +4,22 @@
 # -----------------------
 #
 # # Add two replicas:
-# swarm provision <%= ${NODE}.${DOMAIN} %> +2
+# nf swarm provision <%= ${NODE}.${DOMAIN} %> +2
 #
 # # Remove specific replica:
-# swarm provision <%= ${NODE}.${DOMAIN} %> -<%= $NODE %>02
+# nf swarm provision <%= ${NODE}.${DOMAIN} %> -<%= $NODE %>02
 #
 # # Promote replica to primary:
-# swarm provision <%= ${NODE}.${DOMAIN} %> ^<%= $NODE %>01
+# nf swarm provision <%= ${NODE}.${DOMAIN} %> ^<%= $NODE %>01
 #
 # # Increase the volume size to 20GB:
-# swarm size <%= ${NODE}.${DOMAIN} %> 20
+# nf swarm size <%= ${NODE}.${DOMAIN} %> 20
 #
 # # Run node configuration and deploy this swarm:
-# swarm deploy <%= ${NODE}.${DOMAIN} %>
+# nf swarm deploy <%= ${NODE}.${DOMAIN} %>
 #
 # # SSH into the first replica in this swarm:
-# swarm ssh <%= ${NODE}.${DOMAIN} %> <%= $NODE %>01
+# nf swarm ssh <%= ${NODE}.${DOMAIN} %> <%= $NODE %>01
 
 
 # Workspace configuration

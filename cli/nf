@@ -1,0 +1,33 @@
+#!/bin/bash
+
+COMMAND=$1
+ARGS=${@:2}
+dir="$(dirname "$(readlink -f "$0")")"
+
+case $COMMAND in
+
+  get | g)
+    CMD_NAME="nf get" $dir/get $ARGS
+    ;;
+
+  run | r)
+    CMD_NAME="nf run" $dir/run $ARGS
+    ;;
+
+  swarm | s)
+    CMD_NAME="nf swarm" $dir/../swarm/swarm $ARGS
+    ;;
+
+  help | h | *)
+
+    echo
+    echo "Usage:  nf COMMAND [ARGS]"
+    echo
+    echo "  get"
+    echo "  run"
+    echo "  swarm"
+    echo "  help"
+    ;;
+esac
+echo
+exit

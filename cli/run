@@ -1,0 +1,735 @@
+#!/bin/bash
+
+# Ensure all commands are installed
+for cmd in git docker mysql; do
+  if [ -z "$(command -v $cmd)" ]; then
+    echo "Missing command: \"${cmd}\""
+    exit 1
+  fi
+done
+
+
+toggle_context() {
+  local current_context=$(bin/get context)
+  local new_context=$1
+  [ -z "$new_context" ] && new_context="default"
+  [ "$current_context" != "$new_context" ] && docker context use $new_context >/dev/null 2>&1
+  echo $new_context
+}
+
+# Pretty messages
+# echo_color black/on_red Warning message!
+# echo_color prompt/yellow/on_purple This is a prompt
+echo_color() {
+  
+  local black='\e[0;30m'  ublack='\e[4;30m'  on_black='\e[40m'  reset='\e[0m'
+  local red='\e[0;31m'    ured='\e[4;31m'    on_red='\e[41m'    default='\e[0m'
+  local green='\e[0;32m'  ugreen='\e[4;32m'  on_green='\e[42m'
+  local yellow='\e[0;33m' uyellow='\e[4;33m' on_yellow='\e[43m'
+  local blue='\e[0;34m'   ublue='\e[4;34m'   on_blue='\e[44m'
+  local purple='\e[0;35m' upurple='\e[4;35m' on_purple='\e[45m'
+  local cyan='\e[0;36m'   ucyan='\e[4;36m'   on_cyan='\e[46m'
+  local white='\e[0;37m'  uwhite='\e[4;37m'  on_white='\e[47m'
+  
+  local format=""
+  for color in $(echo "$1" | tr "/" "\n"); do  
+    format="${format}${!color}"
+  done
+  local message="${@:2}"  
+  
+  printf "${format}${message}${reset}\n";
+  
+}
+
+echo_next() {
+  echo "$(echo_color black/on_green " ▶︎ ") $(echo_color green " ${@} ")"
+}
+
+echo_info() {
+  echo "$(echo_color black/on_yellow " ✔︎ ") $(echo_color yellow " ${@} ")"
+}
+
+echo_stop() {
+  echo "$(echo_color black/on_red " ✖︎ ") $(echo_color red " ${@} ")"
+}
+
+ask() { 
+  echo "$(echo_color black/on_yellow " ? ") $(echo_color yellow " ${@} ")"
+  read -p " y/[n] " -n 1 -r
+  echo
+  [[ $REPLY =~ ^[Yy]$ ]]
+  if [ ! $? -ne 0 ]; then return 0; else return 1; fi
+}
+
+ask_input() { 
+  echo -n "$(echo_color black/on_yellow " ? ") $(echo_color yellow " ${1}: ")"
+}
+
+ask_suggestion() {
+  local answer suggestion="$1"
+  if [ ! -z "$suggestion" ]; then
+    read -e -i "$suggestion" answer
+  else
+    read answer
+  fi
+  echo "$answer"
+}
+
+
+# options=( "one" "two" "three" )
+# menu_select "${options[@]}"
+# echo "${options[$?]}"
+menu_select() {
+
+  local downkey=$'\x1b[B'
+  local upkey=$'\x1b[A'
+  local enter=""
+  n=$[$#-1] idx=0
+ 
+  # Helper Functions
+  cursor_blink_on()  { printf "\033[?25h"; }
+  cursor_blink_off() { printf "\033[?25l"; }
+  cursor_down() { if [ $1 -gt 0 ]; then echo -en "\033[$1B"; fi }
+  cursor_up()   { if [ $1 -gt 0 ]; then echo -en "\033[$1A"; fi }
+  cleanup() { cursor_down $[$n-$idx]; cursor_blink_on; stty echo; printf '\n'; }
+
+  trap "cleanup;" EXIT
+  cursor_blink_off
+
+  # Main Loop
+  while true; do
+    
+    # Draw Opts
+    cursor_up $idx; i=0
+    for opt in $@; do
+      if [[ "${options[$idx]}" = $opt ]]; then
+        echo -e "  \033[7m $opt \033[27m"; 
+      else
+        echo -e "   $opt "
+      fi
+      ((i++))
+    done
+
+    # Reset Cursor
+    cursor_up $[$#-$idx]
+ 
+    # Read User Input
+    read -sn3 input_key
+    case $input_key in
+      $downkey)
+        if [ $idx -lt $n ]; then
+          ((idx++)); cursor_down 1
+        else
+          idx=0; cursor_up $n
+        fi ;;
+      $upkey)
+        if [ $idx -gt 0 ]; then
+          ((idx--)); cursor_up 1;
+        else 
+          idx=$n; cursor_down $n
+        fi ;;
+      $enter)
+        break ;;
+    esac
+  done
+
+  cleanup
+  return $idx
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run_build
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_build() {
+
+  [ -e Dockerfile ] || exit 1 
+
+  local image=$(bin/get image)
+  local tag=$(bin/get tag)
+  local date="$(date)"
+
+  # Exit if any unstaged or uncommited changes exist
+  if ! git diff-index --quiet HEAD; then
+    echo_stop "Commit changes & clean working directory before building tagged image."
+    exit 1
+  fi
+
+  echo_next "Tagging git commit & docker build: $tag"
+  ( set -x; 
+
+    # Tag git repo
+    git tag -f -a -m "$date" $tag
+
+    # Build and push image with tags
+    docker -c default buildx build -t $image:$tag -t $image:latest .
+
+  )
+
+  echo_next "Pushing tags :$tag & :latest to registry"
+  ( set -x; 
+
+    git push
+    git push --tags
+
+    docker -c default push $image:$tag
+    docker -c default push $image:latest
+
+  )
+
+}
+
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run_context
+# Switch context
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_context() {
+
+  local context=$(bin/get context)
+  local contexts="$(bin/get contexts) "
+  contexts="${contexts/${context} /}"
+
+  options=( $(echo $context $contexts | xargs) )
+  menu_select "${options[@]}"
+  context="${options[$?]}"
+
+  docker context use "$context" >/dev/null 2>&1
+  echo_info "Current context is now \"$context\" ($(bin/get swarm))"
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run_deploy
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_deploy() {
+
+  [ -e Dockerfile ] || exit 1 
+
+  local app=$(bin/get app)
+  [ -z "$app" ] && exit 1
+
+  local image="$(bin/get image)"
+  [ -z "$image" ] && exit 1
+
+  local context=$1
+  [ -z "$context" ] && context=$(bin/get context)
+
+  if [ "lb" = "$(bin/get context --role)" ]; then
+    echo_stop "Your docker context is set to \"$context\"."
+    echo
+    exit 1
+  fi
+
+  echo_next "Deploying to $(bin/get swarm)"
+
+  echo_color green "$image"
+  local tags="$(bin/get tags -v)"
+  echo $tags
+
+  ask_input "Tag"
+  local tag=$(ask_suggestion "$(echo $tags | awk '{print $1}')" )
+
+  # Geneate stack by running with esh
+  echo_next "Generating production stack"
+  ( set -x; 
+    TAG=$tag esh stack-prod.yml > deploy/stack.yml
+  )
+
+  # Check if docker context is local
+  if [ "$context" = "default" ]; then
+    ( set -x; 
+  
+      # Send a copy of the stack via cp
+      cp -f deploy/stack.yml /data/$app/stack.yml
+
+      # Remove stack (we're about to re-deploy and this is dev)
+      docker -c $context stack rm $app
+    )
+
+  # Check if docker context is remote
+  else
+    local remote=$(bin/get remote)
+    ( set -x; 
+  
+      # Send a copy of the stack via rsync
+      rsync -az deploy/stack.yml $remote:/data/$app/stack.yml
+    )
+  fi
+
+  # Deploy stack
+  echo_next "Deploying to swarm"
+  ( set -x; 
+    docker -c $context stack deploy --with-registry-auth -c deploy/stack.yml $app
+  )
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run_lb
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_lb() {
+
+  [ -e Caddyfile ] || exit 1 
+
+  local domain=$(bin/get domain)
+  [ -z "$domain" ] && exit 1 
+
+  local app=$(bin/get app)
+  [ -z "$app" ] && exit 1 
+
+  local caddy_dir="/data/platform/caddy/config/$app"
+
+  local public_host=$(bin/get host --public)
+  [ -z "$public_host" ] && exit 1 
+  
+  if [ "$public_host" = "$(bin/get host)" ]; then
+    echo_stop "Your Caddyfile hasn't been configured properly yet."
+    echo
+    exit 1
+  fi
+
+  if [ "default" = "$(bin/get context)" ]; then
+    echo_stop "Your docker context is set to \"default\"."
+    echo
+    exit 1
+  fi
+
+  echo_info "Which load balancer is \"$public_host\" pointing to?"
+  local options=( $(docker context ls | awk '/ lb / { print $1 }' | xargs) )
+  menu_select "${options[@]}"
+  local context="${options[$?]}"
+  local remote="root@$context.$domain"
+
+  local service_id=$(docker -c $context stack services platform | awk '/platform_caddy/ {print $1}')
+  if [ -z "$service_id" ]; then
+    echo
+    echo_stop "Caddy isn't running on $context. Did you choose the correct server?"
+    exit 1
+  fi
+
+  echo_next "Generating Caddyfile"
+  ( set -x; 
+    esh Caddyfile > deploy/Caddyfile
+    docker -c default run -v $(pwd)/deploy:/srv caddy caddy fmt -overwrite
+
+    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $remote \
+      "mkdir -p $caddy_dir"
+
+    rsync -az deploy/Caddyfile $remote:$caddy_dir/Caddyfile
+  )
+
+  echo_next "Launching public host - $public_host"
+  ( set -x; 
+    docker -c $context service update --force $service_id
+  )
+
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run_init_db
+# Create database and user
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_init_db() {
+
+  [ -e Dockerfile ] || exit 1 
+
+  # Variables
+  local db_user=$(bin/get db_user)
+  [ -z "$db_user" ] && exit 1 
+
+  local db_password=$(bin/get db_password)
+  [ -z "$db_password" ] && exit 1 
+
+  local db_name=$(bin/get db_name)
+  [ -z "$db_name" ] && exit 1 
+
+  local db_admin_user=$(bin/get DB_ADMIN_USER "nonfiction")
+  [ -z "$db_admin_user" ] && exit 1 
+
+
+  # Find number of users to match name
+  local query="" count=0
+  query="SELECT COUNT(*) FROM mysql.user WHERE user='$db_user' AND host='%';"
+  count=$(mysql -e "$query" | tr '\n' ' ' | awk '{print $2}')
+
+  # Create user if it doesn't exist
+  if [ "$count" != 0 ]; then
+    echo "MySQL: user \"$db_user\" found."
+    echo "> $query"
+    echo
+  else
+    echo "MySQL: user \"$db_user\" doesn't exist. Creating..."
+    query="CREATE USER '$db_user'@'%' IDENTIFIED WITH mysql_native_password BY '$db_password';"
+    echo "> $query"
+    mysql -e "$query"
+    echo
+  fi
+
+  # Create database
+  echo "MySQL: creating database \"$db_name\" if it doesn't exist..." 
+  query="CREATE DATABASE IF NOT EXISTS $db_name DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;"
+  echo "> $query"
+  mysql -e "$query"
+  echo
+
+  # Grant database access permissions to user
+  echo "MySQL: granting permissions to user \"$db_user\"..." 
+  query="GRANT ALL ON $db_name.* TO '$db_user'@'%';"
+  echo "> $query"
+  mysql -e "$query"
+  echo
+
+  # Grant database access permissions to admin user
+  echo "MySQL: granting permissions to user \"$db_admin_user\"..." 
+  query="GRANT ALL ON $db_name.* TO '$db_admin_user'@'%';"
+  echo "> $query"
+  mysql -e "$query"
+  echo 
+}
+
+
+
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run_init_wp
+# Install Wordpress
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_init_wp() {
+
+  [ -e bin/wp ] || exit 1 
+
+  local app=$(bin/get app)
+  local host=$(bin/get host)
+  local db_password=$(bin/get db_password)
+  local admin_user=$(bin/get ADMIN_USER "nf-$app")
+  local admin_email=$(bin/get ADMIN_EMAIL "web@nonfiction.ca")
+  local admin_password=$(bin/get ADMIN_PASSWORD $db_password)
+
+  [ -z "$app" ] && exit 1 
+  [ -z "$host" ] && exit 1 
+  [ -z "$db_password" ] && exit 1 
+  [ -z "$admin_user" ] && exit 1 
+  [ -z "$admin_email" ] && exit 1 
+  [ -z "$admin_password" ] && exit 1 
+
+  # Install WP with admin user settings
+  bin/wp core install \
+    --url=https://$host \
+    --title=$app \
+    --admin_user=$admin_user \
+    --admin_email=$admin_email \
+    --admin_password=$admin_password
+
+  # Update admin user in case it's been changed
+  bin/wp user update $admin_user --user_email=$admin_email --user_pass=$admin_password
+
+  # Activate certain plugins by default
+  bin/wp plugin activate intervention cmb2
+
+  # Activate custom theme
+  bin/wp theme activate theme
+
+  # Default pretty URLs
+  bin/wp rewrite structure /%postname%/
+
+  # Update Caddyfile with placeholder host
+  local lb_list="$(bin/get contexts --lb)"
+  local lb_count="$(echo $lb_list | wc -w)"
+
+  # Don't bother if this is already done, or there are no lb contexts
+  if [ "$lb_count" != "0" ] && [ ! -z "$(grep __PLACEHOLDER_HOST__ Caddyfile)" ]; then
+
+    local context
+
+    # Use only lb context
+    if [ "$lb_count" = "1" ]; then
+      context="$lb_list"
+
+    # Choose from list of lb contexts
+    else
+      echo_info "Which load balancer will you use?"
+      local options=( $lb_list )
+      menu_select "${options[@]}"
+      context="${options[$?]}"
+    fi
+
+    sed -i "s/__PLACEHOLDER_HOST__/$(bin/get app).lb.$context.$(bin/get domain)/g" Caddyfile
+
+  fi
+
+  # Print login details
+  echo
+  bin/get login
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run_iull_db
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_pull_db() {
+
+  [ -e Dockerfile ] || exit 1 
+
+  # Variables
+  local dev_db=$(bin/get db_name --local)
+  [ -z "$dev_db" ] && exit 1 
+
+  local prod_db=$(bin/get db_name)
+  [ -z "$prod_db" ] && exit 1 
+
+  # Databases match
+  if [ "$dev_db" = "$prod_db" ]; then
+    echo_stop "Current context is local, cannot pull database to itself!"
+    exit 1
+  fi
+
+  if ask "Overwrite development database ($dev_db <- $prod_db)?"; then
+    echo "+ mysqldump $prod_db | mysql $dev_db"
+    mysqldump $prod_db | mysql $dev_db
+
+    local dev_host=$(bin/get host --local)
+    for prod_host in $(bin/get hosts --public); do
+      ( set -x; 
+        bin/wp search-replace --report-changed-only --skip-columns=guid --skip-tables=wp_users https://$prod_host https://$dev_host 
+      )
+    done
+  fi
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run_pull_uploads
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_pull_uploads() {
+
+  [ -e Dockerfile ] || exit 1 
+
+  # Variables
+  local app=$(bin/get app)
+  [ -z "$app" ] && exit 1 
+
+  local uploads="/data/$app/uploads/"
+
+  local dev_swarm=$(bin/get swarm --local)
+  [ -z "$dev_swarm" ] && exit 1 
+
+  local prod_swarm=$(bin/get swarm)
+  [ -z "$prod_swarm" ] && exit 1 
+
+  # Folders match
+  if [ "$dev_swarm" = "$prod_swarm" ]; then
+    echo "Current context is local, cannot pull files to itself!"
+    exit 1
+  fi
+
+  if ask "Overwrite development files ($dev_swarm:$uploads <- $prod_swarm:$uploads)?"; then
+    ( set -x; 
+      rsync -azv --progress --delete root@$prod_swarm:$uploads $uploads 
+    )
+  fi
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run_pull_image [TAG]
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_pull_image() {
+
+  [ -e Dockerfile ] || exit 1 
+
+  local image=$(bin/get image $1)
+
+  # Repeat with each node in swarm
+  for remote in $(bin/get remotes); do
+    echo "[$remote] docker pull $image"
+
+    # If working with itself, skip ssh
+    if [ "$(bin/get remote --local)" = "$remote" ]; then
+      docker pull $image
+
+    # Otherwise, run docker pull with ssh
+    else
+      ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $remote \
+        "docker pull $image"
+    fi
+    echo
+
+  done
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run_push_db
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_push_db() {
+
+  [ -e Dockerfile ] || exit 1 
+
+  # Variables
+  local dev_db=$(bin/get db_name --local)
+  [ -z "$dev_db" ] && exit 1 
+
+  local prod_db=$(bin/get db_name)
+  [ -z "$prod_db" ] && exit 1 
+
+  # Databases match
+  if [ "$dev_db" = "$prod_db" ]; then
+    echo_stop "Current context is local, cannot push database to itself!"
+    exit 1
+  fi
+
+  if ask "Overwrite production database ($dev_db -> $prod_db)?"; then
+    echo "+ mysqldump $dev_db | mysql $prod_db"
+    mysqldump $dev_db | mysql $prod_db
+
+    local dev_host=$(bin/get host --local)
+    local prod_host=$(bin/get host --public)
+    ( set -x; 
+      bin/wp search-replace --report-changed-only --skip-columns=guid --skip-tables=wp_users https://$dev_host https://$prod_host
+    )
+  fi
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run_push_uploads
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_push_uploads() {
+
+  [ -e Dockerfile ] || exit 1 
+
+  # Variables
+  local app=$(bin/get app)
+  [ -z "$app" ] && exit 1 
+
+  local uploads="/data/$app/uploads/"
+
+  local dev_swarm=$(bin/get swarm --local)
+  [ -z "$dev_swarm" ] && exit 1 
+
+  local prod_swarm=$(bin/get swarm)
+  [ -z "$prod_swarm" ] && exit 1 
+
+  # Folders match
+  if [ "$dev_swarm" = "$prod_swarm" ]; then
+    echo "Current context is local, cannot push files to itself!"
+    exit 1
+  fi
+
+  if ask "Overwrite production files ($dev_swarm:$uploads -> $prod_swarm:$uploads)?"; then
+    ( set -x; 
+      rsync -azv --progress --delete $uploads root@$prod_swarm:$uploads
+    )
+  fi
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run_up
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_up() {
+
+  [ -e Dockerfile ] || exit 1 
+
+  local app=$(bin/get app)
+  [ -z "$app" ] && exit 1
+
+  local image="$(bin/get image)"
+  [ -z "$image" ] && exit 1
+
+  # Switch to default context
+  local context=$(toggle_context)
+
+  # Ensure backend network exists
+  if [ -z "$(docker network ls | grep " backend ")" ]; then 
+    ( set -x; 
+      docker network create -d overlay --attachable backend
+    )
+  fi
+
+  # Build image with dev tag
+  echo_next "Docker build: dev"
+  ( set -x; 
+    docker -c default buildx build -t $image:dev .
+  )
+
+  # Ensure :dev tag is never pushed
+  yes | doctl registry repository delete-tag $app dev >/dev/null 2>&1
+
+  # Geneate stack by running with esh
+  echo_next "Generating development stack"
+  ( set -x; 
+    TAG=dev esh stack-dev.yml > deploy/stack.yml
+    cp -f deploy/stack.yml /data/$app/stack.yml
+  )
+
+  # Deploy stack
+  echo_next "Deploying development"
+  ( set -x; 
+    docker -c default stack rm $app
+    docker -c default stack deploy --resolve-image never -c deploy/stack.yml $app
+  )
+
+  # Switch back to original context
+  toggle_context $context > /dev/null
+
+}
+
+
+
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+# CLI
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+COMMAND=$1
+ARGS=${@:2}
+
+[ -z "$CMD_NAME" ] && CMD_NAME="get"
+
+case $COMMAND in
+
+  help | "")
+    echo
+    echo "Usage: $CMD_NAME COMMAND"
+    echo
+    echo "  build"
+    echo "  context"
+    echo "  deploy"
+    echo "  help"
+    echo "  init_db"
+    echo "  init_wp"
+    echo "  lb"
+    echo "  pull_db"
+    echo "  pull_image [TAG]"
+    echo "  pull_uploads"
+    echo "  push_db"
+    echo "  push_uploads"
+    echo "  up"
+    echo ;;
+
+  build)           run_build ;;
+  context)         run_context ;;
+  deploy)          run_deploy ;;
+  init_db)         run_init_db ;;
+  init_wp)         run_init_wp ;;
+  lb)              run_lb ;;
+  pull_image)      run_pull_image $ARGS ;;
+  pull_db)         run_pull_db ;;
+  pull_uploads)    run_pull_uploads ;;
+  push_db)         run_push_db ;;
+  push_uploads)    run_push_uploads ;;
+  up)              run_up ;;
+
+esac
+exit

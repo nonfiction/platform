@@ -24,6 +24,8 @@ SWARMFILE="${XDG_DATA_HOME}/swarms/${SWARM}"
 NODE=$(node_from_fqdn $SWARM);
 DOMAIN=$(domain_from_fqdn $SWARM);
 
+[ -z "$CMD_NAME" ] && CMD_NAME="swarm"
+
 case $COMMAND in
 
   create | c)
@@ -73,7 +75,7 @@ case $COMMAND in
   help | h | *)
 
     echo
-    echo "Usage:  swarm COMMAND SWARM [ARGS]"
+    echo "Usage:  $CMD_NAME COMMAND SWARM [ARGS]"
     echo
     echo "Management Commands:"
     echo "  create"
