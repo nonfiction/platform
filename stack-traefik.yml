@@ -37,9 +37,9 @@ services:
 
       # Create a entrypoints http/https listening on ports 80/443
       - --entrypoints.web.address=:80
-      - --entryPoints.web.forwardedHeaders.trustedIPs=<% echo 127.0.0.1/32 $(bin/get lb_ips) | xargs | tr ' ' , %>
+      - --entryPoints.web.forwardedHeaders.trustedIPs=<% echo 127.0.0.1/32 $(bin/get trusted_ips) | xargs | tr ' ' , %>
       - --entrypoints.websecure.address=:443
-      - --entryPoints.webseceure.forwardedHeaders.trustedIPs=<% echo 127.0.0.1/32 $(bin/get lb_ips) | xargs | tr ' ' , %>
+      - --entryPoints.webseceure.forwardedHeaders.trustedIPs=<% echo 127.0.0.1/32 $(bin/get trusted_ips) | xargs | tr ' ' , %>
 
       # Support auto-renewing https certificates
       - --certificatesResolvers.digitalocean.acme.dnsChallenge=true

@@ -337,19 +337,6 @@ get_lb() {
 
 }
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# get_lb_ips
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-get_lb_ips() {
-
-  if [ -z "$LB_IPS" ]; then
-    doctl compute load-balancer list --no-header --format IP | xargs
-  else
-    echo $LB_IPS | xargs
-  fi
-
-}
-
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # get_login [--public --local]
@@ -513,6 +500,23 @@ get_tags() {
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# get_trusted_ips
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+get_trusted_ips() {
+
+  if [ ! -z "$TRUSTED_IPS" ]; then
+    echo $TRUSTED_IPS | xargs
+
+  else
+    local lb_ips="$(doctl compute load-balancer list --no-header --format 'IP,Tag' | awk '/swarm:/ { print $1 }' | xargs)"
+    local node_ips="$(doctl compute droplet list --no-header --format 'PublicIPv4,Tags' | awk '/swarm:/ { print $1 }' | xargs)"
+    echo "$lb_ips $node_ips" | xargs 
+  fi
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # get_uploads
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 get_uploads() {
@@ -667,7 +671,6 @@ case $KEY in
     echo "  hosts [--public]"
     echo "  image [TAG]"
     echo "  lb"
-    echo "  lb ips"
     echo "  login"
     echo "  node [--local]"
     echo "  nodes"
@@ -676,6 +679,7 @@ case $KEY in
     echo "  swarm [--local]"
     echo "  tag"
     echo "  tags [--local]"
+    echo "  trusted_ips"
     echo "  uploads"
     echo "  upstream_password"
     echo "  upstream_user"
@@ -699,7 +703,6 @@ case $KEY in
   hosts)              get_hosts $ARGS ;;
   image)              get_image $ARGS ;;
   lb)                 get_lb ;;
-  lb_ips)             get_lb_ips ;;
   login)              get_login $ARGS ;;
   node)               get_node $ARGS ;;
   nodes)              get_nodes ;;
@@ -708,6 +711,7 @@ case $KEY in
   swarm)              get_swarm $ARGS ;;
   tag)                get_tag $ARGS ;;
   tags)               get_tags $ARGS ;;
+  trusted_ips)        get_trusted_ips ;;
   uploads)            get_uploads ;;
   upstream_password)  get_upstream_password ;;
   upstream_user)      get_upstream_user ;;
