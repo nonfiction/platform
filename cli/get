@@ -510,7 +510,7 @@ get_trusted_ips() {
   else
     local lb_ips="$(doctl compute load-balancer list --no-header --format 'IP,Tag' | awk '/swarm:/ { print $1 }' | xargs)"
     local node_ips="$(doctl compute droplet list --no-header --format 'PublicIPv4,Tags' | awk '/swarm:/ { print $1 }' | xargs)"
-    echo "$lb_ips $node_ips" | xargs 
+    echo "127.0.0.1/32 $lb_ips $node_ips" | xargs 
   fi
 
 }
