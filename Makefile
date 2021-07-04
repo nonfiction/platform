@@ -1,4 +1,5 @@
 .PHONY: deploy
+SHELL := /bin/bash
 
 all:
 	@echo -e "Make commands:"
