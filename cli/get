@@ -337,6 +337,15 @@ get_lb() {
 
 }
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# get_lb_ips
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+get_lb_ips() {
+
+  doctl compute load-balancer list --no-header --format IP | xargs
+
+}
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # get_login [--public --local]
@@ -654,6 +663,7 @@ case $KEY in
     echo "  hosts [--public]"
     echo "  image [TAG]"
     echo "  lb"
+    echo "  lb ips"
     echo "  login"
     echo "  node [--local]"
     echo "  nodes"
@@ -685,6 +695,7 @@ case $KEY in
   hosts)              get_hosts $ARGS ;;
   image)              get_image $ARGS ;;
   lb)                 get_lb ;;
+  lb_ips)             get_lb_ips ;;
   login)              get_login $ARGS ;;
   node)               get_node $ARGS ;;
   nodes)              get_nodes ;;
