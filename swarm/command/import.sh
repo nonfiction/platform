@@ -5,7 +5,7 @@ include "lib/helpers.sh"
 
 if undefined $SWARM; then
   echo
-  echo "Usage:  swarm import SWARMFILE"
+  echo "Usage:  $CMD_NAME import SWARMFILE"
   echo
   exit 1
 fi

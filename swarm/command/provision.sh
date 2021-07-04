@@ -8,7 +8,7 @@ verify_doctl
 
 if undefined $SWARM; then
   echo
-  echo "Usage:  swarm provision SWARM [ARGS]"
+  echo "Usage:  $CMD_NAME provision SWARM [ARGS]"
   echo
   exit 1
 fi

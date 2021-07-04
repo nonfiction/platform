@@ -10,7 +10,7 @@ verify_doctl
 
 if undefined $SWARM; then
   echo
-  echo "Usage:  swarm ssh SWARM [node]"
+  echo "Usage:  $CMD_NAME ssh SWARM [node]"
   echo
   exit 1
 fi

@@ -5,7 +5,7 @@ include "lib/helpers.sh"
 
 if undefined $SWARM; then
   echo
-  echo "Usage:  swarm export SWARM"
+  echo "Usage:  $CMD_NAME export SWARM"
   echo
   exit 1
 fi

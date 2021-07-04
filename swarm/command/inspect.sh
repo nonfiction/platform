@@ -10,7 +10,7 @@ verify_doctl
 
 if undefined $SWARM; then
   echo
-  echo "Usage:  swarm inspect SWARM"
+  echo "Usage:  $CMD_NAME inspect SWARM"
   echo
   exit 1
 fi

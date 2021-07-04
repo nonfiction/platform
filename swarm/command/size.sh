@@ -10,7 +10,7 @@ verify_doctl
 
 if undefined $SWARM; then
   echo
-  echo "Usage:  swarm size SWARM [VOLUME_SIZE] [DROPLET_SIZE]"
+  echo "Usage:  $CMD_NAME size SWARM [VOLUME_SIZE] [DROPLET_SIZE]"
   echo
   exit 1
 fi
