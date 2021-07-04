@@ -39,9 +39,6 @@ services:
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
 
-      - --entryPoints.web.proxyProtocol.insecure
-      - --entryPoints.websecure.proxyProtocol.insecure
-
       # Support auto-renewing https certificates
       - --certificatesResolvers.digitalocean.acme.dnsChallenge=true
       - --certificatesResolvers.digitalocean.acme.dnsChallenge.provider=digitalocean
