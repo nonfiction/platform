@@ -681,6 +681,9 @@ run_up() {
     docker -c default stack deploy --resolve-image never -c deploy/stack.yml $app
   )
 
+  # Show  development URL
+  echo_next $(bin/get upstreams)
+
   # Switch back to original context
   toggle_context $context > /dev/null
 
