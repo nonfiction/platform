@@ -342,7 +342,11 @@ get_lb() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 get_lb_ips() {
 
-  doctl compute load-balancer list --no-header --format IP | xargs
+  if [ -z "$LB_IPS" ]; then
+    doctl compute load-balancer list --no-header --format IP | xargs
+  else
+    echo $LB_IPS | xargs
+  fi
 
 }
 

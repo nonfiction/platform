@@ -60,9 +60,6 @@ set_env ROLE
 # Probably won't change, but can
 set_env WEBHOOK
 
-# Ensure doctl is installed
-/root/platform/swarm/swarm ls
-
 # Ensure all these volumes directories exist
 if defined $NODE; then
   volumes_env $NODE

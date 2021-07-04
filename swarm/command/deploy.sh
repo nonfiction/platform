@@ -210,14 +210,18 @@ fi
 ((step++))
 echo_main "$step. Deploy Swarm..."
 
+# Prepare environment variables for run command
+env="DEPLOY=1"
+env="${env} LB_IPS=\"$(doctl compute load-balancer list --no-header --format IP | xargs)\""
+
 if [ "$ROLE" = "dev" ]; then
-  run $PRIMARY "cd /root/platform && make workspace"
+  run $PRIMARY "${env} cd /root/platform && make workspace"
 
 elif [ "$ROLE" = "lb" ]; then
-  run $PRIMARY "cd /root/platform && make caddy"
+  run $PRIMARY "${env} cd /root/platform && make caddy"
 
 else
-  run $PRIMARY "cd /root/platform && make traefik"
+  run $PRIMARY "${env} cd /root/platform && make traefik"
 fi
 
 
