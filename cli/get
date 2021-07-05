@@ -508,9 +508,11 @@ get_trusted_ips() {
     echo $TRUSTED_IPS | xargs
 
   else
-    local lb_ips="$(doctl compute load-balancer list --no-header --format 'IP,Tag' | awk '/swarm:/ { print $1 }' | xargs)"
-    local node_ips="$(doctl compute droplet list --no-header --format 'PublicIPv4,Tags' | awk '/swarm:/ { print $1 }' | xargs)"
-    local ips; ips="127.0.0.1 $lb_ips $node_ips "
+    local lb_ips; lb_ips="$(doctl compute load-balancer list --no-header --format 'IP,Tag' 2> /dev/null | awk '/swarm:/ { print $1 }' | xargs)"
+    local node_ips; node_ips="$(doctl compute droplet list --no-header --format 'PublicIPv4,Tags' 2> /dev/null | awk '/swarm:/ { print $1 }' | xargs)"
+    local ips="127.0.0.1 "
+    [ ! -z "$lb_ips" ] && ips="${ips}$lb_ips "
+    [ ! -z "$node_ips" ] && ips="${ips}$node_ips "
 
     if [[ "$@" == *"--cidr"* ]] || [[ "$@" == *"-c"* ]]; then
       ips=$(echo ${ips// /\/32 })
