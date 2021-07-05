@@ -510,7 +510,13 @@ get_trusted_ips() {
   else
     local lb_ips="$(doctl compute load-balancer list --no-header --format 'IP,Tag' | awk '/swarm:/ { print $1 }' | xargs)"
     local node_ips="$(doctl compute droplet list --no-header --format 'PublicIPv4,Tags' | awk '/swarm:/ { print $1 }' | xargs)"
-    echo "127.0.0.1/32 $lb_ips $node_ips" | xargs 
+    local ips; ips="127.0.0.1 $lb_ips $node_ips "
+
+    if [[ "$@" == *"--cidr"* ]] || [[ "$@" == *"-c"* ]]; then
+      ips=$(echo ${ips// /\/32 })
+    fi
+
+    echo $ips | xargs
   fi
 
 }
@@ -679,7 +685,7 @@ case $KEY in
     echo "  swarm [--local]"
     echo "  tag"
     echo "  tags [--local]"
-    echo "  trusted_ips"
+    echo "  trusted_ips [--cidr]"
     echo "  uploads"
     echo "  upstream_password"
     echo "  upstream_user"
@@ -711,7 +717,7 @@ case $KEY in
   swarm)              get_swarm $ARGS ;;
   tag)                get_tag $ARGS ;;
   tags)               get_tags $ARGS ;;
-  trusted_ips)        get_trusted_ips ;;
+  trusted_ips)        get_trusted_ips $ARGS ;;
   uploads)            get_uploads ;;
   upstream_password)  get_upstream_password ;;
   upstream_user)      get_upstream_user ;;
