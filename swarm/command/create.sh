@@ -192,7 +192,7 @@ else
 
 
       echo_main_alt "BasicAuth login"
-      echo "This may need to be shared with clients occasionally"
+      echo "Used for Traefik's dashboard and other protected areas"
 
       ask_input BASICAUTH_USER
       export BASICAUTH_USER=$(ask_env BASICAUTH_USER "nonfiction")
