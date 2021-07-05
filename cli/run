@@ -238,6 +238,7 @@ run_deploy() {
   echo_next "Generating production stack"
   ( set -x; 
     TAG=$tag esh stack-prod.yml > deploy/stack.yml
+    echo "deploy: ; docker stack deploy --with-registry-auth -c stack.yml $app" > deploy/Makefile
   )
 
   # Check if docker context is local
@@ -246,6 +247,7 @@ run_deploy() {
   
       # Send a copy of the stack via cp
       cp -f deploy/stack.yml /data/$app/stack.yml
+      cp -f deploy/Makefile /data/$app/Makefile
 
       # Remove stack (we're about to re-deploy and this is dev)
       docker -c $context stack rm $app
@@ -258,6 +260,7 @@ run_deploy() {
   
       # Send a copy of the stack via rsync
       rsync -az deploy/stack.yml $remote:/data/$app/stack.yml
+      rsync -az deploy/Makefile $remote:/data/$app/Makefile
     )
   fi
 
