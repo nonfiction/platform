@@ -576,6 +576,10 @@ get_load_balancer_ip() {
   doctl compute load-balancer list --format "ID,Name,Status,IP" | grep " $lb " | awk '{print $4}'
 }
 
+has_load_balancer() {
+  defined $(get_load_balancer_id)
+}
+
 create_load_balancer() {  
 
   defined $NODE || return

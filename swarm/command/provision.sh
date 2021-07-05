@@ -275,7 +275,7 @@ for node_name in $NODES; do
 
       # Create a load balancer for this swarm's primary
       if [ "$ROLE" = "lb" ] && [ "$role" = "primary" ]; then
-        create_load_balancer
+        has_load_balancer || create_load_balancer
       fi
       
     fi
