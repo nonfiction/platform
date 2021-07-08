@@ -7,7 +7,7 @@ services:
     deploy:
       # mode: global
       mode: replicated
-      replicas: <%= $(bin/get node_multiplier 2) %>
+      replicas: <%= $(bin/get nodes_count 2) %>
 
       restart_policy:
         condition: on-failure

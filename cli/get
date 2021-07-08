@@ -383,6 +383,19 @@ get_nodes() {
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# get_nodes_count
+# Count of nodes in swarm multiplied by argument
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+get_nodes_count() {
+
+  local multiplier=$1
+  [ -z "$multiplier" ] && multiplier=1
+  echo $(($multiplier * $(get_nodes | wc -w)))
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # get_remote
 # > root@$(get_swarm)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -682,6 +695,7 @@ case $KEY in
     echo "  login"
     echo "  node [--local]"
     echo "  nodes"
+    echo "  nodes_count [MULTIPLIER]"
     echo "  remote [--local]"
     echo "  remotes"
     echo "  swarm [--local]"
@@ -714,6 +728,7 @@ case $KEY in
   login)              get_login $ARGS ;;
   node)               get_node $ARGS ;;
   nodes)              get_nodes ;;
+  nodes_count)        get_nodes_count $ARGS ;;
   remote)             get_remote $ARGS ;;
   remotes)            get_remotes ;;
   swarm)              get_swarm $ARGS ;;
