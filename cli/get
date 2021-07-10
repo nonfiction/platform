@@ -51,6 +51,39 @@ get_basic_auth() {
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# get_cache
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+get_cache() {
+
+  local domain=$(get_domain)
+  local app=$(get_app)
+
+  [ -z "$domain" ] && exit 1
+  [ -z "$app" ] && exit 1
+
+  # Ensure host directory exists
+  local cache_dir="/data/$app/cache"
+
+  # Get remote for this context's primary node
+  local remote=$(get_remote)
+
+  # If working with itself, skip ssh
+  if [ "$(get_remote --local)" = "$remote" ]; then
+    mkdir -p $cache_dir >/dev/null 2>&1
+
+  # Otherwise, run mkdir with ssh
+  else
+    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $remote \
+      "mkdir -p $cache_dir" >/dev/null 2>&1
+  fi
+
+  # Return path to cache directory
+  echo $cache_dir
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # get_container_id srv
 # Find container ID of running server
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -677,6 +710,7 @@ case $KEY in
     echo
     echo "  app"
     echo "  basic_auth [USERNAME] [PASSWORD]"
+    echo "  cache"
     echo "  container_id [SERVICE]"
     echo "  context [--role]"
     echo "  contexts [--lb]"
@@ -710,6 +744,7 @@ case $KEY in
 
   app)                get_app ;;
   basic_auth)         get_basic_auth $ARGS;;
+  cache)              get_cache ;;
   container_id)       get_container_id $ARGS ;;
   context)            get_context $ARGS;;
   contexts)           get_contexts $ARGS;;
