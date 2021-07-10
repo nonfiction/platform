@@ -464,6 +464,40 @@ get_remotes() {
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# get_settings
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+get_settings() {
+
+  local domain=$(get_domain)
+  local app=$(get_app)
+
+  [ -z "$domain" ] && exit 1
+  [ -z "$app" ] && exit 1
+
+  # Ensure host directory exists
+  local settings_dir="/data/$app/settings"
+
+  # Get remote for this context's primary node
+  local remote=$(get_remote)
+
+  # If working with itself, skip ssh
+  if [ "$(get_remote --local)" = "$remote" ]; then
+    mkdir -p $settings_dir >/dev/null 2>&1
+
+  # Otherwise, run mkdir with ssh
+  else
+    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $remote \
+      "mkdir -p $settings_dir" >/dev/null 2>&1
+  fi
+
+  # Return path to settings directory
+  echo $settings_dir
+
+}
+
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # get_swarm [--local]
 # Swarm (abc.example.com) from current docker context or hostname
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -732,6 +766,7 @@ case $KEY in
     echo "  nodes_count [MULTIPLIER]"
     echo "  remote [--local]"
     echo "  remotes"
+    echo "  settings"
     echo "  swarm [--local]"
     echo "  tag"
     echo "  tags [--local]"
@@ -766,6 +801,7 @@ case $KEY in
   nodes_count)        get_nodes_count $ARGS ;;
   remote)             get_remote $ARGS ;;
   remotes)            get_remotes ;;
+  settings)           get_settings ;;
   swarm)              get_swarm $ARGS ;;
   tag)                get_tag $ARGS ;;
   tags)               get_tags $ARGS ;;
