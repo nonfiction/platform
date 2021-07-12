@@ -295,12 +295,7 @@ get_host() {
   
   # If --public, attempt to get host from first block in Caddyfile
   if [[ "$@" == *"--public"* ]] || [[ "$@" == *"-p"* ]]; then
-    [ -e Caddyfile ] || exit 1
-    host=$(grep -Ev '^#' Caddyfile | xargs | awk '{print $1}')
-    [ "$host" = "__PLACEHOLDER_HOST__" ] && host=""
-    host=$(echo ${host/http:\/\//})
-    host=$(echo ${host/https:\/\//})
-    host=$(echo $host | awk -F: '{ print $1}')
+    host=$(get_lb_hosts | awk '{print $1 }')
   fi
 
   # Otherwise, get host from app and swarm (based on docker context)
@@ -330,7 +325,7 @@ get_hosts() {
 
   # If --public, include public host at beginning of list
   if [[ "$@" == *"--public"* ]] || [[ "$@" == *"-p"* ]]; then
-    hosts=$(get_host --public)
+    hosts=$(get_lb_hosts)
   fi
 
   for node in $(get_nodes); do
@@ -367,6 +362,27 @@ get_image() {
 get_lb() {
 
   echo lb.$(get_swarm)
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# get_lb_hosts
+# list of hostnames found in Caddyfile
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+get_lb_hosts() {
+
+  [ -e Caddyfile ] || exit 1
+
+  local host=""
+  hosts=$(grep -Ev '^#' Caddyfile | xargs | tr -d , | awk -F{ '{print $1}')
+
+  [ "$hosts" = "__PLACEHOLDER_HOST__" ] && hosts=""
+
+  hosts=$(echo ${hosts//http:\/\//})
+  hosts=$(echo ${hosts//https:\/\//})
+
+  echo $hosts
 
 }
 
@@ -760,6 +776,7 @@ case $KEY in
     echo "  hosts [--public]"
     echo "  image [TAG]"
     echo "  lb"
+    echo "  lb_hosts"
     echo "  login"
     echo "  node [--local]"
     echo "  nodes"
@@ -795,6 +812,7 @@ case $KEY in
   hosts)              get_hosts $ARGS ;;
   image)              get_image $ARGS ;;
   lb)                 get_lb ;;
+  lb_hosts)           get_lb_hosts ;;
   login)              get_login $ARGS ;;
   node)               get_node $ARGS ;;
   nodes)              get_nodes ;;
