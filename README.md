@@ -46,6 +46,7 @@ bash <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/swarm) d
 - APIs -> Tokens/Keys -> [Generate New Token](https://cloud.digitalocean.com/account/api/tokens)
 - Container Registry -> [Create Registry](https://cloud.digitalocean.com/registry)
 - Databases -> [Create MySQL Database Cluster](https://cloud.digitalocean.com/databases/new?engine=mysql)
+- Databases -> [Create Redis Database Cluster](https://cloud.digitalocean.com/databases/new?engine=redis)
 - Networking -> Domains -> [Add Domain](https://cloud.digitalocean.com/networking/domains/)
 - Networking -> Firewalls -> [Create Firewall](https://cloud.digitalocean.com/networking/firewalls)
 
