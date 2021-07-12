@@ -49,6 +49,9 @@ set_env DB_HOST
 set_env DB_PORT
 set_env DB_ROOT_USER
 set_env DB_ROOT_PASSWORD
+set_env CACHE_HOST
+set_env CACHE_PORT
+set_env CACHE_PASSWORD
 set_env SMTP_HOST
 set_env SMTP_PORT
 set_env SMTP_USER

@@ -105,6 +105,10 @@ for node in $NODES; do
   env="${env} DB_ROOT_USER=\"$DB_ROOT_USER\""
   env="${env} DB_ROOT_PASSWORD=\"$DB_ROOT_PASSWORD\""
 
+  env="${env} CACHE_HOST=\"$CACHE_HOST\""
+  env="${env} CACHE_PORT=\"$CACHE_PORT\""
+  env="${env} CACHE_PASSWORD=\"$CACHE_PASSWORD\""
+
   env="${env} SMTP_HOST=\"$SMTP_HOST\""
   env="${env} SMTP_PORT=\"$SMTP_PORT\""
   env="${env} SMTP_USER=\"$SMTP_USER\""

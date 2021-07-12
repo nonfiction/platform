@@ -47,6 +47,12 @@ export DB_PORT=<%= $DB_PORT %>
 export DB_ROOT_USER=<%= $DB_ROOT_USER %>
 export DB_ROOT_PASSWORD=<%= $DB_ROOT_PASSWORD %>
 
+# External redis cluster credentials
+# https://cloud.digitalocean.com/databases
+export CACHE_HOST=<%= $CACHE_HOST %>
+export CACHE_PORT=<%= $CACHE_PORT %>
+export CACHE_PASSWORD=<%= $CACHE_PASSWORD %>
+
 # External SMTP mail server credentials
 # https://app.sendgrid.com/settings/api_keys
 export SMTP_HOST=<%= $SMTP_HOST %>
