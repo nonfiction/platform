@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Keep trying to mount /data-gfs every 10 seconds
-while true; do
-  [ -z "$(mount.glusterfs localhost:/data-gfs /data 2>&1)" ] || break
-  sleep 10
-done
+# # __remove
+# # Keep trying to mount /data-gfs every 10 seconds
+# while true; do
+#   [ -z "$(mount.glusterfs localhost:/data-gfs /data 2>&1)" ] || break
+#   sleep 10
+# done

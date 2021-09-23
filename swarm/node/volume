@@ -1,0 +1,124 @@
+#!/bin/bash
+
+# Source once locally if available OR via curl if not 
+include() {
+  [ -z "$1" ] && return 1
+  if [ -e /usr/local/share/platform/swarm/$1 ]; then source /usr/local/share/platform/swarm/$1;
+  elif [ -e /root/platform/swarm/$1 ]; then source /root/platform/swarm/$1;
+  else source <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/$1); fi
+}
+
+# Bash helper functions
+include "lib/helpers.sh"
+
+# Volume helper functions
+# include "lib/volumes.sh"
+
+DO_BLOCK_DEV="/dev/disk/by-id/scsi-0DO_Volume_$(hyphenify $SWARM)" # /dev/disk/by-id/scsi-0DO_Volume_abc
+DO_BLOCK_MNT="/mnt/$(slugify $SWARM)"                              # /mnt/abc_nfweb_ca
+NFS_DATA_DEV="${DO_BLOCK_MNT}/data-nfs"                            # /dev/disk/by-id/scsi-0DO_Volume_abc/data-nfs
+NFS_DATA_MNT="/data"                                               # /data
+FS_TYPE=$(cat /usr/local/env/FS_TYPE)                              # ext4
+
+# Ensure all these directories exist
+mkdir -p $DO_BLOCK_DEV $DO_BLOCK_MNT $NFS_DATA_DEV $NFS_DATA_MNT
+
+
+# Join and/or configure the NFS server
+if defined $JOIN && defined $NODE && defined $PRIMARY && defined $SWARM; then
+
+  # Run NFS server on primary
+  if [ "$NODE" = "$PRIMARY" ]; then 
+
+    # Ensure block storage volume is in the fstab
+    entry="${DO_BLOCK_DEV} ${DO_BLOCK_MNT} ${FS_TYPE} defaults,nofail,discard 0 0"
+    if undefined "$(cat /etc/fstab | grep "${entry}")"; then
+      echo_next "Appending /etc/fstab"
+      echo "${entry}" | tee --append /etc/fstab
+    fi
+
+    # Mount it right now
+    echo_next "Mount block storage"
+    echo_run "mount -o discard,defaults,noatime ${DO_BLOCK_DEV} ${DO_BLOCK_MNT}"
+    
+    # Ensure snapshots directory exists too
+    mkdir -p $DO_BLOCK_MNT/snapshots 
+    chown -R work:work $DO_BLOCK_MNT/snapshots 
+    
+    # Create NFS volume
+    echo_next "Creating NFS on $NODE"
+    mkdir -p $NFS_DATA_DEV
+    chown -R work:work $NFS_DATA_DEV
+
+    # Build exports file
+    # /mnt/abc_nfweb_ca/data-nfs abc(rw,sync,no_subtree_check) abc01(rw,sync,no_subtree_check)
+    exports="# NFS exports\n$NFS_DATA_DEV"
+    for node in $NODES; do
+      exports="${exports} ${node}(rw,sync,no_subtree_check)"
+    done
+    echo_next "Setting /etc/exports on $NODE"
+    echo -e "$exports" | tee /etc/exports
+
+    # Enable the NFS server
+    echo_next "Running NFS service"
+    systemctl restart nfs-kernel-server
+    systemctl enable nfs-kernel-server
+
+  fi
+
+  # Every node does the following...
+
+  # Ensure nfs volume is in the fstab
+  entry="${PRIMARY}:${NFS_DATA_DEV} ${NFS_DATA_MNT} nfs auto,nofail,noatime,nolock,intr,tcp,actimeo=1800 0 0"
+  if undefined "$(cat /etc/fstab | grep "${entry}")"; then
+    echo_next "Appending /etc/fstab"
+    echo "${entry}" | tee --append /etc/fstab
+  fi
+
+  # Mount it right now
+  echo_next "Mount NFS volume"
+  echo_run "mount ${PRIMARY}:${NFS_DATA_DEV} ${NFS_DATA_MNT}"
+
+fi
+
+
+# RESIZE VOLUME
+# ---------------------------------------------
+if defined $BEFORE_RESIZE && defined $NODE && defined $PRIMARY && defined $SWARM; then
+
+  # Pause cron 
+  echo_run "service cron stop"
+
+  echo_run "umount -l ${NFS_DATA_MNT}"
+
+  # Pause nfs on primary
+  if [ "$NODE" = "$PRIMARY" ]; then 
+    echo_run "systemctl stop nfs-kernel-server"
+  fi
+
+fi
+
+# RESIZE VOLUME
+# ---------------------------------------------
+if defined $AFTER_RESIZE && defined $NODE && defined $PRIMARY && defined $SWARM; then
+
+  if [ "$NODE" = "$PRIMARY" ]; then 
+
+    echo_run "e2fsck -f -y ${DO_BLOCK_DEV}" # /dev/disk/by-id/scsi-0DO_Volume_abc
+      
+    # This should run xfs_growfs if supporing xfs files system
+    echo_run "resize2fs ${DO_BLOCK_DEV}" # /dev/disk/by-id/scsi-0DO_Volume_abc04
+      
+    echo_run "mount -o discard,defaults,noatime ${DO_BLOCK_DEV} ${DO_BLOCK_MNT}"
+      
+    echo_run "systemctl restart nfs-kernel-server"
+
+  fi
+
+  # mount all clients
+  echo_run "mount ${PRIMARY}:${NFS_DATA_DEV} ${NFS_DATA_MNT}"
+
+  # Restart cron
+  echo_run "service cron start"
+
+fi

@@ -42,12 +42,14 @@ services:
       - --entryPoints.websecure.forwardedHeaders.trustedIPs=<%= $(bin/get trusted_ips)|tr ' ' , %>
 
       # Support auto-renewing https certificates
+      - --certificatesResolvers.digitalocean.acme.tlsChallenge=true
       - --certificatesResolvers.digitalocean.acme.dnsChallenge=true
       - --certificatesResolvers.digitalocean.acme.dnsChallenge.provider=digitalocean
-      - --certificatesresolvers.digitalocean.acme.email=dns@nonfiction.ca
-      - --certificatesresolvers.digitalocean.acme.storage=/acme.json
       - --certificatesResolvers.digitalocean.acme.dnsChallenge.resolvers=1.1.1.1:53,8.8.8.8:53
-      - --certificatesresolvers.digitalocean.acme.dnschallenge.delaybeforecheck=0
+      - --certificatesResolvers.digitalocean.acme.dnsChallenge.delaybeforecheck=0
+      - --certificatesResolvers.digitalocean.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
+      - --certificatesResolvers.digitalocean.acme.email=dns@nonfiction.ca
+      - --certificatesResolvers.digitalocean.acme.storage=/acme.json
 
       # Support metrics for prometheus
       - --metrics

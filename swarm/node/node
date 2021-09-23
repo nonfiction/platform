@@ -11,9 +11,6 @@ include() {
 # Bash helper functions
 include "lib/helpers.sh"
 
-# Volume helper functions
-include "lib/volumes.sh"
-
 
 # Set from cloud-config, not changable:
 # SWARM NODE DOMAIN DROPLET_IMAGE FS_TYPE REGION
@@ -63,14 +60,6 @@ set_env ROLE
 # Probably won't change, but can
 set_env WEBHOOK
 
-# Ensure all these volumes directories exist
-if defined $NODE; then
-  volumes_env $NODE
-  mkdir -p $GFS_DATA_MNT $(dev_dir $GFS_DATA_DEV) 
-  # mkdir -p $GFS_WORK_MNT $(dev_dir $GFS_WORK_DEV)
-  mkdir -p $DO_BLOCK_MNT
-fi
-
 
 # Set root password
 if defined $ROOT_PASSWORD; then
@@ -116,25 +105,6 @@ fi
 if undefined "$(cat /etc/cloud/cloud.cfg | grep manage_etc_hosts)"; then
   echo_next "Appending /etc/cloud/cloud.cfg"
   echo "manage_etc_hosts: False" | tee --append /etc/cloud/cloud.cfg
-fi
-
-
-# Add block storage to fstab
-if defined $DO_BLOCK_DEV && defined $DO_BLOCK_MNT; then
-
-  FS_TYPE=$(cat /usr/local/env/FS_TYPE)
-  entry="${DO_BLOCK_DEV} ${DO_BLOCK_MNT} ${FS_TYPE} defaults,nofail,discard 0 0"
-  if undefined "$(cat /etc/fstab | grep "${entry}")"; then
-    echo_next "Appending /etc/fstab"
-    echo "${entry}" | tee --append /etc/fstab
-  fi
-
-  # Mount it right now
-  echo_next "Mount block storage"
-  echo_run "mount -o discard,defaults,noatime ${DO_BLOCK_DEV} ${DO_BLOCK_MNT}"
-  mkdir -p $DO_BLOCK_MNT/snapshots 
-  chown -R work:work $DO_BLOCK_MNT/snapshots 
-
 fi
 
 

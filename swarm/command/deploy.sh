@@ -81,6 +81,7 @@ for node in $NODES; do
   # Prepare environment variables for run command
   env=""
   env="${env} NODE=\"$node\""
+  env="${env} SWARM=\"$SWARM\""
   env="${env} PRIMARY_IP=\"$(get_droplet_private_ip $PRIMARY)\""
   env="${env} HOSTS_FILE=\"$hosts\""
   env="${env} DO_AUTH_TOKEN=\"$DO_AUTH_TOKEN\""
@@ -165,10 +166,10 @@ done
 
 
 # ---------------------------------------------------------
-# Create Gluster Volume
+# Create NFS Volume
 # ---------------------------------------------------------
 ((step++))
-echo_main "$step. Gluster Config..."
+echo_main "$step. NFS Config..."
 count=1
 
 # Loop all nodes in swarm
@@ -182,10 +183,11 @@ for node in $NODES; do
   env="JOIN=1"
   env="${env} NODE=\"$node\""
   env="${env} NODES=\"$NODES\""
+  env="${env} SWARM=\"$SWARM\""
   env="${env} PRIMARY=\"$PRIMARY\""
 
   # Run script on node
-  run $node "${env} /root/platform/swarm/node/gluster"
+  run $node "${env} /root/platform/swarm/node/volume"
 
 done
 

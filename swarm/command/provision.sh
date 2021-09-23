@@ -232,17 +232,12 @@ for node in $REMOVALS; do
     # On primary, remove docker swarm node
     echo_run $PRIMARY "REMOVE=1 NODE=${node} /root/platform/swarm/node/docker"
 
-    echo_next "Removing ${node} from gluster volume..."
-
-    # On primary, remove brick and peer from gluster volume
-    echo_run $PRIMARY "REMOVE=1 NODE=${node} /root/platform/swarm/node/gluster"
-
     # Delete DNS records 
     remove_record "${node}"
     remove_record "*.${node}"
 
-    # Delete volume
-    remove_volume "${node}"
+    # # Delete volume
+    # remove_volume "${node}"
 
     # Delete droplet
     remove_droplet "${node}"
@@ -259,14 +254,16 @@ for node_name in $NODES; do
   
   echo_node_header  $node_name $role
   echo_droplet_info $node_name
-  echo_volume_info  $node_name
+  [ "$role" = "primary" ] && echo_volume_info $node_name;
   echo_record_info  $node_name
 
   if has_changes; then 
     if ask "Provision droplet?"; then
       
       # First create/resize the volume that will be attached
-      create_or_resize_volume $node_name $role
+      if [ "$role" = "primary" ]; then
+        create_or_resize_volume $node_name $role "$NODES"
+      fi
       
       # Then create/resize the droplet itself
       create_or_resize_droplet $node_name $role

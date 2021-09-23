@@ -735,8 +735,11 @@ remove_volume() {
 resize_volume() { 
 
   defined $1 || return  
+  defined $SWARM || return
+  defined $NODES || return
 
   local node=$1
+  local role=$2 # not used here
   local volume_name; volume_name=$(volume_name $1) 
   local droplet_name; droplet_name=$(droplet_name $1)
   
@@ -757,9 +760,17 @@ resize_volume() {
     echo "Waiting 30 seconds for node to drain..."
     sleep 30
 
-    # Stop the brick before resizing 
-    env="BEFORE_RESIZE=1 NODE=${node}"
-    echo_run $node "${env} /root/platform/swarm/node/gluster"
+    # First all replicas...
+    for $NODE in $NODES; do
+      if [ "$NODE" != "$PRIMARY" ]; then 
+        env="BEFORE_RESIZE=1 NODE=${NODE} PRIMARY=${PRIMARY} SWARM=${SWARM}"
+        echo_run $NODE "${env} /root/platform/swarm/node/volume"
+      fi
+    done
+
+    # THEN, the primary
+    env="BEFORE_RESIZE=1 NODE=${PRIMARY} PRIMARY=${PRIMARY} SWARM=${SWARM}"
+    echo_run $PRIMARY "${env} /root/platform/swarm/node/volume"
 
     # Detach volume from droplet
     doctl compute volume-action detach "$volume_id" "$droplet_id" --wait
@@ -773,9 +784,17 @@ resize_volume() {
     # Re-attach volume to droplet
     doctl compute volume-action attach "$volume_id" "$droplet_id" --wait
 
-    # Resize volume on node and start using the brick again
-    env="AFTER_RESIZE=1 NODE=${node}"
-    echo_run $node "${env} /root/platform/swarm/node/gluster"
+    # First the primary...
+    env="AFTER_RESIZE=1 NODE=${PRIMARY} PRIMARY=${PRIMARY} SWARM=${SWARM}"
+    echo_run $PRIMARY "${env} /root/platform/swarm/node/volume"
+
+    # THEN, all replicas
+    for NODE in $NODES; do
+      if [ "$NODE" != "$PRIMARY" ]; then 
+        env="AFTER_RESIZE=1 NODE=${NODE} PRIMARY=${PRIMARY} SWARM=${SWARM}"
+        echo_run $n "${env} /root/platform/swarm/node/volume"
+      fi
+    done
 
     echo_info "Volume $volume_name expanded!"
 
@@ -795,7 +814,7 @@ resize_volume() {
 
 create_or_resize_volume() {
   if has_volume $1; then    
-    resize_volume $1
+    resize_volume $1 $2
   else
     create_volume $1 $2
   fi

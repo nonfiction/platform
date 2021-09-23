@@ -163,11 +163,14 @@ runcmd:
   - curl -fsSL https://github.com/jirutka/esh/raw/master/esh > /usr/local/bin/esh
   - chmod +x /usr/local/bin/esh
 
-  # Install glusterfs
-  - add-apt-repository --yes ppa:gluster/glusterfs-9
-  - apt-get update && apt-get --yes install glusterfs-server 
-  - systemctl start glusterd
-  - systemctl enable glusterd
+  # # Install glusterfs
+  # - add-apt-repository --yes ppa:gluster/glusterfs-9
+  # - apt-get update && apt-get --yes install glusterfs-server 
+  # - systemctl start glusterd
+  # - systemctl enable glusterd
+
+  # Install NFS
+  - apt-get install -y nfs-common nfs-kernel-server
 
   # Install docker
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
