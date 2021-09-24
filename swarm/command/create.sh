@@ -65,8 +65,6 @@ else
 
     if ask "Is this a development server?"; then
       export ROLE="dev"
-    elif ask "Is this a load balancer?"; then
-      export ROLE="lb"
     else
       export ROLE="app"
     fi
