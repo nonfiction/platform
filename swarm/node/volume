@@ -49,7 +49,7 @@ if defined $JOIN && defined $NODE && defined $PRIMARY && defined $SWARM; then
     # Build exports file
     # /mnt/abc_nfweb_ca/data-nfs abc(rw,sync,no_subtree_check) abc01(rw,sync,no_subtree_check)
     exports="# NFS exports\n$NFS_DATA_DEV"
-    for node in "127.0.0.1 ${NODES}"; do
+    for node in 127.0.0.1 $NODES; do
       exports="${exports} ${node}(rw,sync,no_subtree_check)"
     done
     echo_next "Setting /etc/exports on $NODE"
