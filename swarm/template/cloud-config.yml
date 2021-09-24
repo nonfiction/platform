@@ -163,12 +163,6 @@ runcmd:
   - curl -fsSL https://github.com/jirutka/esh/raw/master/esh > /usr/local/bin/esh
   - chmod +x /usr/local/bin/esh
 
-  # # Install glusterfs
-  # - add-apt-repository --yes ppa:gluster/glusterfs-9
-  # - apt-get update && apt-get --yes install glusterfs-server 
-  # - systemctl start glusterd
-  # - systemctl enable glusterd
-
   # Install NFS
   - apt-get install -y nfs-common nfs-kernel-server
 
@@ -187,6 +181,7 @@ runcmd:
   # Install platform git repo
   - apt-get update && apt-get --yes install make
   - git clone https://github.com/nonfiction/platform.git /root/platform
+  - cd /root/platform && git checkout --track origin/v2
   - ln -sf /root/platform/cli/nf /usr/local/bin/nf
 
   # It's ready!
