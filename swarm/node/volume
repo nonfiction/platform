@@ -11,9 +11,6 @@ include() {
 # Bash helper functions
 include "lib/helpers.sh"
 
-# Volume helper functions
-# include "lib/volumes.sh"
-
 DO_BLOCK_DEV="/dev/disk/by-id/scsi-0DO_Volume_$(hyphenify $SWARM)" # /dev/disk/by-id/scsi-0DO_Volume_abc
 DO_BLOCK_MNT="/mnt/$(slugify $SWARM)"                              # /mnt/abc_nfweb_ca
 NFS_DATA_DEV="${DO_BLOCK_MNT}/data-nfs"                            # /dev/disk/by-id/scsi-0DO_Volume_abc/data-nfs
@@ -21,7 +18,7 @@ NFS_DATA_MNT="/data"                                               # /data
 FS_TYPE=$(cat /usr/local/env/FS_TYPE)                              # ext4
 
 # Ensure all these directories exist
-mkdir -p $DO_BLOCK_DEV $DO_BLOCK_MNT $NFS_DATA_DEV $NFS_DATA_MNT
+mkdir -p $NFS_DATA_DEV $NFS_DATA_MNT $DO_BLOCK_MNT 
 
 
 # Join and/or configure the NFS server
@@ -42,18 +39,17 @@ if defined $JOIN && defined $NODE && defined $PRIMARY && defined $SWARM; then
     echo_run "mount -o discard,defaults,noatime ${DO_BLOCK_DEV} ${DO_BLOCK_MNT}"
     
     # Ensure snapshots directory exists too
-    mkdir -p $DO_BLOCK_MNT/snapshots 
-    chown -R work:work $DO_BLOCK_MNT/snapshots 
+    echo_run "mkdir -p ${DO_BLOCK_MNT}/snapshots"
+    echo_run "chown -R work:work ${DO_BLOCK_MNT}/snapshots"
     
     # Create NFS volume
-    echo_next "Creating NFS on $NODE"
-    mkdir -p $NFS_DATA_DEV
-    chown -R work:work $NFS_DATA_DEV
+    echo_run "mkdir -p ${NFS_DATA_DEV}"
+    echo_run "chown -R work:work ${NFS_DATA_DEV}"
 
     # Build exports file
     # /mnt/abc_nfweb_ca/data-nfs abc(rw,sync,no_subtree_check) abc01(rw,sync,no_subtree_check)
     exports="# NFS exports\n$NFS_DATA_DEV"
-    for node in $NODES; do
+    for node in "127.0.0.1 ${NODES}"; do
       exports="${exports} ${node}(rw,sync,no_subtree_check)"
     done
     echo_next "Setting /etc/exports on $NODE"
