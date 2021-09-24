@@ -148,7 +148,7 @@ runcmd:
 
   # Webhook
   - echo "<%= $WEBHOOK %>" > /usr/local/env/WEBHOOK
-  - SAY="is now online, but still installing packages." /bin/bash -c "$(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/node/webhook)"
+  - SAY="is now online, but still installing packages." /bin/bash -c "$(curl -fsSL https://github.com/nonfiction/platform/raw/v2/swarm/node/webhook)"
 
   # Keep server up-to-date
   - apt-get --yes install unattended-upgrades

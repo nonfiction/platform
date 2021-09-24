@@ -60,39 +60,18 @@ fi
 include "lib/env.sh"
 
 
-# Swap a replica and primary node
-PROMOTED=$(get_swarm_promotion $ARGS)
-if defined $PROMOTED; then
-  DEMOTED=$PRIMARY
-
-  # Reassign PRIMARY for display
-  PRIMARY=$PROMOTED
-
-  # Add old primary to replicas, remove new primary from replicas
-  REPLICAS=$(get_swarm_replicas $DEMOTED $PROMOTED)
-
-  # Ensure we're on a different machine
-  if [ $SWARM = $(hostname -f) ]; then
-    echo_stop "Cannot promote new PRIMARY from a node within this same swarm."
-    echo "Perform this command on a separate computer."
-    echo
-    exit 1
-  fi
-
 # Add or remove replicas
-else
-  REMOVALS=$(get_swarm_removals $ARGS)
-  ADDITIONS=$(get_swarm_additions $ARGS)
+REMOVALS=$(get_swarm_removals $ARGS)
+ADDITIONS=$(get_swarm_additions $ARGS)
 
-  # Look up number of existing replicas in swarm, including additions, without removals
-  REPLICAS=$(get_swarm_replicas "$ADDITIONS" "$REMOVALS")
+# Look up number of existing replicas in swarm, including additions, without removals
+REPLICAS=$(get_swarm_replicas "$ADDITIONS" "$REMOVALS")
 
-  # If primary doesn't exist yet, count that as an addition
-  if undefined $HAS_PRIMARY; then
-    ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | args)"
-  fi
-
+# If primary doesn't exist yet, count that as an addition
+if undefined $HAS_PRIMARY; then
+  ADDITIONS="$(echo "$PRIMARY $ADDITIONS" | args)"
 fi
+
 
 # Ensure new droplets have a volume size no smaller than primary's volume 
 # This is because a replicated volume will only be as largest as it's smallest node
@@ -114,8 +93,6 @@ else
 fi
 echo_env PRIMARY
 defined $REPLICAS  && echo_env REPLICAS
-defined $PROMOTED  && echo_env PROMOTED
-defined $DEMOTED   && echo_env DEMOTED
 defined $REMOVALS  && echo_env REMOVALS
 defined $ADDITIONS && echo_env ADDITIONS
 echo_env VOLUME_SIZE
@@ -169,50 +146,6 @@ if ask "Continue?"; then
 else
   echo_stop "Cancelled."  
   exit 1;
-fi
-
-
-# Promotion/demotion
-defined $DEMOTED && echo_main "New Primary: ${DEMOTED} => ${PROMOTED}"
-if defined $DEMOTED; then
-
-  if droplets_ready "$NODES"; then
-    echo_next "...ready!"
-  else
-    echo_stop "Not ready for reassignment!"
-    exit
-  fi
-
-  # On primary, promote docker swarm manager to worker
-  echo_run $DEMOTED "PROMOTE=1 NODE=${PROMOTED} /root/platform/swarm/node/docker"
-  echo_info "Demoted $DEMOTED to worker in swarm"
-
-  # On demoted, demote docker swarm manager to worker
-  echo_run $PROMOTED "DEMOTE=1 NODE=${DEMOTED} /root/platform/swarm/node/docker"
-  echo_info "Promoted $PROMOTED to manager in swarm"
-
-  # Role tags for this swarm
-  primary_tag=$(primary_tag)
-  replica_tag=$(replica_tag)
-
-  # Change the demoted node from primary to replica
-  droplet_untag $DEMOTED $primary_tag
-  droplet_tag $DEMOTED $replica_tag
-  echo_info "Tagged $DEMOTED as ${replica_tag}"
-
-  # Change the promoted node from replica to primary
-  droplet_untag $PROMOTED $replica_tag
-  droplet_tag $PROMOTED $primary_tag
-  echo_info "Tagged $PROMOTED as ${primary_tag}"
-
-  # Done
-  echo
-  echo_line green
-  echo_color black/on_green " COMPLETE! "
-  echo_line green
-
-  exit
-
 fi
 
 

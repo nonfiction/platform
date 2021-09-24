@@ -435,7 +435,7 @@ create_droplet() {
   local volume_id; volume_id="$(get_volume_id $1)"
 
   # Download cloud-config.yml and fill out variables
-  curl -sL https://github.com/nonfiction/platform/raw/main/swarm/template/cloud-config.yml > /tmp/cloud-config.yml.esh
+  curl -sL https://github.com/nonfiction/platform/raw/v2/swarm/template/cloud-config.yml > /tmp/cloud-config.yml.esh
 
   # Generate the cloud-config.yml and save to where it belongs
   NODE=$node                                          \

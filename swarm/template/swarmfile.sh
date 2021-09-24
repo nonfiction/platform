@@ -9,9 +9,6 @@
 # # Remove specific replica:
 # nf swarm provision <%= ${NODE}.${DOMAIN} %> -<%= $NODE %>02
 #
-# # Promote replica to primary:
-# nf swarm provision <%= ${NODE}.${DOMAIN} %> ^<%= $NODE %>01
-#
 # # Increase the volume size to 20GB:
 # nf swarm size <%= ${NODE}.${DOMAIN} %> 20
 #

@@ -31,13 +31,13 @@ terminal like so:
 
 ```
 # Create new swarmfile:
-bash <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/swarm) create abc.example.com
+bash <(curl -fsSL https://github.com/nonfiction/platform/raw/v2/swarm/swarm) create abc.example.com
 
 # Provision resources:
-bash <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/swarm) provision abc.example.com
+bash <(curl -fsSL https://github.com/nonfiction/platform/raw/v2/swarm/swarm) provision abc.example.com
 
 # After 5-10 minutes, deploy swarm:
-bash <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/swarm) deploy abc.example.com
+bash <(curl -fsSL https://github.com/nonfiction/platform/raw/v2/swarm/swarm) deploy abc.example.com
 ```
 
 ## Digital Ocean Setup
@@ -91,9 +91,6 @@ nf swarm help
 These are to be run on a separate server not involved in the swarm being managed: 
 
 ```
-# Promote replica to primary:
-nf swarm provision abc.example.com ^abc01
-
 # Increase each node's volume size to 20GB:
 nf swarm size abc.example.com 20
 

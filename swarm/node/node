@@ -5,7 +5,7 @@ include() {
   [ -z "$1" ] && return 1
   if [ -e /usr/local/share/platform/swarm/$1 ]; then source /usr/local/share/platform/swarm/$1;
   elif [ -e /root/platform/swarm/$1 ]; then source /root/platform/swarm/$1;
-  else source <(curl -fsSL https://github.com/nonfiction/platform/raw/main/swarm/$1); fi
+  else source <(curl -fsSL https://github.com/nonfiction/platform/raw/v2/swarm/$1); fi
 }
 
 # Bash helper functions
@@ -84,7 +84,7 @@ fi
 
 # Settings authorized_keys
 if defined $ROOT_PUBLIC_KEY; then
-  keys="$(curl -sL https://github.com/nonfiction/workspace/raw/main/config/ssh/authorized_keys)"
+  keys="$(curl -sL https://github.com/nonfiction/workspace/raw/v2/config/ssh/authorized_keys)"
   keys=$(echo -e "${ROOT_PUBLIC_KEY}\n${keys}")
   echo_next "Writing /root/.ssh/authorized_keys"
   echo "$keys" | tee /root/.ssh/authorized_keys

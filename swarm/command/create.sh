@@ -247,7 +247,7 @@ else
     if ask "Save?"; then  
 
       # Download the template
-      curl -sL https://github.com/nonfiction/platform/raw/main/swarm/template/swarmfile.sh > /tmp/swarmfile.sh
+      curl -sL https://github.com/nonfiction/platform/raw/v2/swarm/template/swarmfile.sh > /tmp/swarmfile.sh
 
       # Generate the swarmfile and save to where it belongs
       esh /tmp/swarmfile.sh > $SWARMFILE
