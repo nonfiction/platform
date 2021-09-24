@@ -761,7 +761,7 @@ resize_volume() {
     sleep 30
 
     # First all replicas...
-    for $NODE in $NODES; do
+    for NODE in $NODES; do
       if [ "$NODE" != "$PRIMARY" ]; then 
         env="BEFORE_RESIZE=1 NODE=${NODE} PRIMARY=${PRIMARY} SWARM=${SWARM}"
         echo_run $NODE "${env} /root/platform/swarm/node/volume"
