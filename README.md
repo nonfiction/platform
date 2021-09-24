@@ -1,15 +1,13 @@
 # nonfiction Platform
 
 Configuration for [Docker Swarm](https://docs.docker.com/engine/swarm/) and
-[GlusterFS](https://docs.gluster.org/) distributed file system mounted on 
-an expandable block volume with daily [rsnapshot](https://rsnapshot.org) backups, 
-provisioned by Digital Ocean's [doctl](https://github.com/digitalocean/doctl).
-Application swarms will run [Traefik](https://doc.traefik.io/traefik/) as a reverse 
-proxy for Docker services, [Portainer](https://www.portainer.io) for stack 
-management, as well as [VS Code](https://github.com/cdr/code-server) in an 
-[Alpine](https://www.alpinelinux.org) environment for development. Load Balancer 
-swarms will run [Caddy](https://caddyserver.com) as a reverse proxy with automatic
-HTTPS behind Digital Ocean's load balancer product.
+NFS distributed file system mounted on an expandable block volume with daily 
+[rsnapshot](https://rsnapshot.org) backups, provisioned by Digital Ocean's 
+[doctl](https://github.com/digitalocean/doctl). Application swarms will run 
+[Traefik](https://doc.traefik.io/traefik/) as a reverse proxy for Docker 
+services, [Portainer](https://www.portainer.io) for stack management, as 
+well as [VS Code](https://github.com/cdr/code-server) in an 
+[Alpine](https://www.alpinelinux.org) environment for development.  
 
 This platform isn't intended to be installed on an existing system. Instead, it
 includes a `nf swarm` CLI tool which provisions a cluster of servers from Digital
@@ -107,9 +105,8 @@ These are to be run on the primary node in the swarm:
 
 ```
 init        -- Create data directories & files"
-stack       -- Generate compose stacks & Caddyfile in deploy directory"
+stack       -- Generate compose stacks in deploy directory"
 pull        -- Pull docker images"
-caddy       -- Deploy caddy stack (lb role)"
 traefik     -- Deploy traefik stack (app role)"
 workspace   -- Deploy workspace stack (dev role)"
 ```
@@ -117,7 +114,6 @@ workspace   -- Deploy workspace stack (dev role)"
 ## Related Repositories
 
 - [nonfiction/traefik](https://github.com/nonfiction/traefik)
-- [nonfiction/caddy](https://github.com/nonfiction/caddy)
 - [nonfiction/workspace](https://github.com/nonfiction/workspace)
 - [nonfiction/hello-world](https://github.com/nonfiction/hello-world)
 - [nonfiction/wordpress](https://github.com/nonfiction/wordpress)

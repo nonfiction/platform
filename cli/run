@@ -274,67 +274,6 @@ run_deploy() {
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# run_lb
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-run_lb() {
-
-  [ -e Caddyfile ] || exit 1 
-
-  local domain=$(bin/get domain)
-  [ -z "$domain" ] && exit 1 
-
-  local app=$(bin/get app)
-  [ -z "$app" ] && exit 1 
-
-  local caddy_dir="/data/platform/caddy/config/$app"
-
-  local public_host=$(bin/get host --public)
-  [ -z "$public_host" ] && exit 1 
-  
-  if [ "$public_host" = "$(bin/get host)" ]; then
-    echo_stop "Your Caddyfile hasn't been configured properly yet."
-    echo
-    exit 1
-  fi
-
-  if [ "default" = "$(bin/get context)" ]; then
-    echo_stop "Your docker context is set to \"default\"."
-    echo
-    exit 1
-  fi
-
-  echo_info "Which load balancer is \"$public_host\" pointing to?"
-  local options=( $(docker context ls | awk '/ lb / { print $1 }' | xargs) )
-  menu_select "${options[@]}"
-  local context="${options[$?]}"
-  local remote="root@$context.$domain"
-
-  local service_id=$(docker -c $context stack services platform | awk '/platform_caddy/ {print $1}')
-  if [ -z "$service_id" ]; then
-    echo
-    echo_stop "Caddy isn't running on $context. Did you choose the correct server?"
-    exit 1
-  fi
-
-  echo_next "Generating Caddyfile"
-  ( set -x; 
-    esh Caddyfile > deploy/Caddyfile
-    docker -c default run -v $(pwd)/deploy:/srv caddy caddy fmt -overwrite
-
-    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $remote \
-      "mkdir -p $caddy_dir"
-
-    rsync -az deploy/Caddyfile $remote:$caddy_dir/Caddyfile
-  )
-
-  echo_next "Launching public host - $public_host"
-  ( set -x; 
-    docker -c $context service update --force $service_id
-  )
-
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # run_init_db
 # Create database and user
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -441,31 +380,6 @@ run_init_wp() {
 
   # Default pretty URLs
   bin/wp rewrite structure /%postname%/
-
-  # Update Caddyfile with placeholder host
-  local lb_list="$(bin/get contexts --lb)"
-  local lb_count="$(echo $lb_list | wc -w)"
-
-  # Don't bother if this is already done, or there are no lb contexts
-  if [ "$lb_count" != "0" ] && [ ! -z "$(grep __PLACEHOLDER_HOST__ Caddyfile)" ]; then
-
-    local context
-
-    # Use only lb context
-    if [ "$lb_count" = "1" ]; then
-      context="$lb_list"
-
-    # Choose from list of lb contexts
-    else
-      echo_info "Which load balancer will you use?"
-      local options=( $lb_list )
-      menu_select "${options[@]}"
-      context="${options[$?]}"
-    fi
-
-    sed -i "s/__PLACEHOLDER_HOST__/$(bin/get app).lb.$context.$(bin/get domain)/g" Caddyfile
-
-  fi
 
   # Print login details
   echo

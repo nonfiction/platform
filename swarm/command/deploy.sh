@@ -223,9 +223,6 @@ env="${env} TRUSTED_IPS=\"$(get_trusted_ips)\""
 if [ "$ROLE" = "dev" ]; then
   run $PRIMARY "${env} cd /root/platform && make workspace"
 
-elif [ "$ROLE" = "lb" ]; then
-  run $PRIMARY "${env} cd /root/platform && make caddy"
-
 else
   run $PRIMARY "${env} cd /root/platform && make traefik"
 fi

@@ -39,10 +39,12 @@ if defined $JOIN && defined $NODE && defined $PRIMARY && defined $SWARM; then
     echo_run "mount -o discard,defaults,noatime ${DO_BLOCK_DEV} ${DO_BLOCK_MNT}"
     
     # Ensure snapshots directory exists too
+    echo_next "Snapshots directory"
     echo_run "mkdir -p ${DO_BLOCK_MNT}/snapshots"
     echo_run "chown -R work:work ${DO_BLOCK_MNT}/snapshots"
     
     # Create NFS volume
+    echo_next "NFS data directory"
     echo_run "mkdir -p ${NFS_DATA_DEV}"
     echo_run "chown -R work:work ${NFS_DATA_DEV}"
 
