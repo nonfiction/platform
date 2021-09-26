@@ -169,9 +169,6 @@ for node in $REMOVALS; do
     remove_record "${node}"
     remove_record "*.${node}"
 
-    # # Delete volume
-    # remove_volume "${node}"
-
     # Delete droplet
     remove_droplet "${node}"
 
@@ -206,11 +203,6 @@ for node_name in $NODES; do
       create_or_update_record "${node_name}" $public_ip
       create_or_update_record "*.${node_name}" $public_ip
 
-      # Create a load balancer for this swarm's primary
-      if [ "$ROLE" = "lb" ] && [ "$role" = "primary" ]; then
-        has_load_balancer || create_load_balancer
-      fi
-      
     fi
   fi  
   reset_changes

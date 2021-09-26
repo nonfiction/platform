@@ -219,12 +219,6 @@ run_deploy() {
   local context=$1
   [ -z "$context" ] && context=$(bin/get context)
 
-  if [ "lb" = "$(bin/get context --role)" ]; then
-    echo_stop "Your docker context is set to \"$context\"."
-    echo
-    exit 1
-  fi
-
   echo_next "Deploying to $(bin/get swarm)"
 
   echo_color green "$image"
@@ -631,7 +625,6 @@ case $COMMAND in
     echo "  help"
     echo "  init_db"
     echo "  init_wp"
-    echo "  lb"
     echo "  pull_db"
     echo "  pull_image [TAG]"
     echo "  pull_uploads"
@@ -645,7 +638,6 @@ case $COMMAND in
   deploy)          run_deploy ;;
   init_db)         run_init_db ;;
   init_wp)         run_init_wp ;;
-  lb)              run_lb ;;
   pull_image)      run_pull_image $ARGS ;;
   pull_db)         run_pull_db ;;
   pull_uploads)    run_pull_uploads ;;

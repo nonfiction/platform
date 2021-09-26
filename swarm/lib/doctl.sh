@@ -552,75 +552,16 @@ create_or_resize_droplet() {
 }
 
 
+
 # ---------------------------------------------------------
-# Load Balancer functions
+#  List of IPs with swarm tag or floating IPs
 # ---------------------------------------------------------
-
-load_balancer_name() {
-  defined $SWARM || return
-  echo lb.$SWARM 
-}
-
-load_balancer_node() {
-  defined $NODE || return
-  echo lb.$NODE 
-}
-
-get_load_balancer_id() {
-  local lb; lb=$(load_balancer_name)
-  doctl compute load-balancer list --format "ID,Name,Status,IP" | grep " $lb " | awk '{print $1}'
-}
-
-get_load_balancer_ip() {
-  local lb; lb=$(load_balancer_name)
-  doctl compute load-balancer list --format "ID,Name,Status,IP" | grep " $lb " | awk '{print $4}'
-}
-
-has_load_balancer() {
-  defined $(get_load_balancer_id)
-}
-
-create_load_balancer() {  
-
-  defined $NODE || return
-  defined $SWARM || return
-  defined $DOMAIN || return
-  defined $REGION || return
-
-  local lb; lb=$(load_balancer_name "$NODE")
-
-  echo_next "Creating load balancer $lb"
-  doctl compute load-balancer create \
-    --name $lb \
-    --tag-name $(swarm_tag) \
-    --region $REGION \
-    --size lb-small \
-    --algorithm round_robin \
-    --enable-backend-keepalive \
-    --enable-proxy-protocol \
-    --redirect-http-to-https \
-    --forwarding-rules "entry_protocol:http2,entry_port:443,target_protocol:http2,target_port:443,tls_passthrough:true entry_protocol:http,entry_port:80,target_protocol:http,target_port:80" \
-    --sticky-sessions type:cookies,cookie_name:DO-LB,cookie_ttl_seconds:5 \
-    --health-check protocol:http,port:80,path:/,check_interval_seconds:10,response_timeout_seconds:5,healthy_threshold:5,unhealthy_threshold:3 
-
-}
-
-remove_load_balancer() {
-
-  local lb_name; lb_name=$(load_balancer_name)
-  local lb_id; lb_id=$(get_load_balancer_id)
-  
-  echo_next "Deleting load balancer $lb_name"
-  doctl compute load-balancer delete $lb_id --force
-
-}
 
 get_trusted_ips() {
-
-  local lb_ips; lb_ips="$(doctl compute load-balancer list --no-header --format 'IP,Tag' | awk '/swarm:/ { print $1 }' | xargs)"
-  local node_ips; node_ips="$(doctl compute droplet list --no-header --format 'PublicIPv4,Tags' | awk '/swarm:/ { print $1 }' | xargs)"
-  echo "127.0.0.1/32 $lb_ips $node_ips" | xargs 
-
+  defined $REGION || return
+  local floating_ips; floating_ips=$(doctl compute floating-ip list --no-header --format 'IP,Region' | awk "/$REGION/ { print \$1 }" | xargs)
+  local node_ips; node_ips=$(doctl compute droplet list --no-header --format 'PublicIPv4,Tags' | awk '/swarm:/ { print $1 }' | xargs)
+  echo "127.0.0.1/32 $floating_ips $node_ips" | xargs 
 }
 
 

@@ -192,23 +192,6 @@ for node in $NODES; do
 done
 
 
-# ---------------------------------------------------------
-# Point DNS to load balancer if applicable
-# ---------------------------------------------------------
-if [ "$ROLE" = "lb" ]; then
-  ((step++))
-  echo_main "$step. Load Balancer Config..."
-
-    lb_node="$(load_balancer_node)"
-    lb_ip="$(get_load_balancer_ip)"
-
-    if defined "$lb_node" && defined "$lb_ip"; then
-      create_or_update_record $lb_node $lb_ip
-      create_or_update_record "*.$lb_node" $lb_ip
-    fi
-
-fi
-
 
 # ---------------------------------------------------------
 # Deploy Swarm

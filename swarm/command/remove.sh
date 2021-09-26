@@ -88,23 +88,6 @@ if has_droplet $NODE; then
     # Delete droplet
     remove_droplet "${NODE}"
 
-
-    # Check if this swarm has a load balancer
-    lb_node="$(load_balancer_node)"
-    lb_ip="$(get_load_balancer_ip)"
-
-    if defined "$lb_node" && defined "$lb_ip"; then
-
-      # Remove this load balancer's DNS records
-      remove_record $lb_node
-      remove_record "*.$lb_node"
-
-      # Remove this swarm's load balancer
-      remove_load_balancer $NODE
-
-    fi
-
-
     # Lastly, delete the swarmfile
     rm $SWARMFILE
     echo_info "DELETED: ${SWARMFILE}"
