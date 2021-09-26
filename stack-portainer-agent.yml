@@ -21,7 +21,6 @@ services:
     ports:
       - target: 9001
         published: 9001
-        mode: host
         protocol: tcp
 
     logging:
