@@ -2,7 +2,6 @@ version: '3.8'
 services:
 
   traefik:
-    # image: nonfiction/traefik:v1
     image: traefik:v2.4.8
     command:
 
@@ -14,7 +13,6 @@ services:
 
       # Docker endpoint running on primary
       - --providers.docker.endpoint=unix:///var/run/docker.sock
-      # - --providers.docker.endPoint=ssh://root@<%= $(bin/get PRIMARY_IP) %>:22
 
       # Do not expose all Docker services, only the ones explicitly exposed
       - --providers.docker.exposedbydefault=false
@@ -129,6 +127,7 @@ services:
         max-size: "1m"
 
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
       - /root/data/traefik/acme.json:/acme.json
 
 networks:
