@@ -15,6 +15,7 @@ init:
 	chmod 600 /root/data/traefik/acme.json
 
 stack:
+	swarm/swarm list
 	esh stack-traefik.yml > deploy/stack-traefik.yml
 	esh stack-hello-world.yml > deploy/stack-hello-world.yml
 	esh stack-portainer-agent.yml > deploy/stack-portainer-agent.yml

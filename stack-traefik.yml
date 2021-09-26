@@ -81,15 +81,12 @@ services:
         traefik.docker.network: "proxy"
         traefik.docker.lbswarm: "true"
 
-        # Wildcard Certificate
-        traefik.http.routers.wildcard-certs.tls.certresolver: "resolver-dns" 
-        traefik.http.routers.wildcard-certs.tls.domains[0].main: "<%= $(bin/get swarm) -%>"
-        traefik.http.routers.wildcard-certs.tls.domains[1].sans: "*.<%= $(bin/get swarm) -%>"
-
         # Dashboard
         traefik.http.routers.traefik.rule: "Host(`traefik.<%= $(bin/get swarm) -%>`)"
         traefik.http.routers.traefik.entrypoints: "websecure"
         traefik.http.routers.traefik.tls.certresolver: "resolver-dns"
+        traefik.http.routers.traefik.tls.domains[0].main: "<%= $(bin/get swarm) -%>"
+        traefik.http.routers.traefik.tls.domains[1].sans: "*.<%= $(bin/get swarm) -%>"
         traefik.http.routers.traefik.service: "api@internal"
         traefik.http.services.traefik.loadbalancer.server.port: "8080"
         traefik.http.routers.traefik.middlewares: "basicauth@docker"
@@ -99,6 +96,8 @@ services:
         traefik.http.routers.metrics.rule: "Host(`metrics.<%= $(bin/get swarm) -%>`)"
         traefik.http.routers.metrics.entrypoints: "websecure"
         traefik.http.routers.metrics.tls.certresolver: "resolver-dns"
+        traefik.http.routers.metrics.tls.domains[0].main: "<%= $(bin/get swarm) -%>"
+        traefik.http.routers.metrics.tls.domains[1].sans: "*.<%= $(bin/get swarm) -%>"
         traefik.http.routers.metrics.service: "prometheus@internal"
         traefik.http.routers.metrics.middlewares: "basicauth@docker"
 

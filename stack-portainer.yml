@@ -21,6 +21,8 @@ services:
         traefik.http.routers.portainer.rule: "Host(`portainer.<%= $(bin/get swarm) -%>`)"
         traefik.http.routers.portainer.entrypoints: "websecure"
         traefik.http.routers.portainer.tls.certresolver: "resolver-dns"
+        traefik.http.routers.portainer.tls.domains[0].main: "<%= $(bin/get swarm) -%>"
+        traefik.http.routers.portainer.tls.domains[1].sans: "*.<%= $(bin/get swarm) -%>"
 
         traefik.http.services.portainer.loadbalancer.server.port: "9000"
 
