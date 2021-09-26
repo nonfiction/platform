@@ -27,7 +27,7 @@ services:
         traefik.http.services.portainer.loadbalancer.server.port: "9000"
 
     volumes:
-      - /root/portainer:/data
+      - /root/data/portainer:/data
 
     logging:
       options:
