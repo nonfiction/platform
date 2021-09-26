@@ -15,7 +15,7 @@ init:
 	chmod 600 /root/data/traefik/acme.json
 
 stack:
-	source swarm/lib/helpers.sh && source swarm/lib/doctl.sh && verify_doctl
+	source swarm/lib/helpers.sh && source swarm/lib/doctl.sh && XDG_CONFIG_HOME=/root/.config verify_doctl
 	esh stack-traefik.yml > deploy/stack-traefik.yml
 	esh stack-hello-world.yml > deploy/stack-hello-world.yml
 	esh stack-portainer-agent.yml > deploy/stack-portainer-agent.yml
