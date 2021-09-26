@@ -18,10 +18,11 @@ services:
     networks:
       - portainer
 
-    ports:
-      - target: 9001
-        published: 9001
-        protocol: tcp
+    # ports:
+    #   - target: 9001
+    #     published: 9001
+    #     protocol: tcp
+    #     mode: host
 
     logging:
       options:
