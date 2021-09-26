@@ -1,7 +1,7 @@
 version: '3.8'
 services:
 
-  <%= $(bin/get app) %>:
+  workspace:
     image: nonfiction/workspace:latest
     hostname: <%= $(bin/get swarm) %>
 
@@ -18,12 +18,13 @@ services:
         traefik.enable: "true"
         traefik.docker.network: "proxy"
 
-        traefik.http.services.<%= $(bin/get app) %>.loadbalancer.server.port: "8443"
-        traefik.http.services.<%= $(bin/get app) %>.loadbalancer.server.scheme: "https"
+        traefik.http.routers.workspace.rule: "Host(`workspace.<%= $(bin/get swarm) -%>`)"
+        traefik.http.routers.workspace.entrypoints: "websecure"
+        traefik.http.routers.workspace.tls.certresolver: "resolver-dns"
 
-        traefik.http.routers.<%= $(bin/get app) %>.rule: "Host(<%= $(bin/get csv $(bin/get hosts)) %>)"
-        traefik.http.routers.<%= $(bin/get app) %>.entrypoints: "websecure"
-        traefik.http.routers.<%= $(bin/get app) %>.tls.certresolver: "digitalocean"
+        traefik.http.services.workspace.loadbalancer.server.port: "8443"
+        traefik.http.services.workspace.loadbalancer.server.scheme: "https"
+
 
     volumes:
       - /work:/work

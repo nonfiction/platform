@@ -1,14 +1,14 @@
 version: '3.8'
 services:
 
-  <%= $(bin/get app) %>_agent:
+  portainer_agent:
     image: portainer/agent:latest
 
     deploy:
       mode: global
 
     environment:
-      AGENT_CLUSTER_ADDR: "tasks.<%= $(bin/get app) %>_agent" 
+      AGENT_CLUSTER_ADDR: "tasks.portainer_agent" 
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

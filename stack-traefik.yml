@@ -1,8 +1,9 @@
 version: '3.8'
 services:
 
-  <%=  $(bin/get app) %>:
-    image: nonfiction/traefik:v1
+  traefik:
+    # image: nonfiction/traefik:v1
+    image: traefik:v2.4.8
     command:
 
       # Enable Docker in Traefik, so that it reads labels from Docker services
@@ -12,8 +13,8 @@ services:
       - --providers.docker.swarmmode
 
       # Docker endpoint running on primary
-      # - --providers.docker.endpoint=unix:///var/run/docker.sock
-      - --providers.docker.endPoint=ssh://root@<%= $(bin/get PRIMARY_IP) %>:22
+      - --providers.docker.endpoint=unix:///var/run/docker.sock
+      # - --providers.docker.endPoint=ssh://root@<%= $(bin/get PRIMARY_IP) %>:22
 
       # Do not expose all Docker services, only the ones explicitly exposed
       - --providers.docker.exposedbydefault=false
@@ -42,14 +43,19 @@ services:
       - --entryPoints.websecure.forwardedHeaders.trustedIPs=<%= $(bin/get trusted_ips)|tr ' ' , %>
 
       # Support auto-renewing https certificates
-      - --certificatesResolvers.digitalocean.acme.tlsChallenge=true
-      - --certificatesResolvers.digitalocean.acme.dnsChallenge=true
-      - --certificatesResolvers.digitalocean.acme.dnsChallenge.provider=digitalocean
-      - --certificatesResolvers.digitalocean.acme.dnsChallenge.resolvers=1.1.1.1:53,8.8.8.8:53
-      - --certificatesResolvers.digitalocean.acme.dnsChallenge.delaybeforecheck=0
-      - --certificatesResolvers.digitalocean.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
-      - --certificatesResolvers.digitalocean.acme.email=dns@nonfiction.ca
-      - --certificatesResolvers.digitalocean.acme.storage=/acme.json
+      - --certificatesResolvers.resolver-dns.acme.dnsChallenge=true
+      - --certificatesResolvers.resolver-dns.acme.dnsChallenge.provider=digitalocean
+      - --certificatesResolvers.resolver-dns.acme.dnsChallenge.resolvers=1.1.1.1:53,8.8.8.8:53
+      - --certificatesResolvers.resolver-dns.acme.dnsChallenge.delaybeforecheck=0
+      - --certificatesResolvers.resolver-dns.acme.storage=/acme.json
+      - --certificatesResolvers.resolver-dns.acme.email=dns@nonfiction.ca
+      # - --certificatesResolvers.resolver-dns.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
+
+      # Also support TLS challenge for client domains
+      - --certificatesResolvers.resolver-tls.acme.tlsChallenge=true
+      - --certificatesResolvers.resolver-tls.acme.storage=/acme.json
+      - --certificatesResolvers.resolver-tls.acme.email=dns@nonfiction.ca
+      # - --certificatesResolvers.resolver-tls.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
 
       # Support metrics for prometheus
       - --metrics
@@ -64,7 +70,10 @@ services:
       - --providers.file.watch=true
 
     deploy:
-      mode: global
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
 
       restart_policy:
         condition: on-failure
@@ -74,30 +83,26 @@ services:
         traefik.docker.network: "proxy"
         traefik.docker.lbswarm: "true"
 
-        # Domains Certificates
-        traefik.http.routers.wildcard-certs.tls.certresolver: "digitalocean" 
-        <% i=0; for node in $(bin/get nodes); do %>
-        # <%= ${node}.$(bin/get domain) %>
-        traefik.http.routers.wildcard-certs.tls.domains[<%= $i -%>].main: "<%= ${node}.$(bin/get domain) -%>"
-        traefik.http.routers.wildcard-certs.tls.domains[<%= $i -%>].sans: "*.<%= ${node}.$(bin/get domain) -%>"
-        <% i=$((i+1)) -%>
-        <% done -%>
+        # Wildcard Certificate
+        traefik.http.routers.wildcard-certs.tls.certresolver: "resolver-dns" 
+        traefik.http.routers.wildcard-certs.tls.domains[0].main: "<%= $(bin/get swarm) -%>"
+        traefik.http.routers.wildcard-certs.tls.domains[1].sans: "*.<%= $(bin/get swarm) -%>"
 
-        # Dashboards
-        traefik.http.routers.<%=  $(bin/get app) %>.rule: "Host(<%= $(bin/get csv $(bin/get hosts)) %>)"
-        traefik.http.routers.<%=  $(bin/get app) %>.entrypoints: "websecure"
-        traefik.http.routers.<%=  $(bin/get app) %>.tls: "true"
-        traefik.http.routers.<%=  $(bin/get app) %>.service: "api@internal"
-        traefik.http.services.<%= $(bin/get app) %>.loadbalancer.server.port: "8080"
-        traefik.http.routers.<%=  $(bin/get app) %>.middlewares: "basicauth@docker"
+        # Dashboard
+        traefik.http.routers.traefik.rule: "Host(`traefik.<%= $(bin/get swarm) -%>`)"
+        traefik.http.routers.traefik.entrypoints: "websecure"
+        traefik.http.routers.traefik.tls.certresolver: "resolver-dns"
+        traefik.http.routers.traefik.service: "api@internal"
+        traefik.http.services.traefik.loadbalancer.server.port: "8080"
+        traefik.http.routers.traefik.middlewares: "basicauth@docker"
         traefik.http.middlewares.basicauth.basicauth.users: '<%= $(bin/get basic_auth BASICAUTH_USER BASICAUTH_PASSWORD) %>'
 
         # Metrics
-        traefik.http.routers.<%= $(APP=metrics bin/get app) %>.rule: "Host(<%= $(bin/get csv $(APP=metrics bin/get hosts)) %>)"
-        traefik.http.routers.<%= $(APP=metrics bin/get app) %>.entrypoints: "websecure"
-        traefik.http.routers.<%= $(APP=metrics bin/get app) %>.tls: "true"
-        traefik.http.routers.<%= $(APP=metrics bin/get app) %>.service: "prometheus@internal"
-        traefik.http.routers.<%= $(APP=metrics bin/get app) %>.middlewares: "basicauth@docker"
+        traefik.http.routers.metrics.rule: "Host(`metrics.<%= $(bin/get swarm) -%>`)"
+        traefik.http.routers.metrics.entrypoints: "websecure"
+        traefik.http.routers.metrics.tls.certresolver: "resolver-dns"
+        traefik.http.routers.metrics.service: "prometheus@internal"
+        traefik.http.routers.metrics.middlewares: "basicauth@docker"
 
         # Global redirect to https
         traefik.http.routers.http-catchall.rule: "hostregexp(`{host:.+}`)"
@@ -118,14 +123,13 @@ services:
 
     environment:
       DO_AUTH_TOKEN: "<%= $(bin/get DO_AUTH_TOKEN) %>"
-      ROOT_PRIVATE_KEY: "<%= $(bin/get ROOT_PRIVATE_KEY) %>"
 
     logging:
       options:
         max-size: "1m"
 
     volumes:
-      - /data/platform/<%= $(bin/get app) %>/acme.json:/acme.json
+      - /root/data/traefik/acme.json:/acme.json
 
 networks:
   proxy:
