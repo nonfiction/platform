@@ -8,7 +8,7 @@ services:
       mode: global
 
     environment:
-      AGENT_CLUSTER_ADDR: "tasks.portainer_agent" 
+      AGENT_CLUSTER_ADDR: "tasks.portainer" 
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
