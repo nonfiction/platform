@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Bash helper functions
-include "lib/helpers.sh"
+has include && include "lib/helpers.sh"
 
 # ---------------------------------------------------------
 # Environment Variables

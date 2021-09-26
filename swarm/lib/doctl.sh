@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Bash helper functions
-include "lib/helpers.sh"
+has include && include "lib/helpers.sh"
 
 # ---------------------------------------------------------
 # Ensure doctl is installed and authenticated
@@ -19,7 +19,7 @@ verify_doctl() {
     mv doctl .doctl
     if error "mv ./.doctl /usr/local/bin/doctl"; then
       rm -f ./.doctl
-      echo_stop "Missing permissions to move doctl to /usr/local/bin"
+      echo_stop "Missing permissions to move doctl to /usr/local/lbin"
       echo "chown that directory so your user can write to it."
       exit 1
     fi
