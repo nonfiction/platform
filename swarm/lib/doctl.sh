@@ -9,7 +9,7 @@ has include && include "lib/helpers.sh"
 verify_doctl() {
 
   # Install doctl (if it isn't already)
-  if hasnt doctl; then
+  if hasnt doctl && hasnt /usr/local/bin/doctl; then
     
     echo_next "Installing doctl..."
     
