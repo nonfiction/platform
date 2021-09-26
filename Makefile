@@ -23,7 +23,7 @@ stack:
 	esh stack-workspace.yml > deploy/stack-workspace.yml
 
 pull:
-	docker pull traefik:v2.4.8
+	docker pull traefik:v2.5.3
 	docker pull nonfiction/hello-world
 	docker pull portainer/portainer-ce
 	docker pull portainer/agent
