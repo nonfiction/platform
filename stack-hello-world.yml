@@ -6,6 +6,12 @@ services:
 
     deploy:
       mode: global
+
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 5M
+
       labels:
         traefik.enable: "true"
         traefik.docker.network: "proxy"

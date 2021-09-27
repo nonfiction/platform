@@ -6,6 +6,10 @@ services:
 
     deploy:
       mode: global
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 20M
 
     # environment:
     #   AGENT_CLUSTER_ADDR: "tasks.portainer" 
