@@ -102,6 +102,38 @@ get_container_id() {
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# get_shell srv bash
+# Echo command for connect to running instance of service
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+get_shell() {
+
+  local service="$1"
+  [ -z "$service" ] && service="srv" 
+
+  local cmd="$2"
+  [ -z "$cmd" ] && cmd="bash" 
+
+  # The container may be running on any node(s) in the swarm
+  # so we'll use the first one we can find
+  local host; host=""
+  local docker_host; docker_host=""
+  local container_id; container_id=""
+  local container_name; container_name="$(get_app)_${service}"
+
+  # Check each node for the container name
+  for node in $(docker node ls --format {{.Hostname}}); do
+    host="$node.$(get_env DOMAIN)"
+    [ $host != $(hostname) ] && docker_host="ssh://root@$host"
+    container_id=$(DOCKER_HOST=$docker_host docker ps -f name=$container_name --quiet)
+    [ ! -z "$container_id" ] && break
+  done
+
+  echo "DOCKER_HOST=$docker_host docker exec -it $container_id $cmd"
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # get_context [--role]
 # Current docker context (default is local docker.sock)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -702,6 +734,7 @@ case $KEY in
     echo "  remote [--local]"
     echo "  remotes"
     echo "  settings"
+    echo "  shell [SERVICE] [COMMAND]"
     echo "  swarm [--local]"
     echo "  tag"
     echo "  tags [--local]"
@@ -734,6 +767,7 @@ case $KEY in
   remote)             get_remote $ARGS ;;
   remotes)            get_remotes ;;
   settings)           get_settings ;;
+  shell)              get_shell $ARGS ;;
   swarm)              get_swarm $ARGS ;;
   tag)                get_tag $ARGS ;;
   tags)               get_tags $ARGS ;;
