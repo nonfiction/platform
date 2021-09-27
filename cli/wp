@@ -1,0 +1,43 @@
+#!/bin/bash
+# Wrapper for WP-CLI
+
+# Ensure all commands are installed
+for cmd in docker bin/get; do
+  if [ -z "$(command -v $cmd)" ]; then
+    echo "Missing command: \"${cmd}\""
+    exit 1
+  fi
+done
+
+# The container may be running on any node(s) in the swarm
+# so we'll use the first one we can find
+host=""
+docker_host=""
+container_id=""
+container_name="$(bin/get app)_srv"
+
+# Check each node for the container name
+for node in $(docker node ls --format {{.Hostname}}); do
+  host="$node.$(bin/get DOMAIN)"
+  [ $host != $(hostname) ] && docker_host="ssh://root@$host"
+  container_id=$(DOCKER_HOST=$docker_host docker ps -f name=$container_name --quiet)
+  [ ! -z "$container_id" ] && break
+done
+
+# Run wp command on running container
+if [ ! -z "$container_id" ]; then
+  echo "> $host $container_id"
+
+  # bin/wp replace is shorthand for search-replace
+  if [ "$1" = "replace" ]; then
+    DOCKER_HOST=$docker_host docker exec $container_id wp search-replace --report-changed-only --skip-columns=guid --skip-tables=wp_users ${@:2}
+
+  # Otherwise, run any other wp command
+  else
+    DOCKER_HOST=$docker_host docker exec $container_id wp $@
+  fi
+
+# Nothing found
+else
+  echo "> $container_name not running in context $(bin/get swarm)"
+fi
