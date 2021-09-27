@@ -169,22 +169,6 @@ else
       echo_env DB_ROOT_PASSWORD
 
 
-      echo_main_alt "Digital Ocean: redis cluster"
-      echo "https://cloud.digitalocean.com/databases"
-
-      ask_input CACHE_HOST
-      export CACHE_HOST=$(ask_env CACHE_HOST)
-      echo_env CACHE_HOST
-
-      ask_input CACHE_PORT
-      export CACHE_PORT=$(ask_env CACHE_PORT "25061")
-      echo_env CACHE_PORT
-
-      ask_input CACHE_PASSWORD
-      export CACHE_PASSWORD=$(ask_env CACHE_PASSWORD)
-      echo_env CACHE_PASSWORD
-
-
       echo_main_alt "SMTP Server"
       echo "https://app.sendgrid.com/settings/api_keys"
 
@@ -229,9 +213,6 @@ else
       export DB_PORT="25060"
       export DB_ROOT_USER="doadmin"
       export DB_ROOT_PASSWORD=""
-      export CACHE_HOST="127.0.0.1"
-      export CACHE_PORT="6379"
-      export CACHE_PASSWORD=""
       export SMTP_HOST="smtp.sendgrid.net"
       export SMTP_PORT="587"
       export SMTP_USER="apikey"

@@ -111,9 +111,6 @@ if [ "$ROLE" = "dev" ]; then
   echo_env DB_PORT
   echo_env DB_ROOT_USER
   echo_env DB_ROOT_PASSWORD
-  echo_env CACHE_HOST
-  echo_env CACHE_PORT
-  echo_env CACHE_PASSWORD
   echo_env SMTP_HOST
   echo_env SMTP_PORT
   echo_env SMTP_USER
