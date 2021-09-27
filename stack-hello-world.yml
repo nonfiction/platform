@@ -20,7 +20,7 @@ services:
         traefik.http.routers.hello-world.entrypoints: "websecure"
         traefik.http.routers.hello-world.tls.certresolver: "resolver-dns"
         traefik.http.routers.hello-world.tls.domains[0].main: "<%= $(bin/get swarm) -%>"
-        traefik.http.routers.hello-world.tls.domains[1].sans: "*.<%= $(bin/get swarm) -%>"
+        traefik.http.routers.hello-world.tls.domains[0].sans: "*.<%= $(bin/get swarm) -%>"
 
         traefik.http.services.hello-world.loadbalancer.server.port: "80"
         traefik.http.services.hello-world.loadbalancer.server.scheme: "http"
