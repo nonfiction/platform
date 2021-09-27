@@ -1,10 +1,15 @@
 #!/bin/bash
 
 # Ensure all commands are installed
-for cmd in ssh docker htpasswd; do
+for cmd in ssh doctl docker htpasswd; do
   if [ -z "$(command -v $cmd)" ]; then
-    echo "Missing command: \"${cmd}\""
-    exit 1
+    if [ "$cmd" = "doctl" ]; then
+      dir="$(dirname "$(readlink -f "$0")")"
+      source $dir/../swarm/lib/helpers.sh && source $dir/../swarm/lib/doctl.sh && verify_doctl
+    else
+      echo "Missing command: \"${cmd}\""
+      exit 1
+    fi
   fi
 done
 
@@ -74,7 +79,7 @@ get_cache() {
   # Otherwise, run mkdir with ssh
   else
     ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $remote \
-      "mkdir -p $cache_dir" >/dev/null 2>&1
+      "mkdir -p $cache_dir /mnt/root/$cache_dir" >/dev/null 2>&1
   fi
 
   # Return path to cache directory
@@ -91,7 +96,7 @@ get_container_id() {
 
   local service="$1"
   [ -z "$service" ] && service="srv" 
-  docker ps --format '{{ .ID }}' -f "label=com.docker.swarm.service.name=$(get_app)_$service"
+  docker ps --format '{{ .ID }}' -f "label=com.docker.swarm.service.name=$(get_app)_${service}"
 
 }
 
@@ -117,19 +122,12 @@ get_context() {
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# get_contexts [--lb]
-# List docker contexts (skipping lb swarms)
+# get_contexts
+# List docker contexts (dev & app)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 get_contexts() {
-  
-  # If --lb, show load balancer contects
-  if [[ "$@" == *"--lb"* ]] || [[ "$@" == *"-l"* ]]; then
-    docker context ls | awk '/ lb / {if (NR!=1) print $1}' | xargs
 
-  # Otherwise, filter them out
-  else
-    docker context ls | awk '!/ lb / {if (NR!=1) print $1}' | xargs
-  fi
+  docker context ls | awk '/ dev|app|Current / {if (NR!=1) print $1}' | xargs
 
 }
  
@@ -285,7 +283,7 @@ get_env() {
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# get_host [--public --local]
+# get_host [--local]
 # hostname for primary node in swarm
 # ie: wordpress.abc.example.com
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -293,12 +291,7 @@ get_host() {
 
   local host=""
   
-  # If --public, attempt to get host from first block in Caddyfile
-  if [[ "$@" == *"--public"* ]] || [[ "$@" == *"-p"* ]]; then
-    host=$(get_lb_hosts | awk '{print $1 }')
-  fi
-
-  # Otherwise, get host from app and swarm (based on docker context)
+  # Get host from app and swarm (based on docker context)
   if [ -z "$host" ]; then
     local app=$(get_app)
     local swarm=$(get_swarm $@)
@@ -311,30 +304,6 @@ get_host() {
 
 }
 
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# get_hosts [--public]
-# list of hostnames for traefik
-# ie: site.abc.example.com site.abc01.example.com
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-get_hosts() {
-  
-  local app=$(get_app)
-  local domain=$(get_domain)
-  local hosts="" 
-
-  # If --public, include public host at beginning of list
-  if [[ "$@" == *"--public"* ]] || [[ "$@" == *"-p"* ]]; then
-    hosts=$(get_lb_hosts)
-  fi
-
-  for node in $(get_nodes); do
-    hosts="$hosts $app.$node.$domain"
-  done
-
-  echo $hosts | tr ' ' '\n' | uniq | xargs
-
-}
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -356,39 +325,9 @@ get_image() {
 }
 
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# get_lb
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-get_lb() {
-
-  echo lb.$(get_swarm)
-
-}
-
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# get_lb_hosts
-# list of hostnames found in Caddyfile
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-get_lb_hosts() {
-
-  [ -e Caddyfile ] || exit 1
-
-  local host=""
-  hosts=$(grep -Ev '^#' Caddyfile | xargs | tr -d , | awk -F{ '{print $1}')
-
-  [ "$hosts" = "__PLACEHOLDER_HOST__" ] && hosts=""
-
-  hosts=$(echo ${hosts//http:\/\//})
-  hosts=$(echo ${hosts//https:\/\//})
-
-  echo $hosts
-
-}
-
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# get_login [--public --local]
+# get_login [--local]
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 get_login() {
 
@@ -503,7 +442,7 @@ get_settings() {
   # Otherwise, run mkdir with ssh
   else
     ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $remote \
-      "mkdir -p $settings_dir" >/dev/null 2>&1
+      "mkdir -p $settings_dir /mnt/root/$settings_dir" >/dev/null 2>&1
   fi
 
   # Return path to settings directory
@@ -604,10 +543,12 @@ get_trusted_ips() {
     echo $TRUSTED_IPS | xargs
 
   else
-    local lb_ips; lb_ips="$(doctl compute load-balancer list --no-header --format 'IP,Tag' 2> /dev/null | awk '/swarm:/ { print $1 }' | xargs)"
-    local node_ips; node_ips="$(doctl compute droplet list --no-header --format 'PublicIPv4,Tags' 2> /dev/null | awk '/swarm:/ { print $1 }' | xargs)"
+
+    local floating_ips; floating_ips=$(doctl compute floating-ip list --no-header --format 'IP,Region' | awk "/$(get_env REGION)/ { print \$1 }" | xargs)
+    local node_ips; node_ips=$(doctl compute droplet list --no-header --format 'PublicIPv4,Tags' | awk '/swarm:/ { print $1 }' | xargs)
     local ips="127.0.0.1 "
-    [ ! -z "$lb_ips" ] && ips="${ips}$lb_ips "
+
+    [ ! -z "$floating_ips" ] && ips="${ips}$floating_ips "
     [ ! -z "$node_ips" ] && ips="${ips}$node_ips "
 
     if [[ "$@" == *"--cidr"* ]] || [[ "$@" == *"-c"* ]]; then
@@ -644,7 +585,7 @@ get_uploads() {
   # Otherwise, run mkdir with ssh
   else
     ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $remote \
-      "mkdir -p $uploads_dir" >/dev/null 2>&1
+      "mkdir -p $uploads_dir /mnt/root/$uploads_dir" >/dev/null 2>&1
   fi
 
   # Return path to uploads directory
@@ -654,59 +595,37 @@ get_uploads() {
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# get_upstream_user
-# Try to load UPSTREAM_USER from .env or environment, otherwise use get_app
+# get_host_user
+# Try to load HOST_USER from .env or environment, otherwise use get_app
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-get_upstream_user() {
+get_host_user() {
 
-  if [ -z "$UPSTREAM_USER" ]; then
-    UPSTREAM_USER="$(get_env UPSTREAM_USER)"
-    if [ -z "$UPSTREAM_USER" ]; then
-      UPSTREAM_USER="$(get_app)"
+  if [ -z "$HOST_USER" ]; then
+    HOST_USER="$(get_env HOST_USER)"
+    if [ -z "$HOST_USER" ]; then
+      HOST_USER="$(get_app)"
     fi
   fi
 
-  echo $UPSTREAM_USER
+  echo $HOST_USER
 
 }
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# get_upstream_password
-# Try to load UPSTREAM_PASSWORD from .env or environment, otherwise use get_app
+# get_host_password
+# Try to load HOST_PASSWORD from .env or environment, otherwise use get_app
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-get_upstream_password() {
+get_host_password() {
 
-  if [ -z "$UPSTREAM_PASSWORD" ]; then
-    UPSTREAM_PASSWORD=$(get_env UPSTREAM_PASSWORD)
-    if [ -z "$UPSTREAM_PASSWORD" ]; then
-      UPSTREAM_PASSWORD=$(get_app)
+  if [ -z "$HOST_PASSWORD" ]; then
+    HOST_PASSWORD=$(get_env HOST_PASSWORD)
+    if [ -z "$HOST_PASSWORD" ]; then
+      HOST_PASSWORD=$(get_app)
     fi
   fi
 
-  echo $UPSTREAM_PASSWORD
-
-}
-
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# get_upstreams
-# list of upstreams for caddy
-# ie: https://website.abc.example.com https://website.abc01.example.com
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-get_upstreams() {
-  
-  local app=$(get_app)
-  local domain=$(get_domain)
-  local upstreams="" 
-
-  [ -z "$domain" ] && exit 1 
-
-  for node in $(get_nodes); do
-    upstreams="$upstreams https://$app.$node.$domain"
-  done
-
-  echo $upstreams | xargs 
+  echo $HOST_PASSWORD
 
 }
 
@@ -763,7 +682,7 @@ case $KEY in
     echo "  cache"
     echo "  container_id [SERVICE]"
     echo "  context [--role]"
-    echo "  contexts [--lb]"
+    echo "  contexts"
     echo "  csv"
     echo "  db_host"
     echo "  db_name [--local]"
@@ -772,11 +691,10 @@ case $KEY in
     echo "  domain"
     echo "  env [NAME]"
     echo "  help"
-    echo "  host [--public] [--local]"
-    echo "  hosts [--public]"
+    echo "  host [--local]"
+    echo "  host_password"
+    echo "  host_user"
     echo "  image [TAG]"
-    echo "  lb"
-    echo "  lb_hosts"
     echo "  login"
     echo "  node [--local]"
     echo "  nodes"
@@ -789,9 +707,6 @@ case $KEY in
     echo "  tags [--local]"
     echo "  trusted_ips [--cidr]"
     echo "  uploads"
-    echo "  upstream_password"
-    echo "  upstream_user"
-    echo "  upstreams"
     echo ;;
 
   app)                get_app ;;
@@ -809,10 +724,9 @@ case $KEY in
   dump)               get_dump ;;
   env)                get_env $ARGS ;;
   host)               get_host $ARGS ;;
-  hosts)              get_hosts $ARGS ;;
+  host_password)      get_host_password ;;
+  host_user)          get_host_user ;;
   image)              get_image $ARGS ;;
-  lb)                 get_lb ;;
-  lb_hosts)           get_lb_hosts ;;
   login)              get_login $ARGS ;;
   node)               get_node $ARGS ;;
   nodes)              get_nodes ;;
@@ -825,9 +739,6 @@ case $KEY in
   tags)               get_tags $ARGS ;;
   trusted_ips)        get_trusted_ips $ARGS ;;
   uploads)            get_uploads ;;
-  upstream_password)  get_upstream_password ;;
-  upstream_user)      get_upstream_user ;;
-  upstreams)          get_upstreams ;;
 
   *)                  get_env $KEY $ARGS ;;
 
