@@ -367,7 +367,7 @@ run_init_wp() {
   bin/wp user update $admin_user --user_email=$admin_email --user_pass=$admin_password
 
   # Activate certain plugins by default
-  bin/wp plugin activate intervention cmb2
+  bin/wp plugin activate intervention stream wp-redis cmb2 query-monitor
 
   # Activate custom theme
   bin/wp theme activate theme

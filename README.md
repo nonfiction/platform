@@ -44,7 +44,6 @@ bash <(curl -fsSL https://github.com/nonfiction/platform/raw/v2/swarm/swarm) dep
 - APIs -> Tokens/Keys -> [Generate New Token](https://cloud.digitalocean.com/account/api/tokens)
 - Container Registry -> [Create Registry](https://cloud.digitalocean.com/registry)
 - Databases -> [Create MySQL Database Cluster](https://cloud.digitalocean.com/databases/new?engine=mysql)
-- Databases -> [Create Redis Database Cluster](https://cloud.digitalocean.com/databases/new?engine=redis)
 - Networking -> Domains -> [Add Domain](https://cloud.digitalocean.com/networking/domains/)
 - Networking -> Firewalls -> [Create Firewall](https://cloud.digitalocean.com/networking/firewalls)
 
@@ -113,7 +112,6 @@ workspace   -- Deploy workspace stack (dev role)"
 
 ## Related Repositories
 
-- [nonfiction/traefik](https://github.com/nonfiction/traefik)
 - [nonfiction/workspace](https://github.com/nonfiction/workspace)
 - [nonfiction/hello-world](https://github.com/nonfiction/hello-world)
 - [nonfiction/wordpress](https://github.com/nonfiction/wordpress)
