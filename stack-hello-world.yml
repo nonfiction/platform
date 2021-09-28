@@ -16,8 +16,8 @@ services:
         traefik.enable: "true"
         traefik.docker.network: "proxy"
 
-        traefik.http.routers.hello-world.rule: "Host(`hello-world.<%= $(bin/get swarm) -%>`)"
         traefik.http.routers.hello-world.entrypoints: "websecure"
+        traefik.http.routers.hello-world.rule: "Host(`hello-world.<%= $(bin/get swarm) -%>`)"
         traefik.http.routers.hello-world.tls.certresolver: "resolver-dns"
         traefik.http.routers.hello-world.tls.domains[0].main: "<%= $(bin/get swarm) -%>"
         traefik.http.routers.hello-world.tls.domains[0].sans: "*.<%= $(bin/get swarm) -%>"

@@ -10,7 +10,7 @@ all:
 	@echo -e "\tworkspace \t -- Deploy workspace stack (dev role)"
 
 init:
-	mkdir -p /work /root/data/{traefik,portainer/{data,config}}
+	mkdir -p /work /root/data/{traefik/config,portainer/{data,config}}
 	touch /root/data/traefik/{traefik.yml,acme.json}
 	chmod 600 /root/data/traefik/acme.json
 

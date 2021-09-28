@@ -23,8 +23,8 @@ services:
         traefik.enable: "true"
         traefik.docker.network: "proxy"
 
-        traefik.http.routers.workspace.rule: "Host(`workspace.<%= $(bin/get swarm) -%>`)"
         traefik.http.routers.workspace.entrypoints: "websecure"
+        traefik.http.routers.workspace.rule: "Host(`workspace.<%= $(bin/get swarm) -%>`)"
         traefik.http.routers.workspace.tls.certresolver: "resolver-dns"
         traefik.http.routers.workspace.tls.domains[0].main: "<%= $(bin/get swarm) -%>"
         traefik.http.routers.workspace.tls.domains[0].sans: "*.<%= $(bin/get swarm) -%>"

@@ -64,7 +64,7 @@ services:
       - --entryPoints.metrics.address=:8082
 
       # Watch configuration file
-      - --providers.file.directory=/data/traefik
+      - --providers.file.directory=/config
       - --providers.file.watch=true
 
     deploy:
@@ -87,8 +87,8 @@ services:
         traefik.docker.lbswarm: "true"
 
         # Dashboard
-        traefik.http.routers.traefik.rule: "Host(`traefik.<%= $(bin/get swarm) -%>`)"
         traefik.http.routers.traefik.entrypoints: "websecure"
+        traefik.http.routers.traefik.rule: "Host(`traefik.<%= $(bin/get swarm) -%>`)"
         traefik.http.routers.traefik.tls.certresolver: "resolver-dns"
         traefik.http.routers.traefik.tls.domains[0].main: "<%= $(bin/get swarm) -%>"
         traefik.http.routers.traefik.tls.domains[0].sans: "*.<%= $(bin/get swarm) -%>"
@@ -98,8 +98,8 @@ services:
         traefik.http.middlewares.basicauth.basicauth.users: '<%= $(bin/get basic_auth BASICAUTH_USER BASICAUTH_PASSWORD) %>'
 
         # Metrics
-        traefik.http.routers.metrics.rule: "Host(`metrics.<%= $(bin/get swarm) -%>`)"
         traefik.http.routers.metrics.entrypoints: "websecure"
+        traefik.http.routers.metrics.rule: "Host(`metrics.<%= $(bin/get swarm) -%>`)"
         traefik.http.routers.metrics.tls.certresolver: "resolver-dns"
         traefik.http.routers.metrics.tls.domains[0].main: "<%= $(bin/get swarm) -%>"
         traefik.http.routers.metrics.tls.domains[0].sans: "*.<%= $(bin/get swarm) -%>"
@@ -107,8 +107,8 @@ services:
         traefik.http.routers.metrics.middlewares: "basicauth@docker"
 
         # Global redirect to https
-        traefik.http.routers.http-catchall.rule: "hostregexp(`{host:.+}`)"
         traefik.http.routers.http-catchall.entrypoints: "web"
+        traefik.http.routers.http-catchall.rule: "hostregexp(`{host:.+}`)"
         traefik.http.routers.http-catchall.middlewares: "redirect-to-https@docker"
         traefik.http.middlewares.redirect-to-https.redirectscheme.scheme: "https"
 
@@ -133,6 +133,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /root/data/traefik/acme.json:/acme.json
+      - /root/data/traefik/config:/config
 
 networks:
   proxy:
