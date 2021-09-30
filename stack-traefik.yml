@@ -112,9 +112,6 @@ services:
         traefik.http.routers.http-catchall.middlewares: "redirect-to-https@docker"
         traefik.http.middlewares.redirect-to-https.redirectscheme.scheme: "https"
 
-        # Dummy service (if needed elsewhere)
-        traefik.http.services.dummy.loadbalancer.servers.url: "http://1.1.1.1:80"
-
     networks:
       - proxy
 
