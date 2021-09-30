@@ -258,6 +258,13 @@ run_deploy() {
     )
   fi
 
+  # Ensure backend network exists
+  if [ -z "$(docker -c $context network ls | grep " backend ")" ]; then 
+    ( set -x; 
+      docker -c $context network create -d overlay --attachable backend
+    )
+  fi
+
   # Deploy stack
   echo_next "Deploying to swarm"
   ( set -x; 
