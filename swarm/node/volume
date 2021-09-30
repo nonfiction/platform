@@ -82,7 +82,8 @@ if defined $JOIN && defined $NODE && defined $PRIMARY && defined $SWARM; then
   echo_next "Mount / to /mnt/root so underlying /data directory is accesible"
   echo_run "mkdir -p /mnt/root"
   echo_run "mount --bind / /mnt/root"
-  echo_run "mkdir -p /mnt/root/data && chown -R work:work /mnt/root/data"
+  echo_run "mkdir -p /mnt/root/data"
+  echo_run "chown -R work:work /mnt/root/data"
   echo_run "touch /mnt/root/data/is-host.txt"
 
 fi
