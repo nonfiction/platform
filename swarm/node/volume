@@ -24,6 +24,9 @@ mkdir -p $NFS_DATA_DEV $NFS_DATA_MNT $DO_BLOCK_MNT
 # Join and/or configure the NFS server
 if defined $JOIN && defined $NODE && defined $PRIMARY && defined $SWARM; then
 
+  # Fix this if it's stuck
+  echo_run "systemctl restart nfs-kernel-server"
+
   # Run NFS server on primary
   if [ "$NODE" = "$PRIMARY" ]; then 
 
@@ -52,7 +55,8 @@ if defined $JOIN && defined $NODE && defined $PRIMARY && defined $SWARM; then
     # /mnt/abc_nfweb_ca/data-nfs abc(rw,sync,no_subtree_check) abc01(rw,sync,no_subtree_check)
     exports="# NFS exports\n$NFS_DATA_DEV"
     for node in 127.0.0.1 $NODES; do
-      exports="${exports} ${node}(rw,sync,no_root_squash,no_subtree_check)"
+      # exports="${exports} ${node}(rw,sync,no_root_squash,no_subtree_check)"
+      exports="${exports} ${node}(rw,sync,soft,intr,bg,timeo=5,retrans=5,actimeo=10,retry=5,no_root_squash,no_subtree_check)"
     done
     echo_next "Setting /etc/exports on $NODE"
     echo -e "$exports" | tee /etc/exports
