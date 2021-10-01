@@ -93,9 +93,8 @@ fi
 if defined $HOSTS_FILE && defined $NODE; then
   DOMAIN=$(cat /usr/local/env/DOMAIN)
   echo_next "Setting /etc/hosts on $NODE"
-  # hosts_self="127.0.1.1 ${NODE}.${DOMAIN} $NODE"
-  # echo -e "${hosts_self}\n${HOSTS_FILE}" | tee /etc/hosts
-  echo -e "${HOSTS_FILE}" | tee /etc/hosts
+  hosts_self="127.0.1.1 ${NODE}.${DOMAIN} $NODE"
+  echo -e "${hosts_self}\n${HOSTS_FILE}" | tee /etc/hosts
 fi
 
 
