@@ -74,7 +74,6 @@ if defined $JOIN && defined $NODE && defined $PRIMARY && defined $SWARM; then
 
   # Ensure nfs volume is in the fstab
   entry="${PRIMARY}:${NFS_DATA_DEV} ${NFS_DATA_MNT} nfs ${NFS_OPTIONS},auto,nofail,noatime,nolock,intr,tcp,actimeo=1800 0 0"
-  rw,soft,bg,timeo=150,retry=10,retrans=2,rsize=1048576,wsize=1048576
   if undefined "$(cat /etc/fstab | grep "${entry}")"; then
     echo_next "Appending /etc/fstab"
     echo "${entry}" | tee --append /etc/fstab
