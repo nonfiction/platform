@@ -75,9 +75,14 @@ if defined $JOIN && defined $NODE && defined $PRIMARY && defined $SWARM; then
 
   # Mount it right now
   echo_next "Mount NFS volume"
-  echo_run "umount -l ${NFS_DATA_MNT}"
-  echo_run "mount ${PRIMARY}:${NFS_DATA_DEV} ${NFS_DATA_MNT}"
-  echo_run "touch /data/is-nfs.txt"
+  if undefined "$(df | grep data-nfs)"; then
+    echo_run "mount ${PRIMARY}:${NFS_DATA_DEV} ${NFS_DATA_MNT}"
+  fi
+  if defined "$(df | grep data-nfs)"; then
+    echo_run "touch /data/is-nfs.txt"
+  else
+    echo_info "data-nfs is NOT mounted!"
+  fi
 
   # Keep host's underlying /data directory accessible 
   echo_next "Mount / to /mnt/root so underlying /data directory is accesible"
