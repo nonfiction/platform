@@ -79,7 +79,7 @@ get_cache() {
   # Otherwise, run mkdir with ssh
   else
     ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $remote \
-      "mkdir -p $cache_dir /mnt/root/$cache_dir" >/dev/null 2>&1
+      "mkdir -p $cache_dir" >/dev/null 2>&1
   fi
 
   # Return path to cache directory
@@ -474,7 +474,7 @@ get_settings() {
   # Otherwise, run mkdir with ssh
   else
     ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $remote \
-      "mkdir -p $settings_dir /mnt/root/$settings_dir" >/dev/null 2>&1
+      "mkdir -p $settings_dir" >/dev/null 2>&1
   fi
 
   # Return path to settings directory
@@ -617,7 +617,7 @@ get_uploads() {
   # Otherwise, run mkdir with ssh
   else
     ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $remote \
-      "mkdir -p $uploads_dir /mnt/root/$uploads_dir" >/dev/null 2>&1
+      "mkdir -p $uploads_dir" >/dev/null 2>&1
   fi
 
   # Return path to uploads directory

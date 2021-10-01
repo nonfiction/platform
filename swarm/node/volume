@@ -24,9 +24,6 @@ mkdir -p $NFS_DATA_DEV $NFS_DATA_MNT $DO_BLOCK_MNT
 # Join and/or configure the NFS server
 if defined $JOIN && defined $NODE && defined $PRIMARY && defined $SWARM; then
 
-  # Fix this if it's stuck
-  # echo_run "systemctl restart nfs-kernel-server"
-
   # Run NFS server on primary
   if [ "$NODE" = "$PRIMARY" ]; then 
 
@@ -84,19 +81,9 @@ if defined $JOIN && defined $NODE && defined $PRIMARY && defined $SWARM; then
   if undefined "$(df | grep data-nfs)"; then
     echo_run "mount -o ${NFS_OPTIONS} ${PRIMARY}:${NFS_DATA_DEV} ${NFS_DATA_MNT}"
   fi
-  if defined "$(df | grep data-nfs)"; then
-    echo_run "touch /data/is-nfs.txt"
-  else
+  if undefined "$(df | grep data-nfs)"; then
     echo_info "data-nfs is NOT mounted!"
   fi
-
-  # Keep host's underlying /data directory accessible 
-  echo_next "Mount / to /mnt/root so underlying /data directory is accesible"
-  echo_run "mkdir -p /mnt/root"
-  echo_run "mount --bind / /mnt/root"
-  echo_run "mkdir -p /mnt/root/data"
-  echo_run "chown -R work:work /mnt/root/data"
-  echo_run "touch /mnt/root/data/is-host.txt"
 
 fi
 
