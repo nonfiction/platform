@@ -185,6 +185,9 @@ for node in $NODES; do
   # Run script on node
   run $node "${env} /root/platform/swarm/node/volume"
 
+  # Ensure resolve is set...
+  run $node "ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf"
+
 done
 
 
