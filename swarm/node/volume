@@ -25,7 +25,7 @@ mkdir -p $NFS_DATA_DEV $NFS_DATA_MNT $DO_BLOCK_MNT
 if defined $JOIN && defined $NODE && defined $PRIMARY && defined $SWARM; then
 
   # Fix this if it's stuck
-  echo_run "systemctl restart nfs-kernel-server"
+  # echo_run "systemctl restart nfs-kernel-server"
 
   # Run NFS server on primary
   if [ "$NODE" = "$PRIMARY" ]; then 
@@ -55,8 +55,8 @@ if defined $JOIN && defined $NODE && defined $PRIMARY && defined $SWARM; then
     # /mnt/abc_nfweb_ca/data-nfs abc(rw,sync,no_subtree_check) abc01(rw,sync,no_subtree_check)
     exports="# NFS exports\n$NFS_DATA_DEV"
     for node in 127.0.0.1 $NODES; do
-      # exports="${exports} ${node}(rw,sync,no_root_squash,no_subtree_check)"
-      exports="${exports} ${node}(rw,sync,soft,intr,bg,timeo=5,retrans=5,actimeo=10,retry=5,no_root_squash,no_subtree_check)"
+      exports="${exports} ${node}(rw,sync,no_root_squash,no_subtree_check)"
+      # exports="${exports} ${node}(rw,sync,soft,intr,bg,timeo=5,retrans=5,actimeo=10,retry=5,no_root_squash,no_subtree_check)"
     done
     echo_next "Setting /etc/exports on $NODE"
     echo -e "$exports" | tee /etc/exports
@@ -70,8 +70,12 @@ if defined $JOIN && defined $NODE && defined $PRIMARY && defined $SWARM; then
 
   # Every node does the following...
 
+  # Mounting options for NFS
+  NFS_OPTIONS="rw,soft,bg,timeo=150,retry=10,retrans=2,rsize=1048576,wsize=1048576"
+
   # Ensure nfs volume is in the fstab
-  entry="${PRIMARY}:${NFS_DATA_DEV} ${NFS_DATA_MNT} nfs auto,nofail,noatime,nolock,intr,tcp,actimeo=1800 0 0"
+  entry="${PRIMARY}:${NFS_DATA_DEV} ${NFS_DATA_MNT} nfs ${NFS_OPTIONS},auto,nofail,noatime,nolock,intr,tcp,actimeo=1800 0 0"
+  rw,soft,bg,timeo=150,retry=10,retrans=2,rsize=1048576,wsize=1048576
   if undefined "$(cat /etc/fstab | grep "${entry}")"; then
     echo_next "Appending /etc/fstab"
     echo "${entry}" | tee --append /etc/fstab
@@ -80,7 +84,7 @@ if defined $JOIN && defined $NODE && defined $PRIMARY && defined $SWARM; then
   # Mount it right now
   echo_next "Mount NFS volume"
   if undefined "$(df | grep data-nfs)"; then
-    echo_run "mount ${PRIMARY}:${NFS_DATA_DEV} ${NFS_DATA_MNT}"
+    echo_run "mount -o ${NFS_OPTIONS} ${PRIMARY}:${NFS_DATA_DEV} ${NFS_DATA_MNT}"
   fi
   if defined "$(df | grep data-nfs)"; then
     echo_run "touch /data/is-nfs.txt"
