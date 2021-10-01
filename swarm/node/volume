@@ -56,7 +56,6 @@ if defined $JOIN && defined $NODE && defined $PRIMARY && defined $SWARM; then
     exports="# NFS exports\n$NFS_DATA_DEV"
     for node in 127.0.0.1 $NODES; do
       exports="${exports} ${node}(rw,sync,no_root_squash,no_subtree_check)"
-      # exports="${exports} ${node}(rw,sync,soft,intr,bg,timeo=5,retrans=5,actimeo=10,retry=5,no_root_squash,no_subtree_check)"
     done
     echo_next "Setting /etc/exports on $NODE"
     echo -e "$exports" | tee /etc/exports
