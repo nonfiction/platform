@@ -56,39 +56,6 @@ get_basic_auth() {
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# get_cache
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-get_cache() {
-
-  local domain=$(get_domain)
-  local app=$(get_app)
-
-  [ -z "$domain" ] && exit 1
-  [ -z "$app" ] && exit 1
-
-  # Ensure host directory exists
-  local cache_dir="/data/$app/cache"
-
-  # Get remote for this context's primary node
-  local remote=$(get_remote)
-
-  # If working with itself, skip ssh
-  if [ "$(get_remote --local)" = "$remote" ]; then
-    mkdir -p $cache_dir >/dev/null 2>&1
-
-  # Otherwise, run mkdir with ssh
-  else
-    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $remote \
-      "mkdir -p $cache_dir" >/dev/null 2>&1
-  fi
-
-  # Return path to cache directory
-  echo $cache_dir
-
-}
-
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # get_container_id srv
 # Find container ID of running server
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -451,40 +418,6 @@ get_remotes() {
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# get_settings
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-get_settings() {
-
-  local domain=$(get_domain)
-  local app=$(get_app)
-
-  [ -z "$domain" ] && exit 1
-  [ -z "$app" ] && exit 1
-
-  # Ensure host directory exists
-  local settings_dir="/data/$app/settings"
-
-  # Get remote for this context's primary node
-  local remote=$(get_remote)
-
-  # If working with itself, skip ssh
-  if [ "$(get_remote --local)" = "$remote" ]; then
-    mkdir -p $settings_dir >/dev/null 2>&1
-
-  # Otherwise, run mkdir with ssh
-  else
-    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $remote \
-      "mkdir -p $settings_dir" >/dev/null 2>&1
-  fi
-
-  # Return path to settings directory
-  echo $settings_dir
-
-}
-
-
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # get_swarm [--local]
 # Swarm (abc.example.com) from current docker context or hostname
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -711,7 +644,6 @@ case $KEY in
     echo
     echo "  app"
     echo "  basic_auth [USERNAME] [PASSWORD]"
-    echo "  cache"
     echo "  container_id [SERVICE]"
     echo "  context [--role]"
     echo "  contexts"
@@ -733,7 +665,6 @@ case $KEY in
     echo "  nodes_count [MULTIPLIER]"
     echo "  remote [--local]"
     echo "  remotes"
-    echo "  settings"
     echo "  shell [SERVICE] [COMMAND]"
     echo "  swarm [--local]"
     echo "  tag"
@@ -744,7 +675,6 @@ case $KEY in
 
   app)                get_app ;;
   basic_auth)         get_basic_auth $ARGS;;
-  cache)              get_cache ;;
   container_id)       get_container_id $ARGS ;;
   context)            get_context $ARGS;;
   contexts)           get_contexts $ARGS;;
@@ -766,7 +696,6 @@ case $KEY in
   nodes_count)        get_nodes_count $ARGS ;;
   remote)             get_remote $ARGS ;;
   remotes)            get_remotes ;;
-  settings)           get_settings ;;
   shell)              get_shell $ARGS ;;
   swarm)              get_swarm $ARGS ;;
   tag)                get_tag $ARGS ;;

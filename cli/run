@@ -258,13 +258,6 @@ run_deploy() {
     )
   fi
 
-  # Ensure backend network exists
-  if [ -z "$(docker -c $context network ls | grep " backend ")" ]; then 
-    ( set -x; 
-      docker -c $context network create -d overlay --attachable backend
-    )
-  fi
-
   # Deploy stack
   echo_next "Deploying to swarm"
   ( set -x; 
@@ -558,13 +551,6 @@ run_up() {
   # Switch to default context
   local context=$(toggle_context)
 
-  # Ensure backend network exists
-  if [ -z "$(docker network ls | grep " backend ")" ]; then 
-    ( set -x; 
-      docker network create -d overlay --attachable backend
-    )
-  fi
-
   # Build image with dev tag
   echo_next "Docker build: dev"
   ( set -x; 
@@ -581,10 +567,24 @@ run_up() {
     cp -f deploy/stack.yml /data/$app/stack.yml
   )
 
-  # Deploy stack
+  # Remove old stack
   echo_next "Deploying development"
   ( set -x; 
     docker -c default stack rm $app
+  )
+
+  # Wait for network to come down
+  echo_info "Please wait..." 
+  while true; do
+    if [ -z "$(docker network ls | grep ${app}_backend)" ]; then 
+      break
+    else
+      sleep 2
+    fi
+  done
+
+  # Deploy stack
+  ( set -x; 
     docker -c default stack deploy --resolve-image never -c deploy/stack.yml $app
   )
 
