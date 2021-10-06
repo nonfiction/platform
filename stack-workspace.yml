@@ -11,10 +11,10 @@ services:
       placement:
         constraints: [node.role == manager]
 
-      resources:
-        limits:
-          cpus: '0.9'
-          memory: 1000M
+      # resources:
+      #   limits:
+      #     cpus: '0.9'
+      #     memory: 1000M
 
       restart_policy:
         condition: on-failure
@@ -40,6 +40,7 @@ services:
       - /root:/root
       - share:/usr/local/share
       - cache:/usr/local/cache
+      - doctl:/usr/local/config/doctl
       - /usr/local/env:/usr/local/env
       - /var/run/docker.sock:/var/run/docker.sock
 
@@ -58,6 +59,7 @@ services:
 volumes:
   share:
   cache:
+  doctl:
 
 networks:
   proxy:
