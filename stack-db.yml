@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+
+  db:
+    image: mysql:8-oracle
+    command: --default-authentication-plugin=mysql_native_password
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+
+    volumes:
+      - /root/data/db:/var/lib/mysql
+
+    logging:
+      options:
+        max-size: "1m"
+
+    environment:
+      MYSQL_ROOT_PASSWORD: "<%= $(bin/get DB_ROOT_PASSWORD) %>"
+      MYSQL_USER: "nonfiction"
+      MYSQL_PASSWORD: "<%= $(bin/get ROOT_PASSWORD) %>"
+
+    networks:
+      - db
+
+    ports:
+      - target: 3306 
+        published: 25060 
+        mode: host
+
+networks:
+  db:
+    name: db
+    driver: overlay
+    attachable: true

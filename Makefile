@@ -10,7 +10,7 @@ all:
 	@echo -e "\tworkspace \t -- Deploy workspace stack (dev role)"
 
 init:
-	mkdir -p /work /root/data/{traefik/config,portainer/{data,config}}
+	mkdir -p /work /root/data/{db,traefik/config,portainer/{data,config}}
 	touch /root/data/traefik/{traefik.yml,acme.json}
 	chmod 600 /root/data/traefik/acme.json
 
@@ -20,6 +20,7 @@ stack:
 	esh stack-hello-world.yml > deploy/stack-hello-world.yml
 	esh stack-portainer-agent.yml > deploy/stack-portainer-agent.yml
 	esh stack-portainer.yml > deploy/stack-portainer.yml
+	esh stack-db.yml > deploy/stack-db.yml
 	esh stack-workspace.yml > deploy/stack-workspace.yml
 
 pull:
@@ -28,11 +29,13 @@ pull:
 	docker pull portainer/portainer-ce
 	docker pull portainer/agent
 	docker pull nonfiction/workspace
+	docker pull mysql:8-oracle
 
 traefik: init stack pull
 	docker stack deploy -c deploy/stack-traefik.yml platform
 	docker stack deploy -c deploy/stack-hello-world.yml platform
 	docker stack deploy -c deploy/stack-portainer-agent.yml platform
+	docker stack deploy -c deploy/stack-db.yml platform
 
 workspace: traefik
 	docker stack deploy -c deploy/stack-portainer.yml platform
