@@ -66,3 +66,7 @@ networks:
     name: proxy
     driver: overlay
     external: true
+  db:
+    name: db
+    driver: overlay
+    external: true
