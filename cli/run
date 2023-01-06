@@ -288,9 +288,9 @@ run_init_swarmdb() {
   local db_admin_user=$(bin/get DB_ADMIN_USER "nonfiction")
   [ -z "$db_admin_user" ] && exit 1 
 
-  local db_host=$(bin/get swarm)
+  local db_host=$(bin/get host)
   [ -z "$db_host" ] && exit 1 
-  db_host="-u root -h db.${db_host}"
+  db_host="-u root -h ${db_host}"
 
   # Find number of users to match name
   local query="" count=0
@@ -460,13 +460,13 @@ run_pull_swarmdb() {
   local prod_db=$(bin/get db_name)
   [ -z "$prod_db" ] && exit 1 
 
-  local dev_host=$(bin/get swarm --local)
+  local dev_host=$(bin/get host --local)
   [ -z "$dev_host" ] && exit 1 
-  dev_host="-u root -h db.${dev_host}"
+  dev_host="-u root -h ${dev_host}"
 
-  local prod_host=$(bin/get swarm)
+  local prod_host=$(bin/get host)
   [ -z "$prod_host" ] && exit 1 
-  prod_host="-u root -h db.${prod_host}"
+  prod_host="-u root -h ${prod_host}"
 
   # Databases match
   if [ "$dev_db" = "$prod_db" ]; then
@@ -586,13 +586,13 @@ run_push_swarmdb() {
   local prod_db=$(bin/get db_name)
   [ -z "$prod_db" ] && exit 1 
 
-  local dev_host=$(bin/get swarm --local)
+  local dev_host=$(bin/get host --local)
   [ -z "$dev_host" ] && exit 1 
-  dev_host="-u root -h db.${dev_host}"
+  dev_host="-u root -h ${dev_host}"
 
-  local prod_host=$(bin/get swarm)
+  local prod_host=$(bin/get host)
   [ -z "$prod_host" ] && exit 1 
-  prod_host="-u root -h db.${prod_host}"
+  prod_host="-u root -h ${prod_host}"
 
   # Databases match
   if [ "$dev_db" = "$prod_db" ]; then
