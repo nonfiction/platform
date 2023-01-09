@@ -772,9 +772,11 @@ case $COMMAND in
   init_swarmdb)    run_init_swarmdb ;;
   init_wp)         run_init_wp ;;
   pull_image)      run_pull_image $ARGS ;;
+  pull_db)         run_pull_db ;;
   pull_swarmdb)    run_pull_swarmdb ;;
-  pull_uploads)    run_pull_uploads ;;
+  push_db)         run_push_db ;;
   push_swarmdb)    run_push_swarmdb ;;
+  pull_uploads)    run_pull_uploads ;;
   push_uploads)    run_push_uploads ;;
   up)              run_up ;;
 
