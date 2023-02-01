@@ -268,6 +268,71 @@ run_deploy() {
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run_init_swarmdb
+# Create database and user
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_init_swarmdb() {
+
+  [ -e Dockerfile ] || exit 1 
+
+  # Variables
+  local db_user=$(bin/get db_user)
+  [ -z "$db_user" ] && exit 1 
+
+  local db_password=$(bin/get db_password)
+  [ -z "$db_password" ] && exit 1 
+
+  local db_name=$(bin/get db_name)
+  [ -z "$db_name" ] && exit 1 
+
+  local db_admin_user=$(bin/get DB_ADMIN_USER "nonfiction")
+  [ -z "$db_admin_user" ] && exit 1 
+
+  local db_host=$(bin/get host)
+  [ -z "$db_host" ] && exit 1 
+  db_host="-u root -h ${db_host}"
+
+  # Find number of users to match name
+  local query="" count=0
+  query="SELECT COUNT(*) FROM mysql.user WHERE user='$db_user' AND host='%';"
+  count=$(mysql $db_host -e "$query" | tr '\n' ' ' | awk '{print $2}')
+
+  # Create user if it doesn't exist
+  if [ "$count" != 0 ]; then
+    echo "MySQL: user \"$db_user\" found."
+    echo "> $query"
+    echo
+  else
+    echo "MySQL: user \"$db_user\" doesn't exist. Creating..."
+    query="CREATE USER '$db_user'@'%' IDENTIFIED WITH mysql_native_password BY '$db_password';"
+    echo "> $query"
+    mysql $db_host -e "$query"
+    echo
+  fi
+
+  # Create database
+  echo "MySQL: creating database \"$db_name\" if it doesn't exist..." 
+  query="CREATE DATABASE IF NOT EXISTS $db_name DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;"
+  echo "> $query"
+  mysql $db_host -e "$query"
+  echo
+
+  # Grant database access permissions to user
+  echo "MySQL: granting permissions to user \"$db_user\"..." 
+  query="GRANT ALL ON $db_name.* TO '$db_user'@'%';"
+  echo "> $query"
+  mysql $db_host -e "$query"
+  echo
+
+  # Grant database access permissions to admin user
+  echo "MySQL: granting permissions to user \"$db_admin_user\"..." 
+  query="GRANT ALL ON $db_name.* TO '$db_admin_user'@'%';"
+  echo "> $query"
+  mysql $db_host -e "$query"
+  echo 
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # run_init_db
 # Create database and user
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -381,9 +446,43 @@ run_init_wp() {
 
 }
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run_pull_swarmdb
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_pull_swarmdb() {
+
+  [ -e Dockerfile ] || exit 1 
+
+  # Variables
+  local dev_db=$(bin/get db_name --local)
+  [ -z "$dev_db" ] && exit 1 
+
+  local prod_db=$(bin/get db_name)
+  [ -z "$prod_db" ] && exit 1 
+
+  local dev_host=$(bin/get host --local)
+  [ -z "$dev_host" ] && exit 1 
+  dev_host="-u root -h ${dev_host}"
+
+  local prod_host=$(bin/get host)
+  [ -z "$prod_host" ] && exit 1 
+  prod_host="-u root -h ${prod_host}"
+
+  # Databases match
+  if [ "$dev_db" = "$prod_db" ]; then
+    echo_stop "Current context is local, cannot pull database to itself!"
+    exit 1
+  fi
+
+  if ask "Overwrite development database ($dev_db <- $prod_db)?"; then
+    echo "+ mysqldump $prod_host --lock-tables=false $prod_db | mysql $dev_host $dev_db"
+    mysqldump $prod_host --lock-tables=false $prod_db | mysql $dev_host $dev_db
+  fi
+
+}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# run_iull_db
+# run_pull_db
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 run_pull_db() {
 
@@ -403,8 +502,39 @@ run_pull_db() {
   fi
 
   if ask "Overwrite development database ($dev_db <- $prod_db)?"; then
-    echo "+ mysqldump $prod_db | mysql $dev_db"
-    mysqldump $prod_db | mysql $dev_db
+    echo "+ mysqldump --lock-tables=false $prod_db | mysql $dev_db"
+    mysqldump --lock-tables=false $prod_db | mysql $dev_db
+  fi
+
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run_migrate_db
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_migrate_db() {
+
+  [ -e Dockerfile ] || exit 1 
+
+  # Variables
+  local dev_db=$(bin/get db_name --local)
+  [ -z "$dev_db" ] && exit 1 
+
+  local dev_host=$(bin/get host --local)
+  [ -z "$dev_host" ] && exit 1 
+  dev_host="-u root -h ${dev_host}"
+
+  local prod_db=$(bin/get db_name)
+  [ -z "$prod_db" ] && exit 1 
+
+  # Databases match
+  if [ "$dev_db" = "$prod_db" ]; then
+    echo_stop "Current context is local, cannot pull database to itself!"
+    exit 1
+  fi
+
+  if ask "Overwrite development database ($dev_db <- $prod_db)?"; then
+    echo "+ mysqldump --lock-tables=false $prod_db | mysql $dev_host $dev_db"
+    mysqldump --lock-tables=false $prod_db | mysql $dev_host $dev_db
   fi
 
 }
@@ -469,6 +599,42 @@ run_pull_image() {
     echo
 
   done
+
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run_push_swarmdb
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_push_swarmdb() {
+
+  [ -e Dockerfile ] || exit 1 
+
+  # Variables
+  local dev_db=$(bin/get db_name --local)
+  [ -z "$dev_db" ] && exit 1 
+
+  local prod_db=$(bin/get db_name)
+  [ -z "$prod_db" ] && exit 1 
+
+  local dev_host=$(bin/get host --local)
+  [ -z "$dev_host" ] && exit 1 
+  dev_host="-u root -h ${dev_host}"
+
+  local prod_host=$(bin/get host)
+  [ -z "$prod_host" ] && exit 1 
+  prod_host="-u root -h ${prod_host}"
+
+  # Databases match
+  if [ "$dev_db" = "$prod_db" ]; then
+    echo_stop "Current context is local, cannot push database to itself!"
+    exit 1
+  fi
+
+  if ask "Overwrite production database ($dev_db -> $prod_db)?"; then
+    echo "+ mysqldump $dev_host --lock-tables=false $dev_db | mysql $prod_host $prod_db"
+    mysqldump $dev_host --lock-tables=false $dev_db | mysql $prod_host $prod_db
+  fi
 
 }
 
@@ -588,7 +754,7 @@ run_up() {
     docker -c default stack deploy --resolve-image never -c deploy/stack.yml $app
   )
 
-  # Show  development URL
+  # Show development URL
   echo_next "https://$(bin/get host)/"
 
   # Switch back to original context
@@ -618,11 +784,15 @@ case $COMMAND in
     echo "  deploy"
     echo "  help"
     echo "  init_db"
+    echo "  init_swarmdb"
     echo "  init_wp"
+    echo "  migrate_db"
     echo "  pull_db"
+    echo "  pull_swarmdb"
     echo "  pull_image [TAG]"
     echo "  pull_uploads"
     echo "  push_db"
+    echo "  push_swarmdb"
     echo "  push_uploads"
     echo "  up"
     echo ;;
@@ -631,11 +801,15 @@ case $COMMAND in
   context)         run_context ;;
   deploy)          run_deploy ;;
   init_db)         run_init_db ;;
+  init_swarmdb)    run_init_swarmdb ;;
   init_wp)         run_init_wp ;;
   pull_image)      run_pull_image $ARGS ;;
+  migrate_db)      run_migrate_db ;;
   pull_db)         run_pull_db ;;
-  pull_uploads)    run_pull_uploads ;;
+  pull_swarmdb)    run_pull_swarmdb ;;
   push_db)         run_push_db ;;
+  push_swarmdb)    run_push_swarmdb ;;
+  pull_uploads)    run_pull_uploads ;;
   push_uploads)    run_push_uploads ;;
   up)              run_up ;;
 
