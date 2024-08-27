@@ -24,12 +24,12 @@ stack:
 	esh stack-workspace.yml > deploy/stack-workspace.yml
 
 pull:
-	docker pull traefik:v2.5.3
+	docker pull traefik:v2.11
 	docker pull nonfiction/hello-world
 	docker pull portainer/portainer-ce
 	docker pull portainer/agent
 	docker pull nonfiction/workspace
-	docker pull mysql:8-oracle
+	docker pull mysql:8.3.0-oracle
 
 traefik: init stack pull
 	docker stack deploy -c deploy/stack-traefik.yml platform
