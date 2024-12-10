@@ -95,6 +95,8 @@ for node in $NODES; do
   env="${env} GIT_USER_EMAIL=\"$GIT_USER_EMAIL\""
   env="${env} GITHUB_USER=\"$GITHUB_USER\""
   env="${env} GITHUB_TOKEN=\"$GITHUB_TOKEN\""
+  env="${env} GHCR_USER=\"$GHCR_USER\""
+  env="${env} GHCR_TOKEN=\"$GHCR_TOKEN\""
 
   env="${env} CODE_PASSWORD=\"$CODE_PASSWORD\""
   env="${env} SUDO_PASSWORD=\"$SUDO_PASSWORD\""

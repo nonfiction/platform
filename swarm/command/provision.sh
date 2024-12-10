@@ -105,6 +105,8 @@ if [ "$ROLE" = "dev" ]; then
   echo_env GIT_USER_EMAIL
   echo_env GITHUB_USER
   echo_env GITHUB_TOKEN
+  echo_env GHCR_USER
+  echo_env GHCR_TOKEN
   echo_env CODE_PASSWORD
   echo_env SUDO_PASSWORD
   echo_env DB_HOST

@@ -36,11 +36,13 @@ export GIT_USER_NAME=$(env GIT_USER_NAME)
 export GIT_USER_EMAIL=$(env GIT_USER_EMAIL)
 export GITHUB_USER=$(env GITHUB_USER)
 export GITHUB_TOKEN=$(env GITHUB_TOKEN)
+export GHCR_USER=$(env GHCR_USER)
+export GHCR_TOKEN=$(env GHCR_TOKEN)
 
 export CODE_PASSWORD=$(env CODE_PASSWORD)
 export SUDO_PASSWORD=$(env SUDO_PASSWORD)
 
-export DOCKER_REGISTRY=$(env DOCKER_REGISTRY registry.digitalocean.com/nonfiction)
+export DOCKER_REGISTRY=$(env DOCKER_REGISTRY ghcr.io/nonfiction)
 
 export DB_HOST=$(env DB_HOST)
 export DB_PORT=$(env DB_PORT "25060")

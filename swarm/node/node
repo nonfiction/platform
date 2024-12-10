@@ -32,6 +32,8 @@ set_env BASICAUTH_USER
 # Used by workspace
 set_env GITHUB_TOKEN
 set_env GITHUB_USER
+set_env GHCR_TOKEN
+set_env GHCR_USER
 set_env GIT_USER_EMAIL
 set_env GIT_USER_NAME
 

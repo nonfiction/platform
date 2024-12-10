@@ -31,6 +31,10 @@ export GIT_USER_EMAIL=<%= $GIT_USER_EMAIL %>
 export GITHUB_USER=<%= $GITHUB_USER %>
 export GITHUB_TOKEN=<%= $GITHUB_TOKEN %>
 
+# Github Container Registry
+export GHCR_USER=<%= $GHCR_USER %>
+export GHCR_TOKEN=<%= $GHCR_TOKEN %>
+
 # Login password for VS Code/code-server
 export CODE_PASSWORD=<%= $CODE_PASSWORD %>
 

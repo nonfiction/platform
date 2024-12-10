@@ -134,6 +134,16 @@ else
       export GITHUB_TOKEN=$(ask_env GITHUB_TOKEN)
       echo_env GITHUB_TOKEN
 
+      echo_main_alt "Github Container Registry token"
+      echo "https://github.com/settings/tokens"
+
+      ask_input GHCR_USER
+      export GHCR_USER=$(ask_env GHCR_USER)
+      echo_env GHCR_USER
+
+      ask_input GHCR_TOKEN
+      export GHCR_TOKEN=$(ask_env GHCR_TOKEN)
+      echo_env GHCR_TOKEN
 
       echo_main_alt "VS Code password"
       echo "This really ought to be a complicated password"
