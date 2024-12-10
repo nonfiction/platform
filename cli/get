@@ -486,7 +486,16 @@ get_tags() {
 
   # Get tags from registry image
   else
-    tags="$(doctl registry repository list-tags --no-header --format 'Tag' $app 2> /dev/null | sort -V -r)"
+
+    # If registry is GitHub, use gh and jq to fetch tags
+    if [[ "$registry" == *"ghcr.io"* ]]; then
+      tags="$(gh api "/users/nonfiction/packages/container/$app/versions" | jq -r '[.[].metadata.container.tags[]] | sort | reverse | .[]')"
+
+    # Else, assume DigitalOcean and use doctl
+    else
+      tags="$(doctl registry repository list-tags --no-header --format 'Tag' $app 2> /dev/null | sort -V -r)"
+    fi
+
   fi
 
   # Limit to only version tags (v1, v2, v3, etc)
