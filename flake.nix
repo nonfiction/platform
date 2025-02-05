@@ -33,7 +33,9 @@
         docker 
         doctl 
         esh 
+        gh
         git 
+        jq
         mariadb 
       ];
     in {
