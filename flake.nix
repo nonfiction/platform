@@ -21,6 +21,7 @@
         mkdir -p $out/swarm
         cp -r $swarmSrc/* $out/swarm/
         chmod +x $out/bin/*
+        find $out/bin -type f -exec sed -i 's/\$(bin\//\$(nf /g' {} +
       '';
     };
 
