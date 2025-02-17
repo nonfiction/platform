@@ -1,0 +1,14 @@
+http:
+  routers:
+    dashboard:
+      rule: "Host(`local.nfweb.ca`)"
+      service: dashboard
+      entryPoints:
+        - websecure
+      tls: {}
+
+  services:
+    dashboard:
+      loadBalancer:
+        servers:
+          - url: "http://0.0.0.0:8886"

@@ -1,0 +1,20 @@
+http:
+  routers:
+    adminer:
+      rule: "Host(`db.local.nfweb.ca`)"
+      service: adminer
+      entryPoints:
+        - websecure
+      tls: {}
+
+  services:
+    adminer:
+      loadBalancer:
+        servers:
+          - url: "http://0.0.0.0:8885"
+
+entryPoints:
+  websecure:
+    address: ":443"
+    forwardedHeaders:
+      insecure: true

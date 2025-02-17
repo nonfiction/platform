@@ -5,3 +5,6 @@ root_private_key
 root_private_key.tmp
 data
 scratch
+result
+.direnv
+.data
