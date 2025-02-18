@@ -1,10 +1,12 @@
-{ pkgs, ... }: let
-  mysql = builtins.toString [
+{ flake, pkgs, ... }: let
+  inherit (flake) config;
+  inherit (builtins) toString;
+  mysql = toString [
     "${pkgs.mysql80}/bin/mysql"
     "--host=127.0.0.1"
-    "--port=25060"
+    "--port=${toString config.mysql.port}"
     "--user=root"
-    "--password=x"
+    "--password=${toString config.mysql.password}"
     "--protocol=tcp"
   ];
 in pkgs.writeScriptBin "mysql" ''

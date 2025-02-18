@@ -1,4 +1,4 @@
-{ pkgs, ... }: let
+{ flake, pkgs, ... }: let
   mysqldump = builtins.toString [
     "${pkgs.mysql80}/bin/mysqldump"
     "--host=127.0.0.1"
