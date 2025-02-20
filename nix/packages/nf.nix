@@ -3,8 +3,8 @@
   # Create scripts derivation for a given system
   platform = pkgs.stdenv.mkDerivation {
     name = "platform";
-    src = ../cli; # directory containing most script
-    swarmSrc = ../swarm; # additional scripts found here
+    src = ../../cli; # directory containing most script
+    swarmSrc = ../../swarm; # additional scripts found here
     installPhase = ''
       mkdir -p tmp/bin
       cp -r $src/* tmp/bin/

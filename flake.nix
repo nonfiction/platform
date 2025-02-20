@@ -8,8 +8,8 @@
     blueprint.url = "github:numtide/blueprint";
     blueprint.inputs.nixpkgs.follows = "nixpkgs";
   };
-  outputs = inputs: inputs.blueprint { inherit inputs; } // {
-    config = {
+  outputs = inputs: inputs.blueprint { inherit inputs; prefix = "./nix"; } // {
+    config = rec {
       dataDir = "$HOME/.local/share/platform";
       domain = "local.nfweb.ca";
       mysql.port = 25060;
