@@ -1,32 +1,47 @@
-{ pkgs, ... }: let
-  dataDir = "$HOME/.local/share/platform";
+{ flake, pkgs, ... }: let
+
+  inherit (builtins) toString;
+  inherit (flake) config;
+
+  dbDir = "${config.dataDir}/mysql";
+  dbSocket = "${config.dataDir}/mysql.sock";
 
   # Preset flags for mysql server
-  mysqld = builtins.toString [
+  mysqld = toString [
     "${pkgs.mysql80}/bin/mysqld"
-    "--port=25060"
+    "--port=${toString config.mysql.port}"
     "--user=$USER"
-    "--socket=${dataDir}/mysql.sock"
-    "--datadir=${dataDir}/mysql"
+    "--socket=${dbSocket}"
+    "--datadir=${dbDir}"
     "--mysqlx=0"
     "--default-authentication-plugin=mysql_native_password"
     "--binlog_expire_logs_seconds=259200"
   ];
 
-  # Used after initialization to update root password to "x" and create nonfiction user
-  mysql = builtins.toString [
+  # Used after initialization to update root password to "x" and create regular user
+  mysql = toString [
     "${pkgs.mysql80}/bin/mysql"
     "--user=root"
-    "--socket=${dataDir}/mysql.sock"
+    "--socket=${dbSocket}"
     "--connect-expired-password"
   ];
 
   # Used to shut down temporary server after initializing
-  mysqladmin = builtins.toString [
+  mysqladmin = toString [
     "${pkgs.mysql80}/bin/mysqladmin"
     "--user=root"
-    "--socket=${dataDir}/mysql.sock"
+    "--socket=${dbSocket}"
+    "--password=${config.mysql.password}"
   ];
+
+  dbLog = "${config.dataDir}/mysql-init.log";
+  dbInit = with config.mysql; pkgs.writeText "init.sql" ''
+    ALTER USER 'root'@'localhost' IDENTIFIED BY '${password}';
+    CREATE DATABASE IF NOT EXISTS ${username};
+    CREATE USER '${username}'@'localhost' IDENTIFIED BY '${password}';
+    GRANT ALL PRIVILEGES ON ${username}.* TO '${username}'@'localhost';
+    FLUSH PRIVILEGES;
+  '';
 
   grep = "${pkgs.gnugrep}/bin/grep";
   sleep = "${pkgs.coreutils}/bin/sleep";
@@ -36,21 +51,21 @@ in pkgs.writeScriptBin "mysqld" ''
   #!/usr/bin/env bash
 
   # Check if datadir exists
-  if [ ! -d "${dataDir}/mysql" ]; then
+  if [ ! -d "${dbDir}" ]; then
 
     # If missing, create ensure init log is empty
-    mkdir -p ${dataDir}/mysql
-    rm -f ${dataDir}/mysql-init.log
+    mkdir -p ${dbDir}
+    rm -f ${dbLog}
 
     # Initialize mysql and save temp password to variable
-    ${mysqld} --initialize --log-error=${dataDir}/mysql-init.log 
-    PASS=$(${grep} 'temporary password' "${dataDir}/mysql-init.log" | awk '{print $NF}')
+    ${mysqld} --initialize --log-error=${dbLog} 
+    PASS=$(${grep} 'temporary password' "${dbLog}" | awk '{print $NF}')
 
-    # Start mysql, update root password and create nonfiction user, shutdown again
+    # Start mysql, update root password and create regular user, shutdown again
     ${mysqld} --skip-networking &
     ${sleep} 5
-    ${mysql} --password="$PASS" < ${./mysqld.sql}
-    ${mysqladmin} --password=x shutdown
+    ${mysql} --password="$PASS" < ${dbInit}
+    ${mysqladmin} shutdown
   fi
 
   # Run mysql server

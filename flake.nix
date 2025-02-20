@@ -11,10 +11,10 @@
   outputs = inputs: inputs.blueprint { inherit inputs; } // {
     config = {
       dataDir = "$HOME/.local/share/platform";
-      adminer.port = 8885;
       mysql.port = 25060;
       mysql.username = "nonfiction";
       mysql.password = "x";
+      adminer.port = 8885;
       traefik.domain = "local.nfweb.ca";
       traefik.email = "dns@nonfiction.ca";
       traefik.port = 8886;

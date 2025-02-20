@@ -1,7 +1,5 @@
 { pkgs, ... }: let
 
-  dataDir = "$HOME/.local/share/platform";
-
   # Create scripts derivation for a given system
   platform = pkgs.stdenv.mkDerivation {
     name = "platform";

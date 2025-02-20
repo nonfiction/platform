@@ -1,16 +1,31 @@
-{ pkgs, ... }: let
+{ flake, pkgs, ... }: let
 
-  dataDir = "$HOME/.local/share/platform";
+  inherit (builtins) toString;
+  inherit (flake) config;
 
-  adminer = builtins.toString [
+  adminer = toString [
     "${pkgs.php}/bin/php"
-    "-S 0.0.0.0:8885"
+    "-S 0.0.0.0:${toString config.adminer.port}"
     "${pkgs.adminer-pematon}/index.php"
   ];
 
+  yaml = (pkgs.formats.yaml {}).generate "adminer.yaml" {
+    http.routers.adminer = {
+      rule = "Host(`db.${config.traefik.domain}`)";
+      service = "adminer";
+      entryPoints = [ "websecure" ];
+      tls = {};
+    };
+    http.services.adminer = {
+      loadBalancer.servers = [{ 
+        url = "http://0.0.0.0:${toString config.adminer.port}";
+      }];
+    };
+  };
+
 in pkgs.writeScriptBin "adminer" ''
   #!/usr/bin/env bash
-  mkdir -p ${dataDir}/traefik
-  cp -f ${./adminer.yml} ${dataDir}/traefik/adminer.yml
+  mkdir -p ${config.dataDir}/traefik
+  ln -sf ${yaml} ${config.dataDir}/traefik/adminer.yaml
   exec ${adminer} 
 ''

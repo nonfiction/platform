@@ -1,10 +1,14 @@
 { flake, pkgs, ... }: let
-  mysqldump = builtins.toString [
+
+  inherit (builtins) toString;
+  inherit (flake) config;
+
+  mysqldump = toString [
     "${pkgs.mysql80}/bin/mysqldump"
     "--host=127.0.0.1"
-    "--port=25060"
+    "--port=${toString config.mysql.port}"
     "--user=root"
-    "--password=x"
+    "--password=${config.mysql.password}"
     "--protocol=tcp"
   ];
 in pkgs.writeScriptBin "mysqldump" ''
