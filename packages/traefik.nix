@@ -14,8 +14,8 @@
     "--entryPoints.web.http.redirections.entryPoint.scheme=https"
     "--entryPoints.websecure.address=:${toString config.traefik.https.port}"
     "--entryPoints.websecure.http.tls.certResolver=do_resolver"
-    "--entryPoints.websecure.http.tls.domains.main=\"${config.traefik.domain}\""
-    "--entryPoints.websecure.http.tls.domains.sans=\"*.${config.traefik.domain}\""
+    "--entryPoints.websecure.http.tls.domains.main=\"${config.domain}\""
+    "--entryPoints.websecure.http.tls.domains.sans=\"*.${config.domain}\""
     "--providers.docker.exposedByDefault=false"
     "--providers.docker.network=proxy"
     "--providers.file.watch=true"
@@ -29,7 +29,7 @@
 
   yaml = (pkgs.formats.yaml {}).generate "dashboard.yaml" {
     http.routers.dashboard = {
-      rule = "Host(`${config.traefik.domain}`)";
+      rule = "Host(`${config.domain}`)";
       service = "dashboard";
       entryPoints = [ "websecure" ];
       tls = {};

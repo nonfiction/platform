@@ -11,7 +11,7 @@
 
   yaml = (pkgs.formats.yaml {}).generate "adminer.yaml" {
     http.routers.adminer = {
-      rule = "Host(`db.${config.traefik.domain}`)";
+      rule = "Host(`db.${config.domain}`)";
       service = "adminer";
       entryPoints = [ "websecure" ];
       tls = {};
