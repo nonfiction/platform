@@ -4,6 +4,9 @@
   inherit (inputs.nixpkgs) lib;
   inherit (lib) getExe mapAttrsToList;
 
+  mkPkgs = perSystem: 
+    perSystem.nixpkgs // { platform = perSystem.platform or perSystem.self; };
+
   mkEnv = config: extra: [
     { name = "MAKEFLAGS"; value = "-f Makefile.local"; }
     { name = "DOCKER_REGISTRY"; value = config.domain; }
@@ -41,5 +44,5 @@
   in 49152 + (hashNum - (portRange * (hashNum / portRange)));
 
 in {
-  inherit mkEnv mkPackages mkServices mkPort;
+  inherit mkEnv mkPkgs mkPackages mkServices mkPort;
 }

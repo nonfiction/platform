@@ -1,8 +1,8 @@
 { flake, perSystem, ... }: let 
 
-  inherit (flake.lib) mkEnv mkPackages mkServices;
+  inherit (flake.lib) mkEnv mkPkgs mkPackages mkServices;
   inherit (flake) config;
-  pkgs = perSystem.nixpkgs // { platform = perSystem.self; };
+  pkgs = mkPkgs perSystem;
 
 in perSystem.devshell.mkShell {
 
