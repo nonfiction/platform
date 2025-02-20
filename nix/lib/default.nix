@@ -4,9 +4,29 @@
   inherit (inputs.nixpkgs) lib;
   inherit (lib) getExe mapAttrsToList;
 
+  # Template for flake configuration
+  mkConfig = name: rec {
+    inherit name; # project name
+    dataDir = "$HOME/.local/share/platform"; # base directory
+    uploadsDir = "${dataDir}/uploads/${name}"; # wp uploads
+    domain = "local.nfweb.ca"; # base domain
+    docker.port = mkPort name; # published port
+    mysql.port = 25060; # matches port used by do
+    mysql.username = "nonfiction"; # additional db user
+    mysql.password = "x"; # simple password for localhost
+    mysql.dump = "${dataDir}/${name}.sql"; # database dumps
+    adminer.port = 8885; # database manager
+    traefik.port = 8886; # traefik dashboard
+    traefik.http.port = 8887; # redirects to https
+    traefik.https.port = 8888; # https reverse proxy
+    traefik.email = "dns@nonfiction.ca"; # acme
+  };
+
+  # Merge platform packages with pkgs
   mkPkgs = perSystem: 
     perSystem.nixpkgs // { platform = perSystem.platform or perSystem.self; };
 
+  # Base list of environment variables for devshell, plus extra
   mkEnv = config: extra: 
     let env = rec {
       WP_ENV = "development";
@@ -23,6 +43,7 @@
     } // extra; 
   in mapAttrsToList (name: value: { inherit name value; }) env;
 
+  # Base list of packages for devshell, plus extra
   mkPackages = pkgs: extra: [
     pkgs.platform.nf
     pkgs.platform.mysql
@@ -35,6 +56,7 @@
     pkgs.php82Packages.composer
   ] ++ extra;
 
+  # Base serviceGroup for devshell, plus extra
   mkServices = pkgs: extra: {
     platform.services = {
       mysqld.command = "${getExe pkgs.platform.mysqld}";
@@ -43,6 +65,7 @@
     };
   } // extra;
 
+  # Deterministic port number from string
   mkPort = str: let
     hash = builtins.hashString "sha256" str;
     firstChar = builtins.substring 0 1 hash;
@@ -52,5 +75,5 @@
   in 49152 + (hashNum - (portRange * (hashNum / portRange)));
 
 in {
-  inherit mkEnv mkPkgs mkPackages mkServices mkPort;
+  inherit mkConfig mkPkgs mkEnv mkPackages mkServices mkPort;
 }

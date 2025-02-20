@@ -1,6 +1,6 @@
 { flake, perSystem, ... }: let 
 
-  inherit (flake.lib) mkEnv mkPkgs mkPackages mkServices;
+  inherit (flake.lib) mkPkgs mkEnv mkPackages mkServices;
   inherit (flake) config;
   pkgs = mkPkgs perSystem;
 
