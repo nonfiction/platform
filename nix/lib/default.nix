@@ -1,19 +1,27 @@
 { flake, inputs, ... }: let 
 
-  inherit (builtins) toString;
+  inherit (builtins) replaceStrings toString;
   inherit (inputs.nixpkgs) lib;
   inherit (lib) getExe mapAttrsToList;
 
   mkPkgs = perSystem: 
     perSystem.nixpkgs // { platform = perSystem.platform or perSystem.self; };
 
-  mkEnv = config: extra: [
-    { name = "MAKEFLAGS"; value = "-f Makefile.local"; }
-    { name = "DOCKER_REGISTRY"; value = config.domain; }
-    { name = "DB_HOST"; value = "127.0.0.1"; }
-    { name = "DB_PORT"; value = toString config.mysql.port; }
-    { name = "DB_PASSWORD"; value = config.mysql.password; }
-  ] ++ mapAttrsToList (name: value: { inherit name value; }) extra;
+  mkEnv = config: extra: 
+    let env = rec {
+      WP_ENV = "development";
+      HOST = "${config.name}.${config.domain}"; 
+      DB_HOST = "127.0.0.1";
+      DB_PORT = toString config.mysql.port;
+      DB_NAME = replaceStrings [ "." ] [ "_" ] HOST;
+      DB_USER = config.name;
+      DB_PASSWORD = config.mysql.password;
+      HOST_USER = config.name;
+      HOST_PASSWORD = config.name;
+      MAKEFLAGS = "-f Makefile.local";
+      DOCKER_REGISTRY = config.domain;
+    } // extra; 
+  in mapAttrsToList (name: value: { inherit name value; }) env;
 
   mkPackages = pkgs: extra: [
     pkgs.platform.nf

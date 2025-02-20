@@ -10,11 +10,14 @@
   };
   outputs = inputs: inputs.blueprint { inherit inputs; prefix = "./nix"; } // {
     config = rec {
+      name = "platform";
       dataDir = "$HOME/.local/share/platform";
+      uploadsDir = "${dataDir}/uploads/${name}";
       domain = "local.nfweb.ca";
       mysql.port = 25060;
       mysql.username = "nonfiction";
       mysql.password = "x";
+      mysql.dump = "${dataDir}/${name}.sql";
       adminer.port = 8885;
       traefik.port = 8886;
       traefik.http.port = 8887;
