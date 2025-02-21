@@ -8,7 +8,7 @@
   mkConfig = name: rec {
     inherit name; # project name
     domain = "local.nfweb.ca"; # base domain
-    dataDir = "$HOME/.local/share/platform"; # base directory
+    dataDir = "~/.local/share/platform"; # base directory
     wp.uploadsDir = "${dataDir}/uploads/${name}"; # wp uploads
     wp.port = mkPort name; # published port
     mysql.port = 25060; # matches port used by do
