@@ -6,9 +6,9 @@
 
   # Template for flake configuration
   mkConfig = name: rec {
+    inherit name; # project name
     domain = "local.nfweb.ca"; # base domain
     dataDir = "$HOME/.local/share/platform"; # base directory
-    wp.name = name; # project name
     wp.uploadsDir = "${dataDir}/uploads/${name}"; # wp uploads
     wp.port = mkPort name; # published port
     mysql.port = 25060; # matches port used by do
@@ -29,20 +29,20 @@
   # Base list of environment variables for devshell, plus extra
   mkEnv = config: extra: 
     let env = rec {
+      NAME = config.name; 
       DB_DUMP = config.mysql.dump;
       DB_HOST = "host.docker.internal";
       DB_HOST_PORT = "${DB_HOST}:${DB_PORT}";
       DB_NAME = replaceStrings [ "." ] [ "_" ] HOST;
       DB_PASSWORD = config.mysql.password;
       DB_PORT = toString config.mysql.port;
-      DB_USER = WP_NAME;
+      DB_USER = NAME;
       DOCKER_REGISTRY = config.domain;
-      HOST = "${config.wp.name}.${config.domain}"; 
-      HOST_PASSWORD = WP_NAME;
-      HOST_USER = WP_NAME;
+      HOST = "${config.name}.${config.domain}"; 
+      HOST_PASSWORD = NAME;
+      HOST_USER = NAME;
       MAKEFLAGS = "-f Makefile.local";
       WP_ENV = "development";
-      WP_NAME = config.wp.name; 
       WP_PORT = config.wp.port;
       WP_UPLOADS_DIR = config.wp.uploadsDir;
     } // extra; 
