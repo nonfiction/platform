@@ -35,5 +35,5 @@
 in pkgs.writeScriptBin "nf" ''
   #!/usr/bin/env bash
   export PATH=${path}:${platform}/bin:$PATH
-  exec ${platform}/bin/nf ''${@}
+  exec ${platform}/bin/nf "''${@}"
 ''

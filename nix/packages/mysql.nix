@@ -14,5 +14,5 @@
 
 in pkgs.writeScriptBin "mysql" ''
   #!/usr/bin/env bash
-  exec ${mysql} ''${@} 
+  exec ${mysql} "''${@}" 
 ''

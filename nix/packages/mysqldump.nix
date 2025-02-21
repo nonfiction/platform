@@ -14,5 +14,5 @@
 
 in pkgs.writeScriptBin "mysqldump" ''
   #!/usr/bin/env bash
-  exec ${mysqldump} ''${@} 
+  exec ${mysqldump} "''${@}" 
 ''

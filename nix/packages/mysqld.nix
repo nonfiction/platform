@@ -73,5 +73,5 @@ in pkgs.writeScriptBin "mysqld" ''
   fi
 
   # Run mysql server
-  exec ${mysqld} ''${@} 
+  exec ${mysqld} "''${@}" 
 ''
