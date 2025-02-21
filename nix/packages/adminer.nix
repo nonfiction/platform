@@ -1,6 +1,7 @@
 { flake, pkgs, ... }: let
 
   inherit (builtins) toString;
+  inherit (flake.lib) expand;
   inherit (flake) config;
 
   adminer = toString [
@@ -25,7 +26,7 @@
 
 in pkgs.writeScriptBin "adminer" ''
   #!/usr/bin/env bash
-  mkdir -p ${config.dataDir}/traefik
-  ln -sf ${yaml} ${config.dataDir}/traefik/adminer.yaml
+  mkdir -p ${expand config.dataDir}/traefik
+  ln -sf ${yaml} ${expand config.dataDir}/traefik/adminer.yaml
   exec ${adminer} 
 ''

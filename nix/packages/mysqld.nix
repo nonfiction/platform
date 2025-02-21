@@ -1,10 +1,11 @@
 { flake, pkgs, ... }: let
 
   inherit (builtins) toString;
+  inherit (flake.lib) expand;
   inherit (flake) config;
 
-  dbDir = "${config.dataDir}/mysql";
-  dbSocket = "${config.dataDir}/mysql.sock";
+  dbDir = "${expand config.dataDir}/mysql";
+  dbSocket = "${expand config.dataDir}/mysql.sock";
 
   # Preset flags for mysql server
   mysqld = toString [
@@ -34,7 +35,7 @@
     "--password=${config.mysql.password}"
   ];
 
-  dbLog = "${config.dataDir}/mysql-init.log";
+  dbLog = "${expand config.dataDir}/mysql-init.log";
   dbInit = with config.mysql; pkgs.writeText "init.sql" ''
     ALTER USER 'root'@'localhost' IDENTIFIED BY '${password}';
     CREATE DATABASE IF NOT EXISTS ${username};

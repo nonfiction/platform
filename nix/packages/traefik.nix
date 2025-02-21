@@ -2,6 +2,7 @@
 
   inherit (builtins) toString;
   inherit (flake) config;
+  dataDir = flake.lib.expand config.dataDir;
 
   traefik = toString [
     "${pkgs.traefik}/bin/traefik"
@@ -19,12 +20,12 @@
     "--providers.docker.exposedByDefault=false"
     "--providers.docker.network=proxy"
     "--providers.file.watch=true"
-    "--providers.file.directory=${config.dataDir}/traefik"
+    "--providers.file.directory=${dataDir}/traefik"
     "--certificatesresolvers.digitalocean.acme.email=${config.traefik.email}"
     "--certificatesresolvers.digitalocean.acme.caServer=https://acme-v02.api.letsencrypt.org/directory"
     "--certificatesresolvers.digitalocean.acme.dnsChallenge.provider=digitalocean"
     "--certificatesresolvers.digitalocean.acme.dnsChallenge.delayBeforeCheck=0"
-    "--certificatesresolvers.digitalocean.acme.storage=${config.dataDir}/acme.json"
+    "--certificatesresolvers.digitalocean.acme.storage=${dataDir}/acme.json"
   ];
 
   yaml = (pkgs.formats.yaml {}).generate "dashboard.yaml" {
@@ -44,7 +45,7 @@
 in pkgs.writeScriptBin "traefik" ''
   #!/usr/bin/env bash
   export DO_AUTH_TOKEN
-  mkdir -p ${config.dataDir}/traefik
-  ln -sf ${yaml} ${config.dataDir}/traefik/traefik.yaml
+  mkdir -p ${dataDir}/traefik
+  ln -sf ${yaml} ${dataDir}/traefik/traefik.yaml
   exec ${traefik} ''${@} 
 ''

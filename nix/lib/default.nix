@@ -4,6 +4,9 @@
   inherit (inputs.nixpkgs) lib;
   inherit (lib) getExe mapAttrsToList;
 
+  # Resolve tilde to $HOME 
+  expand = str: replaceStrings ["~"] ["$HOME"] str;
+
   # Template for flake configuration
   mkConfig = name: rec {
     inherit name; # project name
@@ -50,15 +53,16 @@
 
   # Base list of packages for devshell, plus extra
   mkPackages = pkgs: extra: [
-    pkgs.platform.nf
-    pkgs.platform.mysql
-    pkgs.platform.mysqldump
+    pkgs.docker-compose
     pkgs.doctl
     pkgs.gh
     pkgs.gnumake
     pkgs.nodePackages.nodejs
     # pkgs.nodePackages.webpack-cli
     pkgs.php82Packages.composer
+    pkgs.platform.mysql
+    pkgs.platform.mysqldump
+    pkgs.platform.nf
   ] ++ extra;
 
   # Base serviceGroup for devshell, plus extra
@@ -80,5 +84,5 @@
   in 49152 + (hashNum - (portRange * (hashNum / portRange)));
 
 in {
-  inherit mkConfig mkPkgs mkEnv mkPackages mkServices mkPort;
+  inherit expand mkConfig mkPkgs mkEnv mkPackages mkServices mkPort;
 }
