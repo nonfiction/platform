@@ -6,11 +6,11 @@
 
 in perSystem.devshell.mkShell {
 
-  devshell.name = "platform";
+  devshell.name = config.wp.name;
   # motd = "";
 
   env = mkEnv config {
-    NAME = "platform";
+    NAME = config.wp.name; 
   };
 
   commands = [];
