@@ -15,6 +15,7 @@
     wp.uploadsDir = "${dataDir}/uploads/${name}"; # wp uploads
     wp.port = mkPort name; # published port
     mysql.port = 25060; # matches port used by do
+    mysql.socket = "${dataDir}/mysql.sock"; # alternative to port
     mysql.username = "nonfiction"; # additional db user
     mysql.password = "x"; # simple password for localhost
     mysql.dump = "${dataDir}/${name}.sql"; # database dumps
@@ -34,11 +35,11 @@
     let env = rec {
       NAME = config.name; 
       DB_DUMP = config.mysql.dump;
-      DB_HOST = "host.docker.internal";
-      DB_HOST_PORT = "${DB_HOST}:${DB_PORT}";
+      DB_HOST = "localhost:/run/mysqld/mysqld.sock";
       DB_NAME = replaceStrings [ "." ] [ "_" ] HOST;
       DB_PASSWORD = config.mysql.password;
       DB_PORT = toString config.mysql.port;
+      DB_SOCKET = config.mysql.socket;
       DB_USER = NAME;
       DOCKER_REGISTRY = config.domain;
       HOST = "${config.name}.${config.domain}"; 

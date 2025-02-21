@@ -29,7 +29,6 @@
     gh
     git 
     jq
-    # mariadb 
     mysql80
   ];
 

@@ -5,7 +5,7 @@
   inherit (flake) config;
 
   dbDir = "${expand config.dataDir}/mysql";
-  dbSocket = "${expand config.dataDir}/mysql.sock";
+  dbSocket = expand config.mysql.socket;
 
   # Preset flags for mysql server
   mysqld = toString [
@@ -38,9 +38,12 @@
   dbLog = "${expand config.dataDir}/mysql-init.log";
   dbInit = with config.mysql; pkgs.writeText "init.sql" ''
     ALTER USER 'root'@'localhost' IDENTIFIED BY '${password}';
+    CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '${password}';
+    CREATE USER IF NOT EXISTS '${username}'@'localhost' IDENTIFIED BY '${password}';
+    CREATE USER IF NOT EXISTS '${username}'@'%' IDENTIFIED BY '${password}';
     CREATE DATABASE IF NOT EXISTS ${username};
-    CREATE USER '${username}'@'localhost' IDENTIFIED BY '${password}';
-    GRANT ALL PRIVILEGES ON ${username}.* TO '${username}'@'localhost';
+    GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+    GRANT ALL PRIVILEGES ON *.* TO '${username}'@'%';
     FLUSH PRIVILEGES;
   '';
 

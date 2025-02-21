@@ -4,6 +4,8 @@
   inherit (flake.lib) expand;
   inherit (flake) config;
 
+  dataDir = "${expand config.dataDir}/traefik";
+
   adminer = toString [
     "${pkgs.php}/bin/php"
     "-S 0.0.0.0:${toString config.adminer.port}"
@@ -26,7 +28,7 @@
 
 in pkgs.writeScriptBin "adminer" ''
   #!/usr/bin/env bash
-  mkdir -p ${expand config.dataDir}/traefik
-  ln -sf ${yaml} ${expand config.dataDir}/traefik/adminer.yaml
+  mkdir -p ${dataDir}
+  ln -sf ${yaml} ${dataDir}/adminer.yaml
   exec ${adminer} 
 ''
