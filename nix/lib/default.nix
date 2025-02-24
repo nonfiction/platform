@@ -68,6 +68,13 @@ in rec {
     pkgs.process-compose
   ] ++ extra;
 
+  # Base list of commands for devshell, plus extra
+  mkCommands = config: extra: [{
+    name = "platform";
+    help = "launch platform and attach";
+    command = "process-compose -D && process-compose attach";
+  }] ++ extra;
+
   # Deterministic port number from string
   mkPort = str: let
     hash = builtins.hashString "sha256" str;
@@ -99,7 +106,6 @@ in rec {
     text = ''
       mkdir -p ${expand config.dataDir} ${expand config.wp.uploadsDir}
       ln -sf ${yaml} ./process-compose.yaml
-      bash -c 'process-compose -D > /dev/null 2>&1 & disown'
     '';
   in { inherit text; };
 

@@ -12,11 +12,7 @@ in perSystem.devshell.mkShell {
     NAME = config.name; 
   };
 
-  commands = [{ 
-    name = "platform";
-    help = "launch platform and attach";
-    command = "process-compose -D && process-compose attach";
-  }];
+  commands = flake.lib.mkCommands config [];
 
   packages = flake.lib.mkPackages pkgs [
     pkgs.cowsay
