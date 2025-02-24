@@ -101,6 +101,7 @@ in rec {
       ln -sf ${yaml} ./process-compose.yaml
       process-compose -D > /dev/null 2>&1 & disown
       echo ready
+      exit 0
     '';
   in { inherit text; };
 
