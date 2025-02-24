@@ -99,7 +99,7 @@ in rec {
     text = ''
       mkdir -p ${expand config.dataDir} ${expand config.wp.uploadsDir}
       ln -sf ${yaml} ./process-compose.yaml
-      process-compose -D
+      process-compose -D &
     '';
   in { inherit text; };
 
