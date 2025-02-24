@@ -10,7 +10,6 @@
   # Preset flags for mysql server
   mysqld = toString [
     "${pkgs.mysql80}/bin/mysqld"
-    "--port=${toString config.mysql.port}"
     "--user=$USER"
     "--socket=${dbSocket}"
     "--datadir=${dbDir}"

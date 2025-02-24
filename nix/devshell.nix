@@ -1,28 +1,25 @@
 { flake, perSystem, ... }: let 
 
-  inherit (flake.lib) mkPkgs mkEnv mkPackages mkServices;
   inherit (flake) config;
-  pkgs = mkPkgs perSystem;
+  pkgs = flake.lib.mkPkgs perSystem;
 
 in perSystem.devshell.mkShell {
 
   devshell.name = config.name;
-  # motd = "";
+  devshell.startup.platform = flake.lib.startup pkgs config;
 
-  env = mkEnv config {
+  env = flake.lib.mkEnv config {
     NAME = config.name; 
   };
 
-  commands = [];
+  commands = [{ 
+    name = "platform";
+    help = "launch platform and attach";
+    command = "process-compose -D && process-compose attach";
+  }];
 
-  packages = mkPackages pkgs [
+  packages = flake.lib.mkPackages pkgs [
     pkgs.cowsay
   ];
-
-  serviceGroups = mkServices pkgs {
-    web.services = {
-      ping.command = "ping ${config.domain}";
-    };
-  };
 
 }

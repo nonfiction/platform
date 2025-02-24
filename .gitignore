@@ -8,3 +8,4 @@ scratch
 result
 .direnv
 .data
+process-compose.yaml
