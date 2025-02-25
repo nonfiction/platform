@@ -2,26 +2,25 @@
 
   inherit (builtins) toString;
   inherit (flake.lib) expand;
-  inherit (flake) config;
-
-  dataDir = "${expand config.dataDir}/traefik";
+  cfg = flake.config;
+  dataDir = "${expand cfg.dataDir}/traefik";
 
   adminer = toString [
     "${pkgs.php}/bin/php"
-    "-S 0.0.0.0:${toString config.adminer.port}"
+    "-S 0.0.0.0:${toString cfg.adminer.port}"
     "${pkgs.adminer-pematon}/index.php"
   ];
 
   yaml = (pkgs.formats.yaml {}).generate "adminer.yaml" {
     http.routers.adminer = {
-      rule = "Host(`db.${config.domain}`)";
+      rule = "Host(`db.${cfg.domain}`)";
       service = "adminer";
       entryPoints = [ "websecure" ];
       tls = {};
     };
     http.services.adminer = {
       loadBalancer.servers = [{ 
-        url = "http://0.0.0.0:${toString config.adminer.port}";
+        url = "http://0.0.0.0:${toString cfg.adminer.port}";
       }];
     };
   };

@@ -2,14 +2,14 @@
 
   inherit (builtins) toString;
   inherit (flake.lib) expand;
-  inherit (flake) config;
+  cfg = flake.config;
 
   mysqldump = toString [
     "${pkgs.mysql80}/bin/mysqldump"
     "--host=localhost"
-    "--socket=${expand config.mysql.socket}"
+    "--socket=${expand cfg.mysql.socket}"
     "--user=root"
-    "--password=${config.mysql.password}"
+    "--password=${cfg.mysql.password}"
   ];
 
 in pkgs.writeScriptBin "mysqldump" ''

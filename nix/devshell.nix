@@ -1,20 +1,20 @@
 { flake, perSystem, ... }: let 
 
-  inherit (flake) config;
+  cfg = flake.config;
   pkgs = flake.lib.mkPkgs perSystem;
 
 in perSystem.devshell.mkShell {
 
-  devshell.name = config.name;
-  devshell.startup.platform = flake.lib.startup pkgs config;
+  devshell.name = cfg.name;
+  devshell.startup.platform = flake.lib.startup cfg pkgs; 
 
-  env = flake.lib.mkEnv config {
-    NAME = config.name; 
+  env = flake.lib.mkEnv cfg pkgs {
+    NAME = cfg.name; 
   };
 
-  commands = flake.lib.mkCommands config [];
+  commands = flake.lib.mkCommands cfg pkgs [];
 
-  packages = flake.lib.mkPackages pkgs [
+  packages = flake.lib.mkPackages cfg pkgs [
     pkgs.cowsay
   ];
 

@@ -24,27 +24,34 @@ in rec {
     traefik.https.port = 8888; # https reverse proxy
     traefik.email = "dns@nonfiction.ca"; # acme
     dataDir = "~/.local/share/platform"; # base directory
+    secrets = [ "DO_AUTH_TOKEN" ]; # list of secret env variables
   };
 
   # Base list of environment variables for devshell, plus extra
-  mkEnv = config: extra: 
-    let env = rec {
-      NAME = config.name; # project/image name
-      HOST = config.host; # project url
-      DB_DUMP = config.mysql.dump;
+  mkEnv = cfg: pkgs: extra: let 
+
+    secrets = map (name: { 
+      inherit name; eval = "$(cat ${cfg.dataDir}/secrets/${name} 2>/dev/null)"; 
+    }) cfg.secrets;
+
+    env = rec {
+      NAME = cfg.name; # project/image name
+      HOST = cfg.host; # project url
+      DB_DUMP = cfg.mysql.dump;
       DB_HOST = "localhost:/run/mysqld/mysqld.sock"; # bind mount, container
-      DB_SOCKET = config.mysql.socket; # bind mount, host
-      DB_NAME = config.mysql.database;
-      DB_PASSWORD = config.mysql.password;
-      DB_USER = config.name;
-      DOCKER_REGISTRY = config.domain;
+      DB_SOCKET = cfg.mysql.socket; # bind mount, host
+      DB_NAME = cfg.mysql.database;
+      DB_PASSWORD = cfg.mysql.password;
+      DB_USER = cfg.name;
+      DOCKER_REGISTRY = cfg.domain;
       MAKEFLAGS = "-f Makefile.local";
       WP_ENV = "development";
-      WP_PORT = config.wp.port;
-      WP_UPLOADS_DIR = config.wp.uploadsDir;
+      WP_PORT = cfg.wp.port;
+      WP_UPLOADS_DIR = cfg.wp.uploadsDir;
       PC_PORT_NUM = 8889; # process-compose api port
     } // extra; 
-  in mapAttrsToList (name: value: { inherit name value; }) env;
+
+  in secrets ++ (mapAttrsToList (name: value: { inherit name value; }) env);
 
   # Resolve tilde to $HOME 
   expand = str: replaceStrings ["~"] ["$HOME"] str;
@@ -54,22 +61,32 @@ in rec {
     perSystem.nixpkgs // { platform = perSystem.platform or perSystem.self; };
 
   # Base list of packages for devshell, plus extra
-  mkPackages = pkgs: extra: [
+  mkPackages = cfg: pkgs: extra: [
     pkgs.docker-compose
     pkgs.doctl
     pkgs.gh
+    pkgs.git
     pkgs.gnumake
+    pkgs.lazydocker
+    pkgs.lazygit
     pkgs.nodePackages.nodejs
     # pkgs.nodePackages.webpack-cli
     pkgs.php82Packages.composer
     pkgs.platform.mysql
     pkgs.platform.mysqldump
     pkgs.platform.nf
+    pkgs.platform.secrets
     pkgs.process-compose
+    pkgs.smenu
   ] ++ extra;
 
   # Base list of commands for devshell, plus extra
-  mkCommands = config: extra: [{
+  mkCommands = cfg: pkgs: extra: [{
+    name = "secrets";
+    help = "edit platform secrets";
+    package = pkgs.platform.secrets;
+  } {
+  # mkCommands = cfg: pkgs: extra: [{
     name = "platform";
     help = "launch platform and attach";
     command = "process-compose -D && process-compose attach";
@@ -84,8 +101,8 @@ in rec {
     portRange = 65535 - 49152;
   in 49152 + (hashNum - (portRange * (hashNum / portRange)));
 
-  # devshell.startup.platform = flake.lib.startup pkgs config;
-  startup = pkgs: config: let
+  # devshell.startup.platform = flake.lib.startup pkgs cfg;
+  startup = cfg: pkgs: let
     yaml = pkgs.writeTextFile {
       name = "process-compose.yaml";
       text = builtins.toJSON {
@@ -104,16 +121,17 @@ in rec {
       };
     };
     text = ''
-      mkdir -p ${expand config.dataDir} ${expand config.wp.uploadsDir}
       ln -sf ${yaml} ./process-compose.yaml
+      mkdir -p ${expand cfg.dataDir} ${expand cfg.wp.uploadsDir}
+      [[ -d ${expand cfg.dataDir}/secrets ]] || secrets
     '';
   in { inherit text; };
 
   # Generate db init sql to create new user/database
-  dbInit = pkgs: config: let  
-    user = config.name; 
-    admin = config.mysql.username; 
-    inherit (config.mysql) password database;
+  dbInit = cfg: pkgs: let  
+    user = cfg.name; 
+    admin = cfg.mysql.username; 
+    inherit (cfg.mysql) password database;
   in pkgs.writeText "init.sql" ''
     SET @row_count = (SELECT COUNT(*) FROM mysql.user WHERE user='${user}' AND host='%';);
     IF @row_count < 1 THEN
@@ -123,5 +141,8 @@ in rec {
     GRANT ALL ON ${database}.* TO '${user}'@'%';
     GRANT ALL ON ${database}.* TO '${admin}'@'%';
   '';
+
+  # Bash script helpers
+  helpers = ./helpers.sh;
 
 }
