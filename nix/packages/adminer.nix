@@ -1,7 +1,7 @@
 { flake, pkgs, ... }: let
 
   inherit (builtins) toString;
-  inherit (flake.lib) expand;
+  inherit (flake.lib) expand traefik;
   cfg = flake.config;
   dataDir = "${expand cfg.dataDir}/traefik";
 
@@ -12,17 +12,10 @@
   ];
 
   yaml = (pkgs.formats.yaml {}).generate "adminer.yaml" {
-    http.routers.adminer = {
-      rule = "Host(`db.${cfg.domain}`)";
+    http.routers.adminer = traefik.router "db" cfg.domain // {
       service = "adminer";
-      entryPoints = [ "websecure" ];
-      tls = {};
     };
-    http.services.adminer = {
-      loadBalancer.servers = [{ 
-        url = "http://0.0.0.0:${toString cfg.adminer.port}";
-      }];
-    };
+    http.services.adminer = traefik.service cfg.adminer.port;
   };
 
 in pkgs.writeScriptBin "adminer" ''

@@ -2,7 +2,7 @@ args@{ flake, inputs, ... }: let
 
   inherit (builtins) replaceStrings toString;
   inherit (inputs.nixpkgs) lib;
-  inherit (lib) getExe mapAttrsToList;
+  inherit (lib) concatStringsSep filter getExe mapAttrsToList;
 
 in rec {
 
@@ -20,6 +20,21 @@ in rec {
 
   # Resolve tilde to $HOME 
   expand = str: replaceStrings ["~"] ["$HOME"] str;
+
+  # Preset config for traefik router
+  traefik.router = sub: domain: {
+    entryPoints = [ "websecure" ];
+    rule = "Host(`${concatStringsSep "." (filter (x: x != "") [ sub domain ])}`)";
+    tls.certresolver = "resolver-dns";
+    tls.domains = [{ main = "${domain}"; sans = "*.${domain}"; }];
+  };
+
+  # Preset config for traefik service
+  traefik.service = port: {
+    loadBalancer.servers = [{ 
+      url = "http://0.0.0.0:${toString port}";
+    }];
+  };
 
   # Generate db init sql to create new user/database
   dbInit = cfg: pkgs: let  
