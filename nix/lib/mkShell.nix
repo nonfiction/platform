@@ -82,17 +82,17 @@ in perSystem.devshell.mkShell {
   } {
     category = "docker";
     name = "build";
-    help = "build container!";
+    help = "build container";
     command = "docker compose build";
   } {
     category = "docker";
     name = "up";
-    help = "run container!";
+    help = "run container";
     command = "docker compose up -d";
   } {
     category = "docker";
     name = "logs";
-    help = "container logs!";
+    help = "container logs";
     command = "docker compose logs -f";
   }] ++ (extra.commands or []);
 
