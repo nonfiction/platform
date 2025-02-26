@@ -1,0 +1,66 @@
+# Dotenv
+.env
+
+# Webpack
+node_modules
+web/assets/dist/*
+!web/assets/dist/.gitkeep
+
+# Imports/Exports
+data/*
+!data/.gitkeep
+
+# Composer
+vendor/*
+!vendor/.gitkeep
+
+# WP core
+web/wp
+
+# Symlinked from app/views
+web/assets/img
+web/content/app
+web/wp-content
+web/app
+
+# WP mu-plugins
+web/content/mu-plugins/*
+!web/content/mu-plugins/bedrock-autoloader.php
+!web/content/mu-plugins/register-theme-directory.php
+
+# WP plugins
+web/content/plugins/*
+!web/content/plugins/.gitkeep
+!web/content/plugins/nf*
+web/content/plugins/nf-tweak-*
+
+# WP themes
+web/content/themes/*
+!web/content/themes/.gitkeep
+
+# WP uploads
+web/content/uploads/*
+!web/content/uploads/.gitkeep
+
+# WP cache
+web/content/cache/*
+!web/content/cache/.gitkeep
+web/content/settings/*
+!web/content/settings/.gitkeep
+web/content/cfw-data
+
+# Logs
+web/content/debug.log
+
+# Generated deploy files
+deploy/*
+!deploy/.gitkeep
+
+# Misc
+scratch
+.htaccess
+
+# local
+.direnv
+.data
+process-compose.yaml

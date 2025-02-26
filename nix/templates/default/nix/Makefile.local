@@ -1,0 +1,4 @@
+.PHONY: deploy
+
+all:
+	@echo -e "wip"

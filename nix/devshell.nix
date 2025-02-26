@@ -1,21 +1,30 @@
-{ flake, perSystem, ... }: let 
+{ flake, perSystem, pkgs, ... }: let 
 
   cfg = flake.config;
-  pkgs = flake.lib.mkPkgs perSystem;
+  inherit (flake.lib) mkShell;
 
-in perSystem.devshell.mkShell {
+# Example creating devshell
+in mkShell flake perSystem {
 
-  devshell.name = cfg.name;
-  devshell.startup.platform = flake.lib.startup cfg pkgs; 
+  # Example appending to the startup script
+  startup = ''
+    echo "Hello world!"
+  '';
 
-  env = flake.lib.mkEnv cfg pkgs {
-    NAME = cfg.name; 
+  # Example of adding an environment variable
+  env = {
+    FOO = "bar";
   };
 
-  commands = flake.lib.mkCommands cfg pkgs [];
+  # Example of adding a command
+  commands = [{ 
+    name = "list"; 
+    command = "ls -lah"; 
+    help = "list files"; 
+  }];
 
-  packages = flake.lib.mkPackages cfg pkgs [
-    pkgs.cowsay
+  # Example of adding a package
+  packages = [ 
+    pkgs.cowsay 
   ];
-
 }

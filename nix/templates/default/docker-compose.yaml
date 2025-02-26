@@ -1,0 +1,73 @@
+services:
+
+  # Wordpress
+  srv:
+    image: ${NAME}
+    build: .
+    environment:
+      - HOST
+      - WP_ENV
+      - DB_HOST
+      - DB_NAME
+      - DB_PASSWORD
+      - DB_USER
+      - SMTP_HOST
+      - SMTP_PASSWORD
+      - SMTP_PORT
+      - SMTP_USER
+    volumes:
+      - cache:/srv/web/content/cache
+      - settings:/srv/web/content/settings
+      - ${WP_UPLOADS_DIR}:/srv/web/content/uploads
+      - ${DB_SOCKET}:/var/run/mysqld/mysqld.sock
+      - ${DB_DUMP}:/srv/dump.sql
+      - ./app:/srv/app
+      - ./config:/srv/config
+      - ./src:/srv/src
+      - ./theme:/srv/theme
+      - ./vendor:/srv/vendor
+      - ./web:/srv/web
+      - ./web/content/advanced-cache.php:/srv/web/content/advanced-cache.php:ro
+      - ./web/content/object-cache.php:/srv/web/content/object-cache.php:ro
+      - ./web/content/db.php:/srv/web/content/db.php:ro
+    ports:
+      - ${WP_PORT}:443
+    networks:
+      - backend
+
+  # Cron
+  cron:
+    image: nonfiction/wordpress-cron:v3
+    environment:
+      - HOST
+      - HOST_USER=${NAME}
+      - HOST_PASSWORD=${NAME}
+      - DB_HOST
+      - DB_NAME
+      - DB_USER
+      - DB_PASSWORD
+    volumes:
+      - ${DB_DUMP}:/srv/dump.sql
+      - ${DB_SOCKET}:/var/run/mysqld/mysqld.sock
+    networks:
+      - backend
+
+  # Object Cache
+  redis:
+    image: redis:alpine
+    command: >
+      redis-server
+      --databases 1
+      --maxmemory 50mb
+      --maxmemory-policy allkeys-lru
+    networks:
+      - backend
+    extra_hosts:
+      - host.docker.internal:172.17.0.1
+
+networks:
+  backend:
+
+volumes:
+  cache:
+  settings:
