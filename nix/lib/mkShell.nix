@@ -1,5 +1,4 @@
-{ inputs, ... }: let
-  inherit (inputs.nixpkgs) lib;
+{ lib, ... }: let
   inherit (lib) getExe mapAttrsToList;
 
 # Standard devshell for all platform projects

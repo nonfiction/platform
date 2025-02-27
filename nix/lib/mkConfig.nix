@@ -1,10 +1,12 @@
-{ flake, ... }: let 
-  inherit (builtins) replaceStrings;
-  inherit (flake.lib) mkPort;
+{ flake, lib, ... }: let 
+
+  inherit (builtins) head length replaceStrings;
+  inherit (lib) isAttrs isList last zipAttrsWith;
+  inherit (flake.lib) merge mkPort;
 in 
 
   # Template for flake configuration
-  name: rec {
+  name: merge rec {
 
     inherit name; # project name
     domain = "local.nfweb.ca"; # base domain
@@ -24,4 +26,4 @@ in
     dataDir = "~/.local/share/platform"; # base directory
     secrets = [ "DO_AUTH_TOKEN" ]; # list of secret env variables
 
-  }
+  } flake.lib.config or {}

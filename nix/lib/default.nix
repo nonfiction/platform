@@ -1,10 +1,19 @@
-args@{ flake, inputs, ... }: let 
+{ flake, inputs, ... }: let 
 
-  inherit (builtins) replaceStrings toString;
+  # Module args with lib included
   inherit (inputs.nixpkgs) lib;
-  inherit (lib) concatStringsSep filter getExe mapAttrsToList;
+  args = { inherit flake inputs lib; };
 
 in rec {
+
+  # Resolve tilde to $HOME 
+  expand = str: builtins.replaceStrings ["~"] ["$HOME"] str;
+
+  # Bash script helpers
+  helpers = ./helpers.sh;
+
+  # Custom merge function that concatenates lists
+  merge = import ./merge.nix args;
 
   # Template for flake configuration
   mkConfig = import ./mkConfig.nix args;
@@ -15,26 +24,8 @@ in rec {
   # Standard devshell for all platform projects
   mkShell = import ./mkShell.nix args;
 
-  # Bash script helpers
-  helpers = ./helpers.sh;
-
-  # Resolve tilde to $HOME 
-  expand = str: replaceStrings ["~"] ["$HOME"] str;
-
-  # Preset config for traefik router
-  traefik.router = sub: domain: {
-    entryPoints = [ "websecure" ];
-    rule = "Host(`${concatStringsSep "." (filter (x: x != "") [ sub domain ])}`)";
-    tls.certresolver = "resolver-dns";
-    tls.domains = [{ main = "${domain}"; sans = "*.${domain}"; }];
-  };
-
-  # Preset config for traefik service
-  traefik.service = port: {
-    loadBalancer.servers = [{ 
-      url = "http://0.0.0.0:${toString port}";
-    }];
-  };
+  # Preset traefik configs for routers and services
+  traefik = import ./traefik.nix args;
 
   # Generate db init sql to create new user/database
   dbInit = config: pkgs: let  
@@ -50,6 +41,5 @@ in rec {
     GRANT ALL ON ${database}.* TO '${user}'@'%';
     GRANT ALL ON ${database}.* TO '${admin}'@'%';
   '';
-
 
 }
