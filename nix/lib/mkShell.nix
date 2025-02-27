@@ -53,6 +53,21 @@ in flake: perSystem: extra: let
     };
   };
 
+  init.sql = with config; pkgs.writeText "init.sql" ''
+    SET @row_count = (SELECT COUNT(*) FROM mysql.user WHERE user='${name}' AND host='%';);
+    IF @row_count < 1 THEN
+      CREATE USER '${name}'@'%' IDENTIFIED WITH mysql_native_password BY '${mysql.password}';
+    END IF;
+    CREATE DATABASE IF NOT EXISTS ${mysql.database} DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+    GRANT ALL ON ${mysql.database}.* TO '${name}'@'%';
+    GRANT ALL ON ${mysql.database}.* TO '${mysql.username}'@'%';
+  '';
+
+  # init.db = pkgs.writeScriptBin "mysql" ''
+  #   #!/usr/bin/env bash
+  #   mysql < ${init.sql}
+  # '';
+
 in perSystem.devshell.mkShell {
 
   # Set name of devshell from config
@@ -78,6 +93,15 @@ in perSystem.devshell.mkShell {
     name = "platform";
     help = "launch platform and attach";
     command = "process-compose -D && process-compose attach";
+  } {
+    category = "docker";
+    name = "init";
+    help = "setup database & install dependencies";
+    command = ''
+      mysql < ${init.sql}
+      npm update --save-dev
+      compose update && composer dump-autoload -o
+    '';
   } {
     category = "docker";
     name = "build";
@@ -107,6 +131,7 @@ in perSystem.devshell.mkShell {
     pkgs.nodePackages.nodejs
     # pkgs.nodePackages.webpack-cli
     pkgs.php82Packages.composer
+    pkgs.platform.hostname
     pkgs.platform.mysql
     pkgs.platform.mysqldump
     pkgs.platform.nf

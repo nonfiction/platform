@@ -1,4 +1,4 @@
-{ pkgs, ... }: let
+{ perSystem, pkgs,... }: let
 
   # Create scripts derivation for a given system
   platform = pkgs.stdenv.mkDerivation {
@@ -30,6 +30,7 @@
     git 
     jq
     mysql80
+    perSystem.self.hostname
   ];
 
 in pkgs.writeScriptBin "nf" ''
