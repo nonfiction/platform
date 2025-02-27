@@ -1,6 +1,6 @@
 { flake, perSystem, pkgs, ... }: let 
 
-  cfg = flake.config;
+  inherit (flake) config;
   inherit (flake.lib) mkShell;
 
 in mkShell flake perSystem {

@@ -2,20 +2,20 @@
 
   inherit (builtins) toString;
   inherit (flake.lib) expand traefik;
-  cfg = flake.config;
-  dataDir = "${expand cfg.dataDir}/traefik";
+  inherit (flake) config;
+  dataDir = "${expand config.dataDir}/traefik";
 
   adminer = toString [
     "${pkgs.php}/bin/php"
-    "-S 0.0.0.0:${toString cfg.adminer.port}"
+    "-S 0.0.0.0:${toString config.adminer.port}"
     "${pkgs.adminer-pematon}/index.php"
   ];
 
   yaml = (pkgs.formats.yaml {}).generate "adminer.yaml" {
-    http.routers.adminer = traefik.router "db" cfg.domain // {
+    http.routers.adminer = traefik.router "db" config.domain // {
       service = "adminer";
     };
-    http.services.adminer = traefik.service cfg.adminer.port;
+    http.services.adminer = traefik.service config.adminer.port;
   };
 
 in pkgs.writeScriptBin "adminer" ''

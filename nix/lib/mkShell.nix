@@ -5,33 +5,33 @@
 # Standard devshell for all platform projects
 in flake: perSystem: extra: let
 
-  # This system's flake lib and config
+  # This system's flake config and lib
+  inherit (flake) config;
   inherit (flake.lib) expand;
-  cfg = flake.config;
 
   # Merge platform packages with pkgs
   pkgs = perSystem.nixpkgs // { platform = perSystem.platform or perSystem.self; };
 
   # List of secrets to merge with env
   secrets = map (name: { 
-    inherit name; eval = "$(cat ${cfg.dataDir}/secrets/${name} 2>/dev/null)"; 
-  }) cfg.secrets;
+    inherit name; eval = "$(cat ${config.dataDir}/secrets/${name} 2>/dev/null)"; 
+  }) config.secrets;
 
   # Convert config values to base list of environment variables
   env = rec {
-    NAME = cfg.name; # project/image name
-    HOST = cfg.host; # project url
-    DB_DUMP = cfg.mysql.dump;
+    NAME = config.name; # project/image name
+    HOST = config.host; # project url
+    DB_DUMP = config.mysql.dump;
     DB_HOST = "localhost:/run/mysqld/mysqld.sock"; # bind mount, container
-    DB_SOCKET = cfg.mysql.socket; # bind mount, host
-    DB_NAME = cfg.mysql.database;
-    DB_PASSWORD = cfg.mysql.password;
-    DB_USER = cfg.name;
-    DOCKER_REGISTRY = cfg.domain;
+    DB_SOCKET = config.mysql.socket; # bind mount, host
+    DB_NAME = config.mysql.database;
+    DB_PASSWORD = config.mysql.password;
+    DB_USER = config.name;
+    DOCKER_REGISTRY = config.domain;
     MAKEFLAGS = "-f Makefile.local";
     WP_ENV = "development";
-    WP_PORT = cfg.wp.port;
-    WP_UPLOADS_DIR = cfg.wp.uploadsDir;
+    WP_PORT = config.wp.port;
+    WP_UPLOADS_DIR = config.wp.uploadsDir;
     PC_PORT_NUM = 8889; # process-compose api port
   } // (extra.env or {}); 
 
@@ -57,13 +57,13 @@ in flake: perSystem: extra: let
 in perSystem.devshell.mkShell {
 
   # Set name of devshell from config
-  devshell.name = cfg.name;
+  devshell.name = config.name;
 
   # Startup script of devshell, plus extra
   devshell.startup.platform.text = ''
     ln -sf ${process-compose} ./process-compose.yaml
-    mkdir -p ${expand cfg.dataDir} ${expand cfg.wp.uploadsDir}
-    [[ -d ${expand cfg.dataDir}/secrets ]] || secrets
+    mkdir -p ${expand config.dataDir} ${expand config.wp.uploadsDir}
+    [[ -d ${expand config.dataDir}/secrets ]] || secrets
     ${extra.startup or ""}
   ''; 
 

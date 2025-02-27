@@ -1,8 +1,8 @@
 { flake, pkgs, ... }: let
 
   inherit (builtins) toString;
-  cfg = flake.config;
-  dataDir = flake.lib.expand cfg.dataDir;
+  inherit (flake) config lib;
+  dataDir = lib.expand config.dataDir;
 
   traefik = toString [
     "${pkgs.traefik}/bin/traefik"
@@ -21,13 +21,13 @@
     # Enable the Dashboard and API
     "--api.dashboard=true"
     "--api.insecure=true"
-    "--entryPoints.traefik.address=:${toString cfg.traefik.port}"
+    "--entryPoints.traefik.address=:${toString config.traefik.port}"
 
     # Create entrypoints http/https listening on ports from config
-    "--entryPoints.web.address=:${toString cfg.traefik.http.port}"
+    "--entryPoints.web.address=:${toString config.traefik.http.port}"
     "--entryPoints.web.http.redirections.entryPoint.to=websecure"
     "--entryPoints.web.http.redirections.entryPoint.scheme=https"
-    "--entryPoints.websecure.address=:${toString cfg.traefik.https.port}"
+    "--entryPoints.websecure.address=:${toString config.traefik.https.port}"
     
     # Support auto-renewing https certificates
     "--certificatesResolvers.resolver-dns.acme.dnsChallenge=true"
@@ -35,7 +35,7 @@
     "--certificatesResolvers.resolver-dns.acme.dnsChallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
     "--certificatesResolvers.resolver-dns.acme.dnsChallenge.delayBeforeCheck=0"
     "--certificatesResolvers.resolver-dns.acme.storage=${dataDir}/acme.json"
-    "--certificatesResolvers.resolver-dns.acme.email=${cfg.traefik.email}"
+    "--certificatesResolvers.resolver-dns.acme.email=${config.traefik.email}"
 
     # Watch configuration files
     "--providers.file.watch=true"
@@ -46,10 +46,10 @@
   yaml = (pkgs.formats.yaml {}).generate "dashboard.yaml" {
 
     # Dashboard
-    http.routers.dashboard = flake.lib.traefik.router "" cfg.domain // {
+    http.routers.dashboard = lib.traefik.router "" config.domain // {
       service = "api@internal";
     };
-    http.services.dashboard = flake.lib.traefik.service cfg.traefik.port;
+    http.services.dashboard = lib.traefik.service config.traefik.port;
 
   };
 

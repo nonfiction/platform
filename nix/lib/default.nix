@@ -37,10 +37,10 @@ in rec {
   };
 
   # Generate db init sql to create new user/database
-  dbInit = cfg: pkgs: let  
-    user = cfg.name; 
-    admin = cfg.mysql.username; 
-    inherit (cfg.mysql) password database;
+  dbInit = config: pkgs: let  
+    user = config.name; 
+    admin = config.mysql.username; 
+    inherit (config.mysql) password database;
   in pkgs.writeText "init.sql" ''
     SET @row_count = (SELECT COUNT(*) FROM mysql.user WHERE user='${user}' AND host='%';);
     IF @row_count < 1 THEN

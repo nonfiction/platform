@@ -2,10 +2,10 @@
 
   inherit (builtins) toString;
   inherit (flake.lib) expand;
-  cfg = flake.config;
+  inherit (flake) config;
 
-  dbDir = "${expand cfg.dataDir}/mysql";
-  dbSocket = expand cfg.mysql.socket;
+  dbDir = "${expand config.dataDir}/mysql";
+  dbSocket = expand config.mysql.socket;
 
   # Preset flags for mysql server
   mysqld = toString [
@@ -31,11 +31,11 @@
     "${pkgs.mysql80}/bin/mysqladmin"
     "--user=root"
     "--socket=${dbSocket}"
-    "--password=${cfg.mysql.password}"
+    "--password=${config.mysql.password}"
   ];
 
-  dbLog = "${expand cfg.dataDir}/mysql-init.log";
-  dbInit = with cfg.mysql; pkgs.writeText "init.sql" ''
+  dbLog = "${expand config.dataDir}/mysql-init.log";
+  dbInit = with config.mysql; pkgs.writeText "init.sql" ''
     ALTER USER 'root'@'localhost' IDENTIFIED BY '${password}';
     CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '${password}';
     CREATE USER IF NOT EXISTS '${username}'@'localhost' IDENTIFIED BY '${password}';
