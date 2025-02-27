@@ -6,7 +6,7 @@ in flake: perSystem: extra: let
 
   # This system's flake config and lib
   inherit (flake) config;
-  inherit (flake.lib) expand;
+  inherit (flake.lib) expand helpers;
 
   # Merge platform packages with pkgs
   pkgs = perSystem.nixpkgs // { platform = perSystem.platform or perSystem.self; };
@@ -53,21 +53,6 @@ in flake: perSystem: extra: let
     };
   };
 
-  init.sql = with config; pkgs.writeText "init.sql" ''
-    SET @row_count = (SELECT COUNT(*) FROM mysql.user WHERE user='${name}' AND host='%';);
-    IF @row_count < 1 THEN
-      CREATE USER '${name}'@'%' IDENTIFIED WITH mysql_native_password BY '${mysql.password}';
-    END IF;
-    CREATE DATABASE IF NOT EXISTS ${mysql.database} DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
-    GRANT ALL ON ${mysql.database}.* TO '${name}'@'%';
-    GRANT ALL ON ${mysql.database}.* TO '${mysql.username}'@'%';
-  '';
-
-  # init.db = pkgs.writeScriptBin "mysql" ''
-  #   #!/usr/bin/env bash
-  #   mysql < ${init.sql}
-  # '';
-
 in perSystem.devshell.mkShell {
 
   # Set name of devshell from config
@@ -97,10 +82,20 @@ in perSystem.devshell.mkShell {
     category = "docker";
     name = "init";
     help = "setup database & install dependencies";
-    command = ''
-      mysql < ${init.sql}
+    command = let sql = with config; pkgs.writeText "init.sql" ''
+        CREATE USER IF NOT EXISTS '${name}'@'%' IDENTIFIED BY '${mysql.password}';
+        CREATE DATABASE IF NOT EXISTS ${mysql.database} DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+        GRANT ALL ON ${mysql.database}.* TO '${name}'@'%';
+        GRANT ALL ON ${mysql.database}.* TO '${mysql.username}'@'%';
+      '';
+    in ''
+      source ${helpers}
+      info "mysql"
+      mysql -vvv < ${sql} 2>/dev/null
+      info "npm"
       npm update --save-dev
-      compose update && composer dump-autoload -o
+      info "composer"
+      composer update && composer dump-autoload -o
     '';
   } {
     category = "docker";
