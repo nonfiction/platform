@@ -1,6 +1,8 @@
-{ flake, pkgs, ... }: let
-
-  inherit (builtins) toString;
+{
+  flake,
+  pkgs,
+  ...
+}: let
   inherit (flake.lib) expand;
   inherit (flake) config;
 
@@ -35,42 +37,47 @@
   ];
 
   dbLog = "${expand config.dataDir}/mysql-init.log";
-  dbInit = with config.mysql; pkgs.writeText "init.sql" ''
-    ALTER USER 'root'@'localhost' IDENTIFIED BY '${password}';
-    CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '${password}';
-    CREATE USER IF NOT EXISTS '${username}'@'localhost' IDENTIFIED BY '${password}';
-    CREATE USER IF NOT EXISTS '${username}'@'%' IDENTIFIED BY '${password}';
-    CREATE DATABASE IF NOT EXISTS ${username};
-    GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
-    GRANT ALL PRIVILEGES ON *.* TO '${username}'@'%';
-    FLUSH PRIVILEGES;
-  '';
+  dbInit = with config.mysql;
+    pkgs.writeText "init.sql"
+    # mysql
+    ''
+      ALTER USER 'root'@'localhost' IDENTIFIED BY '${password}';
+      CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '${password}';
+      CREATE USER IF NOT EXISTS '${username}'@'localhost' IDENTIFIED BY '${password}';
+      CREATE USER IF NOT EXISTS '${username}'@'%' IDENTIFIED BY '${password}';
+      CREATE DATABASE IF NOT EXISTS ${username};
+      GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+      GRANT ALL PRIVILEGES ON *.* TO '${username}'@'%';
+      FLUSH PRIVILEGES;
+    '';
 
   grep = "${pkgs.gnugrep}/bin/grep";
   sleep = "${pkgs.coreutils}/bin/sleep";
+  # Wrapper for mysqld to automate initialization if needed
+in
+  pkgs.writeScriptBin "mysqld"
+  # bash
+  ''
+    #!/usr/bin/env bash
 
-# Wrapper for mysqld to automate initialization if needed
-in pkgs.writeScriptBin "mysqld" ''
-  #!/usr/bin/env bash
+    # Check if datadir exists
+    if [ ! -d "${dbDir}" ]; then
 
-  # Check if datadir exists
-  if [ ! -d "${dbDir}" ]; then
+      # If missing, create ensure init log is empty
+      mkdir -p ${dbDir}
+      rm -f ${dbLog}
 
-    # If missing, create ensure init log is empty
-    mkdir -p ${dbDir}
-    rm -f ${dbLog}
+      # Initialize mysql and save temp password to variable
+      ${mysqld} --initialize --log-error=${dbLog}
+      PASS=$(${grep} 'temporary password' "${dbLog}" | awk '{print $NF}')
 
-    # Initialize mysql and save temp password to variable
-    ${mysqld} --initialize --log-error=${dbLog} 
-    PASS=$(${grep} 'temporary password' "${dbLog}" | awk '{print $NF}')
+      # Start mysql, update root password and create regular user, shutdown again
+      ${mysqld} --skip-networking &
+      ${sleep} 5
+      ${mysql} --password="$PASS" < ${dbInit}
+      ${mysqladmin} shutdown
+    fi
 
-    # Start mysql, update root password and create regular user, shutdown again
-    ${mysqld} --skip-networking &
-    ${sleep} 5
-    ${mysql} --password="$PASS" < ${dbInit}
-    ${mysqladmin} shutdown
-  fi
-
-  # Run mysql server
-  exec ${mysqld} "''${@}" 
-''
+    # Run mysql server
+    exec ${mysqld} "''${@}"
+  ''

@@ -1,6 +1,8 @@
-{ flake, pkgs, ... }: let
-
-  inherit (builtins) toString;
+{
+  flake,
+  pkgs,
+  ...
+}: let
   inherit (flake.lib) expand;
   inherit (flake) config;
 
@@ -11,8 +13,10 @@
     "--user=root"
     "--password=${config.mysql.password}"
   ];
-
-in pkgs.writeScriptBin "mysqldump" ''
-  #!/usr/bin/env bash
-  exec ${mysqldump} "''${@}" 
-''
+in
+  pkgs.writeScriptBin "mysqldump"
+  # bash
+  ''
+    #!/usr/bin/env bash
+    exec ${mysqldump} "''${@}"
+  ''

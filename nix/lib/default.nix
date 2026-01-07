@@ -1,12 +1,10 @@
-{ flake, inputs, ... }: let 
-
+{flake, ...}: let
   # Module args with lib included
+  inherit (flake) inputs;
   inherit (inputs.nixpkgs) lib;
-  args = { inherit flake inputs lib; };
-
-in rec {
-
-  # Resolve tilde to $HOME 
+  args = {inherit flake inputs lib;};
+in {
+  # Resolve tilde to $HOME
   expand = str: builtins.replaceStrings ["~"] ["$HOME"] str;
 
   # Bash script helpers
@@ -28,18 +26,20 @@ in rec {
   traefik = import ./traefik.nix args;
 
   # Generate db init sql to create new user/database
-  dbInit = config: pkgs: let  
-    user = config.name; 
-    admin = config.mysql.username; 
+  dbInit = config: pkgs: let
+    user = config.name;
+    admin = config.mysql.username;
     inherit (config.mysql) password database;
-  in pkgs.writeText "init.sql" ''
-    SET @row_count = (SELECT COUNT(*) FROM mysql.user WHERE user='${user}' AND host='%';);
-    IF @row_count < 1 THEN
-      CREATE USER '${user}'@'%' IDENTIFIED WITH mysql_native_password BY '${password}';
-    END IF;
-    CREATE DATABASE IF NOT EXISTS ${database} DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
-    GRANT ALL ON ${database}.* TO '${user}'@'%';
-    GRANT ALL ON ${database}.* TO '${admin}'@'%';
-  '';
-
+  in
+    pkgs.writeText "init.sql"
+    # mysql
+    ''
+      SET @row_count = (SELECT COUNT(*) FROM mysql.user WHERE user='${user}' AND host='%';);
+      IF @row_count < 1 THEN
+        CREATE USER '${user}'@'%' IDENTIFIED WITH mysql_native_password BY '${password}';
+      END IF;
+      CREATE DATABASE IF NOT EXISTS ${database} DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+      GRANT ALL ON ${database}.* TO '${user}'@'%';
+      GRANT ALL ON ${database}.* TO '${admin}'@'%';
+    '';
 }

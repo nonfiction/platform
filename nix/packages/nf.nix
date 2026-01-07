@@ -1,5 +1,8 @@
-{ perSystem, pkgs,... }: let
-
+{
+  perSystem,
+  pkgs,
+  ...
+}: let
   # Create scripts derivation for a given system
   platform = pkgs.stdenv.mkDerivation {
     name = "platform";
@@ -21,20 +24,23 @@
     '';
   };
 
-  path = with pkgs; lib.makeBinPath [ 
-    apacheHttpd 
-    docker 
-    doctl 
-    esh 
-    gh
-    git 
-    jq
-    mysql80
-    perSystem.self.hostname
-  ];
-
-in pkgs.writeScriptBin "nf" ''
-  #!/usr/bin/env bash
-  export PATH=${path}:${platform}/bin:$PATH
-  exec ${platform}/bin/nf "''${@}"
-''
+  path = with pkgs;
+    lib.makeBinPath [
+      apacheHttpd
+      docker
+      doctl
+      esh
+      gh
+      git
+      jq
+      mysql80
+      perSystem.self.hostname
+    ];
+in
+  pkgs.writeScriptBin "nf"
+  # bash
+  ''
+    #!/usr/bin/env bash
+    export PATH=${path}:${platform}/bin:$PATH
+    exec ${platform}/bin/nf "''${@}"
+  ''

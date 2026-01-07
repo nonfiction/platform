@@ -2,7 +2,6 @@
   description = "Wordpress site";
 
   inputs = {
-
     # https://github.com/NixOS/nixpkgs/
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
@@ -19,7 +18,12 @@
     platform.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = inputs: inputs.blueprint { inherit inputs; prefix = "./nix"; } // {
-    config = inputs.platform.lib.mkConfig "mywebsite";
-  };
+  outputs = inputs:
+    inputs.blueprint {
+      inherit inputs;
+      prefix = "./nix";
+    }
+    // {
+      config = inputs.platform.lib.mkConfig "mywebsite";
+    };
 }
